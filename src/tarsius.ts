@@ -248,6 +248,7 @@ let lastGeneratedCode = "";
 
 function refreshGeneratedCode() {
   lastGeneratedCode = generateCode("sml") ?? "";
+  syncSmlEditorFromCode(lastGeneratedCode);
   updateVisualSmlStatus("Generated SML refreshed.");
   return lastGeneratedCode;
 }
@@ -284,11 +285,6 @@ function applySmlEditorNow(): boolean {
     forceSyncSmlEditorFromCode(lastGeneratedCode, { preserveStatus: true });
   }
   return converted;
-}
-
-/** Refresh the Code tab editor from the workspace (used on tab activation). */
-function syncSmlEditorNow() {
-  forceSyncSmlEditorFromCode(lastGeneratedCode || refreshGeneratedCode());
 }
 
 function eventListenerFortarsius(event: Blockly.Events.Abstract) {
@@ -345,5 +341,4 @@ export {
   refreshGeneratedCode,
   convertSmlToVisml,
   applySmlEditorNow,
-  syncSmlEditorNow,
 };

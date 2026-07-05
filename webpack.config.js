@@ -20,7 +20,7 @@ module.exports = {
   devtool: "source-map",
   output: {
     filename: "[name].js",
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "docs"),
     library: "[name]",
     assetModuleFilename: "images/[name][ext]",
   },
@@ -52,6 +52,6 @@ module.exports = {
   },
 
   devServer: {
-    static: "./dist",
+    static: "./docs",
   },
 };

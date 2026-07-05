@@ -18,7 +18,7 @@
     "sourceMap": true,
     "declaration": false,
     "noEmit": false,
-    "outDir": "./dist",
+    "outDir": "./docs",
     "types": []
   },
   "include": ["src/**/*.ts", "src/**/*.js", "src/types/**/*.d.ts", "test/**/*.ts"],

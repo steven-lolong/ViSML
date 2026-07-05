@@ -895,7 +895,7 @@
 
     .code-panel {
       display: grid;
-      grid-template-rows: 52px 45px minmax(0, 1fr);
+      grid-template-rows: 52px minmax(0, 1fr);
       overflow: visible;
       color: var(--text-main);
       background: var(--code-panel-bg);
@@ -929,8 +929,6 @@
       background: var(--accent-violet);
     }
 
-    .code-output,
-    #preCodeArea,
     .code-editor,
     .code-editor-highlight {
       min-width: 0;
@@ -945,46 +943,6 @@
       line-height: 1.65;
       white-space: pre;
       tab-size: 2;
-    }
-
-    .code-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid var(--panel-border);
-      background: var(--panel-bg);
-    }
-
-    .code-tab {
-      min-width: 0;
-      height: 44px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 10px;
-      color: var(--text-soft);
-      border: 0;
-      border-right: 1px solid var(--panel-border);
-      border-radius: 0;
-      background: transparent;
-      cursor: pointer;
-      font-weight: 900;
-    }
-
-    .code-tab:last-child {
-      border-right: 0;
-    }
-
-    .code-tab:hover,
-    .code-tab:focus-visible {
-      color: var(--text-main);
-      background: var(--button-bg-hover);
-      outline: none;
-    }
-
-    .code-tab.active {
-      color: var(--text-main);
-      background: var(--code-output-bg);
-      box-shadow: inset 0 -3px 0 var(--accent-cyan);
     }
 
     .code-pane {
@@ -1073,73 +1031,7 @@
       color: var(--accent-rose);
     }
 
-    #targetCodeArea {
-      background: transparent;
-    }
-
-    #targetCodeArea.hljs {
-      color: var(--code-output-fg);
-      background: transparent;
-    }
-
-    #targetCodeArea .hljs-keyword,
-    #targetCodeArea .hljs-selector-tag {
-      color: var(--syntax-keyword);
-      font-weight: 800;
-    }
-
-    #targetCodeArea .hljs-title,
-    #targetCodeArea .hljs-title.function_,
-    #targetCodeArea .hljs-function {
-      color: var(--syntax-title);
-      font-weight: 800;
-    }
-
-    #targetCodeArea .hljs-name,
-    #targetCodeArea .hljs-variable,
-    #targetCodeArea .hljs-template-variable {
-      color: var(--syntax-name);
-    }
-
-    #targetCodeArea .hljs-string,
-    #targetCodeArea .hljs-char,
-    #targetCodeArea .hljs-regexp {
-      color: var(--syntax-string);
-    }
-
-    #targetCodeArea .hljs-number,
-    #targetCodeArea .hljs-literal {
-      color: var(--syntax-number);
-      font-weight: 800;
-    }
-
-    #targetCodeArea .hljs-comment,
-    #targetCodeArea .hljs-quote {
-      color: var(--syntax-comment);
-      font-style: italic;
-      opacity: 1;
-    }
-
-    #targetCodeArea .hljs-operator,
-    #targetCodeArea .hljs-punctuation {
-      color: var(--syntax-operator);
-    }
-
-    #targetCodeArea .hljs-attr,
-    #targetCodeArea .hljs-attribute,
-    #targetCodeArea .hljs-symbol,
-    #targetCodeArea .hljs-bullet {
-      color: var(--syntax-attribute);
-    }
-
-    #targetCodeArea .hljs-built_in,
-    #targetCodeArea .hljs-type,
-    #targetCodeArea .hljs-class {
-      color: var(--syntax-built-in);
-      font-weight: 800;
-    }
-
-    /* Same syntax palette for the editable Code tab's highlight layer. */
+    /* Syntax palette for the code editor's highlight layer. */
     #smlEditorHighlight .hljs-keyword,
     #smlEditorHighlight .hljs-selector-tag {
       color: var(--syntax-keyword);
@@ -1695,12 +1587,7 @@
             <button id="toggleCodePanel" class="small-button panel-hide-button" type="button" aria-label="Hide generated SML" title="Hide generated SML">▶</button>
           </div>
         </div>
-        <div class="code-tabs" role="tablist" aria-label="SML code views">
-          <button id="smlOutputTab" class="code-tab active" type="button" role="tab" aria-selected="true" aria-controls="preCodeArea" data-code-tab="output">Output</button>
-          <button id="smlEditorTab" class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="smlEditorPane" data-code-tab="editor">Code</button>
-        </div>
-        <pre id="preCodeArea" class="code-output code-pane active" role="tabpanel" aria-labelledby="smlOutputTab"><code id="targetCodeArea" class="language-sml"></code></pre>
-        <div id="smlEditorPane" class="code-pane code-editor-pane" role="tabpanel" aria-labelledby="smlEditorTab">
+        <div id="smlEditorPane" class="code-pane code-editor-pane active" role="region" aria-label="SML code editor">
           <div class="code-editor-wrap">
             <pre id="smlEditorHighlight" class="code-editor-highlight" aria-hidden="true"></pre>
             <textarea id="smlSourceArea" class="code-editor language-sml" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
@@ -1784,7 +1671,6 @@
       var examplesSubMenu = document.getElementById("examplesSubMenu");
       var resizeHandle = document.getElementById("resizeHandle");
       var codePanel = document.getElementById("textBasedCodeDiv");
-      var codeTabs = document.querySelectorAll("[data-code-tab]");
       var smlSourceArea = document.getElementById("smlSourceArea");
       var smlConvertStatus = document.getElementById("smlConvertStatus");
       var autosaveInterval = document.getElementById("autosaveInterval");
@@ -1897,23 +1783,6 @@
         }
       }
 
-      function setActiveCodeTab(tabName) {
-        codeTabs.forEach(function (tab) {
-          var active = tab.getAttribute("data-code-tab") === tabName;
-          tab.classList.toggle("active", active);
-          tab.setAttribute("aria-selected", String(active));
-        });
-        document.getElementById("preCodeArea").classList.toggle("active", tabName === "output");
-        document.getElementById("smlEditorPane").classList.toggle("active", tabName === "editor");
-        if (tabName === "editor") {
-          if (window.tarsius && window.tarsius.syncSmlEditorNow) window.tarsius.syncSmlEditorNow();
-          window.setTimeout(function () {
-            if (smlSourceArea) smlSourceArea.focus();
-          }, 0);
-        }
-        requestLayoutUpdate();
-      }
-
       window.setDarkTheme = function () {
         setShellTheme("dark");
         window.localStorage.setItem(THEME_STORAGE_KEY, "dark");
@@ -1957,8 +1826,7 @@
       };
 
       window.copyCode = function () {
-        var code = document.getElementById("targetCodeArea");
-        var text = code ? code.textContent || "" : "";
+        var text = smlSourceArea ? smlSourceArea.value : "";
         var button = document.getElementById("copyCode");
         var done = function (ok) {
           if (!button) return;
@@ -2062,11 +1930,6 @@
       document.getElementById("aboutApp").addEventListener("click", window.showAbout);
       document.getElementById("copyCode").addEventListener("click", window.copyCode);
       document.getElementById("convertSmlToBlocks").addEventListener("click", window.convertSmlToBlocks);
-      codeTabs.forEach(function (tab) {
-        tab.addEventListener("click", function () {
-          setActiveCodeTab(tab.getAttribute("data-code-tab"));
-        });
-      });
       document.getElementById("toggleToolboxPanel").addEventListener("click", window.toggleToolbox);
       document.getElementById("showToolboxFromWorkspace").addEventListener("click", window.toggleToolbox);
       document.getElementById("toggleCodePanel").addEventListener("click", window.toggleCode);
