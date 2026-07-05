@@ -119,6 +119,7 @@ import { applyGrammarTooltips } from "./core/blocks/grammar_tooltips";
 
 // Start UI
 import "./renderer/macaca_nigra/macacanigra_renderer";
+import "./renderer/goropa/goropa_renderer";
 
 import { generateCode } from "./core/generator/code_generator";
 import { smlToVismlWorkspaceState } from "./core/parser/sml_to_visml";
@@ -153,6 +154,38 @@ import { buildHtmlToolbox } from "./ui/html_toolbox";
 // hljs.initHighlightingOnLoad();
 var blockArea = document.getElementById("tarsiusWorkspaceDiv");
 
+// Renderer selection. Blockly cannot swap the renderer of a live workspace,
+// so setRenderer() persists the choice, stashes the workspace state, and
+// reloads the page; restorePendingWorkspace() picks the stash up on boot.
+const RENDERER_STORAGE_KEY = "visual-sml-renderer";
+const RENDERER_PENDING_WORKSPACE_KEY = "visual-sml-renderer-pending-workspace";
+const RENDERER_NAMES = ["MNRenderer", "GoropaRenderer"];
+
+function getRendererName(): string {
+  try {
+    const saved = window.localStorage.getItem(RENDERER_STORAGE_KEY);
+    if (saved && RENDERER_NAMES.indexOf(saved) !== -1) return saved;
+  } catch (error) {
+    console.error(error);
+  }
+  return "MNRenderer";
+}
+
+function setRenderer(rendererName: string) {
+  if (RENDERER_NAMES.indexOf(rendererName) === -1) return;
+  if (rendererName === getRendererName()) return;
+  try {
+    window.localStorage.setItem(RENDERER_STORAGE_KEY, rendererName);
+    window.localStorage.setItem(
+      RENDERER_PENDING_WORKSPACE_KEY,
+      JSON.stringify(Blockly.serialization.workspaces.save(tarsiusWorkspace))
+    );
+  } catch (error) {
+    console.error(error);
+  }
+  window.location.reload();
+}
+
 // Updating context menu
 unregisteredUnnecessaryMenu();
 registerFirstContextMenuOptions();
@@ -162,7 +195,7 @@ const tarsiusWorkspace = Blockly.inject(blockArea, {
   // plugins:
   // theme: Blockly.Themes.Macaca,
   theme: MacacaBlackWhite,
-  renderer: "MNRenderer",
+  renderer: getRendererName(),
   // renderer: "TarsiusRenderer",
   collapse: true,
   scrollbars: true,
@@ -220,7 +253,32 @@ function loadMainFileBlock() {
   mainBlock.setEditable(true);
 }
 
+/** Reload the workspace that setRenderer() stashed before reloading the page. */
+function restorePendingWorkspace() {
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(RENDERER_PENDING_WORKSPACE_KEY);
+    if (raw !== null) window.localStorage.removeItem(RENDERER_PENDING_WORKSPACE_KEY);
+  } catch (error) {
+    console.error(error);
+  }
+  if (!raw) return;
+  try {
+    Blockly.serialization.workspaces.load(JSON.parse(raw), tarsiusWorkspace);
+    const mainBlock = tarsiusWorkspace.getBlockById("wka+5-ZSnLLMV2hW(||?") as any;
+    if (mainBlock) {
+      mainBlock.setDeletable(false);
+      mainBlock.setMovable(true);
+      mainBlock.setEditable(true);
+    }
+  } catch (error) {
+    console.error(error);
+    loadMainFileBlock();
+  }
+}
+
 loadMainFileBlock();
+restorePendingWorkspace();
 // tarsiusWorkspace.addChangeListener(Blockly.Events.disableOrphans);
 
 function updateVisualSmlStatus(message?: string) {
@@ -341,4 +399,6 @@ export {
   refreshGeneratedCode,
   convertSmlToVisml,
   applySmlEditorNow,
+  getRendererName,
+  setRenderer,
 };

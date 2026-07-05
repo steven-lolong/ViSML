@@ -434,6 +434,11 @@
       line-height: 1.35;
     }
 
+    .example-menu-item[aria-checked="true"] .example-menu-title::after {
+      content: " ✓";
+      color: var(--accent-green);
+    }
+
     .panel-hide-button {
       min-width: 34px;
       width: 34px;
@@ -1521,6 +1526,24 @@
           </div>
         </div>
 
+        <div class="action-group renderer-actions" aria-label="Renderer options">
+          <div class="example-menu-wrapper">
+            <button id="rendererMenuButton" class="ghost-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="rendererSubMenu">
+              <span class="button-icon" aria-hidden="true">⬢</span> Renderer
+            </button>
+            <div id="rendererSubMenu" class="example-submenu" role="menu" hidden>
+              <button class="example-menu-item" type="button" role="menuitemradio" aria-checked="true" data-renderer-id="MNRenderer">
+                <span class="example-menu-title">Macaca Nigra</span>
+                <span class="example-menu-description">Thrasos-based renderer with ViSML notches (default).</span>
+              </button>
+              <button class="example-menu-item" type="button" role="menuitemradio" aria-checked="false" data-renderer-id="GoropaRenderer">
+                <span class="example-menu-title">Goropa</span>
+                <span class="example-menu-description">Text-code look with grammar notches as non-terminal cues.</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="action-group run-actions" aria-label="Workspace actions">
           <button id="clearWorkspace" class="ghost-button danger-button" type="button">
             <span class="button-icon" aria-hidden="true">×</span> Clear Workspace
@@ -1669,6 +1692,8 @@
       var themeToggle = document.getElementById("themeToggle");
       var examplesButton = document.getElementById("examplesMenuButton");
       var examplesSubMenu = document.getElementById("examplesSubMenu");
+      var rendererButton = document.getElementById("rendererMenuButton");
+      var rendererSubMenu = document.getElementById("rendererSubMenu");
       var resizeHandle = document.getElementById("resizeHandle");
       var codePanel = document.getElementById("textBasedCodeDiv");
       var smlSourceArea = document.getElementById("smlSourceArea");
@@ -1741,6 +1766,22 @@
         if (!examplesButton || !examplesSubMenu) return;
         examplesSubMenu.hidden = true;
         examplesButton.setAttribute("aria-expanded", "false");
+      }
+
+      function closeRendererMenu() {
+        if (!rendererButton || !rendererSubMenu) return;
+        rendererSubMenu.hidden = true;
+        rendererButton.setAttribute("aria-expanded", "false");
+      }
+
+      function refreshRendererMenuSelection() {
+        if (!rendererSubMenu) return;
+        var current = window.tarsius && window.tarsius.getRendererName
+          ? window.tarsius.getRendererName()
+          : "MNRenderer";
+        rendererSubMenu.querySelectorAll("[data-renderer-id]").forEach(function (item) {
+          item.setAttribute("aria-checked", String(item.getAttribute("data-renderer-id") === current));
+        });
       }
 
       function closeTopbarMenu() {
@@ -1879,8 +1920,27 @@
       examplesButton && examplesButton.addEventListener("click", function (event) {
         event.stopPropagation();
         var open = examplesSubMenu.hidden;
+        closeRendererMenu();
         examplesSubMenu.hidden = !open;
         examplesButton.setAttribute("aria-expanded", String(open));
+      });
+
+      rendererButton && rendererButton.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var open = rendererSubMenu.hidden;
+        closeExamplesMenu();
+        rendererSubMenu.hidden = !open;
+        rendererButton.setAttribute("aria-expanded", String(open));
+        if (open) refreshRendererMenuSelection();
+      });
+
+      rendererSubMenu && rendererSubMenu.addEventListener("click", function (event) {
+        var item = closestFromEvent(event, "[data-renderer-id]");
+        if (!item || !window.tarsius || !window.tarsius.setRenderer) return;
+        closeRendererMenu();
+        closeTopbarMenu();
+        updateStatus("Switching renderer to " + item.querySelector(".example-menu-title").textContent + "...");
+        window.tarsius.setRenderer(item.getAttribute("data-renderer-id"));
       });
 
       examplesSubMenu && examplesSubMenu.addEventListener("click", function (event) {
@@ -1896,12 +1956,15 @@
       });
 
       document.addEventListener("click", function (event) {
-        if (!closestFromEvent(event, ".example-menu-wrapper")) closeExamplesMenu();
+        var wrapper = closestFromEvent(event, ".example-menu-wrapper");
+        if (!wrapper || !wrapper.contains(examplesSubMenu)) closeExamplesMenu();
+        if (!wrapper || !wrapper.contains(rendererSubMenu)) closeRendererMenu();
       });
 
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
           closeExamplesMenu();
+          closeRendererMenu();
           closeTopbarMenu();
         }
       });

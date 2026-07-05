@@ -15251,6 +15251,200 @@ function getColorByType(type) {
 
 /***/ },
 
+/***/ "./src/renderer/goropa/goropa_constant_provider.ts"
+/*!*********************************************************!*\
+  !*** ./src/renderer/goropa/goropa_constant_provider.ts ***!
+  \*********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GoropaConstantProvider: () => (/* binding */ GoropaConstantProvider)
+/* harmony export */ });
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+/* harmony import */ var _macaca_nigra_macacanigra_constant_provider__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../macaca_nigra/macacanigra_constant_provider */ "./src/renderer/macaca_nigra/macacanigra_constant_provider.ts");
+/**
+ * @fileoverview custom render constant provider - text-code look
+ * @name goropa_constant_provider
+ * @author Steven Lolong
+ * @description in ES6 syntax
+ * @copyright 2026.
+ */
+
+
+/**
+ * A flat notch: statement blocks stack flush on top of each other, like
+ * consecutive lines in a text editor.
+ */
+function makeFlatNotch() {
+    const width = 6;
+    const height = 0;
+    function makeMainPath(direction) {
+        return blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgPaths.line([
+            blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgPaths.point(direction * width, 0),
+        ]);
+    }
+    return {
+        width: width,
+        height: height,
+        pathLeft: makeMainPath(1),
+        pathRight: makeMainPath(-1),
+    };
+}
+/**
+ * Goropa's text-code look: statement blocks stack flush like lines in a text
+ * editor and typography matches the SML code panel, while value connections
+ * keep the Macaca Nigra grammar-shaped notches (inherited shapeFor()) as the
+ * visual cue that differentiates the non-terminals.
+ */
+class GoropaConstantProvider extends _macaca_nigra_macacanigra_constant_provider__WEBPACK_IMPORTED_MODULE_1__.MacacaNigraConstantProvider {
+    constructor() {
+        super();
+        // No hats, near-square corners, compact line-height-like spacing.
+        this.ADD_START_HATS = false;
+        this.CORNER_RADIUS = 2;
+        this.MIN_BLOCK_HEIGHT = 18;
+        this.NOTCH_WIDTH = 6;
+        this.NOTCH_HEIGHT = 0;
+        this.NOTCH_OFFSET_LEFT = 8;
+        this.BETWEEN_STATEMENT_PADDING_Y = 2;
+        this.EXTERNAL_VALUE_INPUT_PADDING = 1;
+        // Code indent (~two monospace spaces, like the SML generator): used for
+        // statement inputs and for lines that begin with an input socket.
+        this.STATEMENT_INPUT_PADDING_LEFT = 16;
+        // Empty slots look like a small gap in the text, not a puzzle socket.
+        this.EMPTY_INLINE_INPUT_PADDING = 8;
+        this.EMPTY_INLINE_INPUT_HEIGHT = 18;
+        // Fields render as monospace tokens, matching the SML code panel.
+        this.FIELD_BORDER_RECT_RADIUS = 2;
+        this.FIELD_TEXT_FONTFAMILY =
+            '"SFMono-Regular", Consolas, "Liberation Mono", monospace';
+    }
+    /**
+     * @override
+     */
+    init() {
+        super.init();
+        this.FlatNotch = makeFlatNotch();
+    }
+    /**
+     * @override
+     * Statement connections render flat so blocks stack like lines of code;
+     * value connections keep the grammar-shaped Macaca Nigra notches so users
+     * can still tell the non-terminals apart.
+     */
+    shapeFor(connection) {
+        switch (connection.type) {
+            case blockly__WEBPACK_IMPORTED_MODULE_0__.PREVIOUS_STATEMENT:
+            case blockly__WEBPACK_IMPORTED_MODULE_0__.NEXT_STATEMENT:
+                return this.FlatNotch;
+            default:
+                return super.shapeFor(connection);
+        }
+    }
+}
+
+
+/***/ },
+
+/***/ "./src/renderer/goropa/goropa_renderer.ts"
+/*!************************************************!*\
+  !*** ./src/renderer/goropa/goropa_renderer.ts ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+/* harmony import */ var _goropa_constant_provider__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./goropa_constant_provider */ "./src/renderer/goropa/goropa_constant_provider.ts");
+/**
+ * @fileoverview custom render based on Blockly's base renderer, styled to
+ * feel like programming in text code: SML-generator-like line breaks (one
+ * line per value/dummy input on every block) with indented inline
+ * connectors, top-aligned image cues, flat statement stacking, and
+ * monospace fields, while keeping the Macaca Nigra grammar notches on
+ * value connections as non-terminal cues
+ * @name goropa_renderer
+ * @author Steven Lolong
+ * @description in ES6 syntax
+ * @object "GoropaRenderer"
+ * @copyright 2026.
+ */
+
+
+class GoropaRenderInfo extends blockly__WEBPACK_IMPORTED_MODULE_0__.blockRendering.RenderInfo {
+    constructor(renderer, block) {
+        super(renderer, block);
+        // Sockets always render inline: a value connector sits right after the
+        // fields of its own line (or at the code indent when the line has no
+        // fields), instead of being carved into the block's right edge the way
+        // external inputs are. Line breaking is handled by shouldStartNewRow_.
+        this.isInline = !block.isCollapsed();
+    }
+    /**
+     * Line structure mirrors the generated SML text for every block,
+     * regardless of its authored inputsInline flag: each value or dummy
+     * input begins a new line, the way the generator places its newlines.
+     */
+    shouldStartNewRow_(currInput, prevInput) {
+        if (super.shouldStartNewRow_(currInput, prevInput))
+            return true;
+        if (!prevInput)
+            return false;
+        return (currInput instanceof blockly__WEBPACK_IMPORTED_MODULE_0__.inputs.ValueInput ||
+            currInput instanceof blockly__WEBPACK_IMPORTED_MODULE_0__.inputs.DummyInput ||
+            prevInput instanceof blockly__WEBPACK_IMPORTED_MODULE_0__.inputs.ValueInput);
+    }
+    /**
+     * A line that starts with an input socket is an indented continuation
+     * line: the connector's distance from the block's left border plays the
+     * role of the SML generator's two-space indentation.
+     */
+    getInRowSpacing_(prev, next) {
+        if (!prev && next && blockly__WEBPACK_IMPORTED_MODULE_0__.blockRendering.Types.isInlineInput(next)) {
+            return this.constants_.STATEMENT_INPUT_PADDING_LEFT;
+        }
+        return super.getInRowSpacing_(prev, next);
+    }
+    addInput_(input, activeRow) {
+        super.addInput_(input, activeRow);
+        // Text code is left-aligned; ignore per-input RIGHT/CENTRE alignment.
+        activeRow.align = blockly__WEBPACK_IMPORTED_MODULE_0__.inputs.Align.LEFT;
+    }
+    getElemCenterline_(row, elem) {
+        // Image fields (the colored cues sitting next to input and output
+        // connectors) pin to the top of their line like glyphs on the first
+        // text line, instead of centering against tall nested blocks.
+        if (blockly__WEBPACK_IMPORTED_MODULE_0__.blockRendering.Types.isField(elem) &&
+            elem.field instanceof blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage) {
+            return row.yPos + elem.height / 2;
+        }
+        return super.getElemCenterline_(row, elem);
+    }
+}
+class GoropaRenderer extends blockly__WEBPACK_IMPORTED_MODULE_0__.blockRendering.Renderer {
+    constructor(name) {
+        super(name);
+    }
+    /**
+     * @override
+     */
+    makeConstants_() {
+        return new _goropa_constant_provider__WEBPACK_IMPORTED_MODULE_1__.GoropaConstantProvider();
+    }
+    /**
+     * @override
+     */
+    makeRenderInfo_(block) {
+        return new GoropaRenderInfo(this, block);
+    }
+}
+blockly__WEBPACK_IMPORTED_MODULE_0__.blockRendering.register("GoropaRenderer", GoropaRenderer);
+
+
+/***/ },
+
 /***/ "./src/renderer/macaca_nigra/horizontal_notchs_standard.ts"
 /*!*****************************************************************!*\
   !*** ./src/renderer/macaca_nigra/horizontal_notchs_standard.ts ***!
@@ -18689,17 +18883,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySmlEditorNow: () => (/* binding */ applySmlEditorNow),
 /* harmony export */   convertSmlToVisml: () => (/* binding */ convertSmlToVisml),
-/* harmony export */   getAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.getAutosaveIntervalMinutes),
-/* harmony export */   menuLoadAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.menuLoadAutosave),
-/* harmony export */   menuLoadFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.menuLoadFile),
-/* harmony export */   menuSaveFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.menuSaveFile),
+/* harmony export */   getAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.getAutosaveIntervalMinutes),
+/* harmony export */   getRendererName: () => (/* binding */ getRendererName),
+/* harmony export */   menuLoadAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.menuLoadAutosave),
+/* harmony export */   menuLoadFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.menuLoadFile),
+/* harmony export */   menuSaveFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.menuSaveFile),
 /* harmony export */   refreshGeneratedCode: () => (/* binding */ refreshGeneratedCode),
-/* harmony export */   sampleLoader: () => (/* reexport safe */ _sample_sample_loader__WEBPACK_IMPORTED_MODULE_121__.sampleLoader),
-/* harmony export */   saveAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.saveAutosave),
-/* harmony export */   setAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.setAutosaveIntervalMinutes),
-/* harmony export */   setThemesBnW: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_119__.setThemesBnW),
-/* harmony export */   setThemestarsius: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_119__.setThemestarsius),
-/* harmony export */   startAutosaveTimer: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.startAutosaveTimer),
+/* harmony export */   sampleLoader: () => (/* reexport safe */ _sample_sample_loader__WEBPACK_IMPORTED_MODULE_122__.sampleLoader),
+/* harmony export */   saveAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.saveAutosave),
+/* harmony export */   setAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.setAutosaveIntervalMinutes),
+/* harmony export */   setRenderer: () => (/* binding */ setRenderer),
+/* harmony export */   setThemesBnW: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_120__.setThemesBnW),
+/* harmony export */   setThemestarsius: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_120__.setThemestarsius),
+/* harmony export */   startAutosaveTimer: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.startAutosaveTimer),
 /* harmony export */   tarsiusWorkspace: () => (/* binding */ tarsiusWorkspace)
 /* harmony export */ });
 /* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
@@ -18816,15 +19012,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_generator_sml_blocks_declarations_strbind__WEBPACK_IMPORTED_MODULE_111__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/strbind */ "./src/core/generator/sml/blocks/declarations/strbind.ts");
 /* harmony import */ var _core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_112__ = __webpack_require__(/*! ./core/blocks/grammar_tooltips */ "./src/core/blocks/grammar_tooltips.ts");
 /* harmony import */ var _renderer_macaca_nigra_macacanigra_renderer__WEBPACK_IMPORTED_MODULE_113__ = __webpack_require__(/*! ./renderer/macaca_nigra/macacanigra_renderer */ "./src/renderer/macaca_nigra/macacanigra_renderer.ts");
-/* harmony import */ var _core_generator_code_generator__WEBPACK_IMPORTED_MODULE_114__ = __webpack_require__(/*! ./core/generator/code_generator */ "./src/core/generator/code_generator.ts");
-/* harmony import */ var _core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./core/parser/sml_to_visml */ "./src/core/parser/sml_to_visml.ts");
-/* harmony import */ var _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./ui/sml_code_editor */ "./src/ui/sml_code_editor.ts");
-/* harmony import */ var _ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./ui/context_menu_workspace */ "./src/ui/context_menu_workspace.ts");
-/* harmony import */ var _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./ui/themes_tarsius */ "./src/ui/themes_tarsius.ts");
-/* harmony import */ var _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./assets/js/theme_changer */ "./src/assets/js/theme_changer.ts");
-/* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
-/* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
-/* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
+/* harmony import */ var _renderer_goropa_goropa_renderer__WEBPACK_IMPORTED_MODULE_114__ = __webpack_require__(/*! ./renderer/goropa/goropa_renderer */ "./src/renderer/goropa/goropa_renderer.ts");
+/* harmony import */ var _core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./core/generator/code_generator */ "./src/core/generator/code_generator.ts");
+/* harmony import */ var _core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./core/parser/sml_to_visml */ "./src/core/parser/sml_to_visml.ts");
+/* harmony import */ var _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./ui/sml_code_editor */ "./src/ui/sml_code_editor.ts");
+/* harmony import */ var _ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./ui/context_menu_workspace */ "./src/ui/context_menu_workspace.ts");
+/* harmony import */ var _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./ui/themes_tarsius */ "./src/ui/themes_tarsius.ts");
+/* harmony import */ var _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./assets/js/theme_changer */ "./src/assets/js/theme_changer.ts");
+/* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
+/* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
+/* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
 
 // Start Blocks
 
@@ -18951,17 +19148,49 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 // hljs.initHighlightingOnLoad();
 var blockArea = document.getElementById("tarsiusWorkspaceDiv");
+// Renderer selection. Blockly cannot swap the renderer of a live workspace,
+// so setRenderer() persists the choice, stashes the workspace state, and
+// reloads the page; restorePendingWorkspace() picks the stash up on boot.
+const RENDERER_STORAGE_KEY = "visual-sml-renderer";
+const RENDERER_PENDING_WORKSPACE_KEY = "visual-sml-renderer-pending-workspace";
+const RENDERER_NAMES = ["MNRenderer", "GoropaRenderer"];
+function getRendererName() {
+    try {
+        const saved = window.localStorage.getItem(RENDERER_STORAGE_KEY);
+        if (saved && RENDERER_NAMES.indexOf(saved) !== -1)
+            return saved;
+    }
+    catch (error) {
+        console.error(error);
+    }
+    return "MNRenderer";
+}
+function setRenderer(rendererName) {
+    if (RENDERER_NAMES.indexOf(rendererName) === -1)
+        return;
+    if (rendererName === getRendererName())
+        return;
+    try {
+        window.localStorage.setItem(RENDERER_STORAGE_KEY, rendererName);
+        window.localStorage.setItem(RENDERER_PENDING_WORKSPACE_KEY, JSON.stringify(blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.save(tarsiusWorkspace)));
+    }
+    catch (error) {
+        console.error(error);
+    }
+    window.location.reload();
+}
 // Updating context menu
-(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_117__.unregisteredUnnecessaryMenu)();
-(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_117__.registerFirstContextMenuOptions)();
+(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_118__.unregisteredUnnecessaryMenu)();
+(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_118__.registerFirstContextMenuOptions)();
 (0,_core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_112__.applyGrammarTooltips)();
 const tarsiusWorkspace = blockly__WEBPACK_IMPORTED_MODULE_0__.inject(blockArea, {
     // plugins:
     // theme: Blockly.Themes.Macaca,
-    theme: _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_118__.MacacaBlackWhite,
-    renderer: "MNRenderer",
+    theme: _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_119__.MacacaBlackWhite,
+    renderer: getRendererName(),
     // renderer: "TarsiusRenderer",
     collapse: true,
     scrollbars: true,
@@ -19017,7 +19246,35 @@ function loadMainFileBlock() {
     mainBlock.setMovable(true);
     mainBlock.setEditable(true);
 }
+/** Reload the workspace that setRenderer() stashed before reloading the page. */
+function restorePendingWorkspace() {
+    let raw = null;
+    try {
+        raw = window.localStorage.getItem(RENDERER_PENDING_WORKSPACE_KEY);
+        if (raw !== null)
+            window.localStorage.removeItem(RENDERER_PENDING_WORKSPACE_KEY);
+    }
+    catch (error) {
+        console.error(error);
+    }
+    if (!raw)
+        return;
+    try {
+        blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.load(JSON.parse(raw), tarsiusWorkspace);
+        const mainBlock = tarsiusWorkspace.getBlockById("wka+5-ZSnLLMV2hW(||?");
+        if (mainBlock) {
+            mainBlock.setDeletable(false);
+            mainBlock.setMovable(true);
+            mainBlock.setEditable(true);
+        }
+    }
+    catch (error) {
+        console.error(error);
+        loadMainFileBlock();
+    }
+}
 loadMainFileBlock();
+restorePendingWorkspace();
 // tarsiusWorkspace.addChangeListener(Blockly.Events.disableOrphans);
 function updateVisualSmlStatus(message) {
     const statusLine = document.getElementById("statusLine");
@@ -19040,13 +19297,13 @@ function updateVisualSmlStatus(message) {
 }
 let lastGeneratedCode = "";
 function refreshGeneratedCode() {
-    lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_114__.generateCode)("sml") ?? "";
-    (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_116__.syncSmlEditorFromCode)(lastGeneratedCode);
+    lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__.generateCode)("sml") ?? "";
+    (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.syncSmlEditorFromCode)(lastGeneratedCode);
     updateVisualSmlStatus("Generated SML refreshed.");
     return lastGeneratedCode;
 }
 function convertSmlToVisml(source) {
-    const state = (0,_core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_115__.smlToVismlWorkspaceState)(source);
+    const state = (0,_core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_116__.smlToVismlWorkspaceState)(source);
     const previousState = blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.save(tarsiusWorkspace);
     try {
         tarsiusWorkspace.clear();
@@ -19066,30 +19323,30 @@ function convertSmlToVisml(source) {
     }
     blockly__WEBPACK_IMPORTED_MODULE_0__.svgResize(tarsiusWorkspace);
     refreshGeneratedCode();
-    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.scheduleAutosave)();
+    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.scheduleAutosave)();
     updateVisualSmlStatus("SML converted to ViSML blocks.");
 }
 /** Convert the Code tab text into blocks right now (used by the Convert button). */
 function applySmlEditorNow() {
-    const converted = (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_116__.applySmlEditorText)({ reportEmpty: true });
+    const converted = (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.applySmlEditorText)({ reportEmpty: true });
     if (converted) {
         // Normalize the editor to the canonical generated layout on explicit convert.
-        (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_116__.forceSyncSmlEditorFromCode)(lastGeneratedCode, { preserveStatus: true });
+        (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.forceSyncSmlEditorFromCode)(lastGeneratedCode, { preserveStatus: true });
     }
     return converted;
 }
 function eventListenerFortarsius(event) {
     blockly__WEBPACK_IMPORTED_MODULE_0__.Events.disableOrphans(event);
-    lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_114__.generateCode)("sml") ?? "";
-    (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_116__.syncSmlEditorFromCode)(lastGeneratedCode);
-    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.scheduleAutosave)();
+    lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__.generateCode)("sml") ?? "";
+    (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.syncSmlEditorFromCode)(lastGeneratedCode);
+    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.scheduleAutosave)();
     updateVisualSmlStatus("Generated SML updated.");
 }
-(0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_116__.initSmlCodeEditor)({ convertSmlToBlocks: convertSmlToVisml });
+(0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.initSmlCodeEditor)({ convertSmlToBlocks: convertSmlToVisml });
 tarsiusWorkspace.addChangeListener(eventListenerFortarsius);
-(0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_120__.startAutosaveTimer)();
+(0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.startAutosaveTimer)();
 // Render the custom HTML toolbox (left column) from the toolbox definition.
-(0,_ui_html_toolbox__WEBPACK_IMPORTED_MODULE_122__.buildHtmlToolbox)(tarsiusWorkspace);
+(0,_ui_html_toolbox__WEBPACK_IMPORTED_MODULE_123__.buildHtmlToolbox)(tarsiusWorkspace);
 let resizeFrame = 0;
 function updatetarsiusWorkspaceSize() {
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
