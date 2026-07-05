@@ -1,0 +1,36 @@
+{
+  "name": "visual-sml",
+  "version": "5.0.0",
+  "description": "Visual SML",
+  "main": "docs/tarsius.js",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:roundtrip",
+    "test:roundtrip": "webpack --config webpack.test.config.js && node test/run_roundtrip.js",
+    "cp_index": "cp ./src/index.html ./docs/",
+    "typecheck": "tsc --noEmit",
+    "build": "cp ./src/assets/images/favicon.ico ./docs/ && cp ./src/index.html ./docs/ && webpack",
+    "serve-ng": "cp ./src/assets/images/favicon.ico ./docs/ && cp ./src/index.html ./docs/ && webpack serve --open",
+    "build-win": "copy .\\src\\assets\\images\\favicon.ico .\\docs\\ && copy .\\src\\index.html .\\docs\\ && webpack",
+    "serve-ng-win": "copy .\\src\\assets\\images\\favicon.ico .\\docs\\ && copy .\\src\\index.html .\\docs\\ && webpack serve --open",
+    "clean": "rm -rf ./docs/*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "blockly": "^12.5.1",
+    "bootstrap": "^5.3.3",
+    "highlight.js": "^11.10.0",
+    "jquery": "^3.7.1"
+  },
+  "devDependencies": {
+    "css-loader": "^7.1.2",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.9.3",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0"
+  }
+}

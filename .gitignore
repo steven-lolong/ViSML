@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+.fuse_hidden*
+.DS_STORE/
+.DS_Store
+.DS_Store/

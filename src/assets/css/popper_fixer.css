@@ -1,0 +1,20 @@
+/* popper fixer for dropdown menu  */
+.dropdown-menu[data-bs-popper] {
+	top: calc(100% + var(--#{$prefix}dropdown-spacer));
+	margin-top: 0;
+
+	.dropup & {
+			bottom: calc(100% + var(--#{$prefix}dropdown-spacer));
+			margin-bottom: 0;
+	}
+
+	.dropend & {
+			left: calc(100% + var(--#{$prefix}dropdown-spacer));
+			margin-left: 0;
+	}
+
+	.dropstart & {
+			right: calc(100% + var(--#{$prefix}dropdown-spacer));
+			margin-right: 0;
+	}
+}
