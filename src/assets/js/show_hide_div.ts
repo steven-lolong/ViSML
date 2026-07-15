@@ -1,4 +1,11 @@
-import * as Blockly from "blockly";
+function requestLayoutUpdate() {
+  const requestLayout = (window as any).visualSmlRequestLayout;
+  if (typeof requestLayout === "function") {
+    requestLayout();
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("visual-sml:layout-request"));
+}
 
 export function show_hide_block(divName) {
   let dv = document.getElementById(divName);
@@ -14,13 +21,12 @@ export function show_hide_source_block(tarsiusDiv, srcDiv) {
   if (srcDivBlock.style.display === "none") {
     tarsiusDivBlock.classList.replace("col-12", "col-8");
     srcDivBlock.style.display = "block";
-    // updatetarsiusWorkspaceSize(tarsiusWorkspace);
-    Blockly.svgResize(tarsius.tarsiusWorkspace);
+    requestLayoutUpdate();
     btnCode.innerText = "hide";
   } else {
     srcDivBlock.style.display = "none";
     tarsiusDivBlock.classList.replace("col-8", "col-12");
-    Blockly.svgResize(tarsius.tarsiusWorkspace);
+    requestLayoutUpdate();
     btnCode.innerText = "show";
   }
 }

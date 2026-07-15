@@ -127,8 +127,10 @@ import {
   applySmlEditorText,
   forceSyncSmlEditorFromCode,
   initSmlCodeEditor,
+  layoutSmlCodeEditor,
   syncSmlEditorFromCode,
 } from "./ui/sml_code_editor";
+import { createLayoutResizeCoordinator } from "./ui/layout_resize";
 
 import {
   registerFirstContextMenuOptions,
@@ -329,7 +331,7 @@ function convertSmlToVisml(source: string) {
     mainBlock.setMovable(true);
     mainBlock.setEditable(true);
   }
-  Blockly.svgResize(tarsiusWorkspace);
+  requestLayoutUpdate();
   refreshGeneratedCode();
   scheduleAutosave();
   updateVisualSmlStatus("SML converted to ViSML blocks.");
@@ -361,27 +363,19 @@ startAutosaveTimer();
 // Render the custom HTML toolbox (left column) from the toolbox definition.
 buildHtmlToolbox(tarsiusWorkspace);
 
-let resizeFrame = 0;
+const layoutResizeCoordinator = createLayoutResizeCoordinator({
+  workspace: tarsiusWorkspace,
+  layoutCodeEditor: layoutSmlCodeEditor,
+  updateStatus: updateVisualSmlStatus,
+});
 
-function updatetarsiusWorkspaceSize() {
-  const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-  document.documentElement.style.setProperty("--viewport-height", `${viewportHeight}px`);
-
-  if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
-  resizeFrame = window.requestAnimationFrame(() => {
-    Blockly.svgResize(tarsiusWorkspace);
-    updateVisualSmlStatus();
-    resizeFrame = 0;
-  });
+function requestLayoutUpdate(message?: string) {
+  layoutResizeCoordinator.request(message);
 }
-// update tarsiusWorkspace when the window size is change
-window.addEventListener("resize", updatetarsiusWorkspaceSize, false);
-window.addEventListener("orientationchange", updatetarsiusWorkspaceSize, false);
-window.visualViewport?.addEventListener("resize", updatetarsiusWorkspaceSize, false);
-window.addEventListener("load", updatetarsiusWorkspaceSize, false);
+
 window.setTimeout(() => {
   refreshGeneratedCode();
-  updatetarsiusWorkspaceSize();
+  requestLayoutUpdate();
 }, 0);
 
 export {
@@ -399,6 +393,7 @@ export {
   refreshGeneratedCode,
   convertSmlToVisml,
   applySmlEditorNow,
+  requestLayoutUpdate,
   getRendererName,
   setRenderer,
 };

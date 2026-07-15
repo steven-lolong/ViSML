@@ -13,14 +13,24 @@
   <link rel="icon" href="./favicon.ico" sizes="any" />
   <style>
     :root {
-      --toolbox-width: 300px;
-      --code-panel-width: 430px;
       --topbar-height: 82px;
-      --statusbar-height: 58px;
       --viewport-height: 100vh;
       --radius-xl: 8px;
       --radius-lg: 6px;
       --radius-md: 4px;
+
+      /* Semantic IDE dimensions. Zero-width/height regions are reserved for
+         the activity bar and bottom tools that arrive in the next stage. */
+      --ide-activity-bar-width: 0px;
+      --ide-primary-sidebar-width: 300px;
+      --ide-code-panel-width: 430px;
+      --ide-bottom-panel-height: 0px;
+      --ide-status-bar-height: 58px;
+
+      /* Compatibility aliases for existing integrations. */
+      --toolbox-width: var(--ide-primary-sidebar-width);
+      --code-panel-width: var(--ide-code-panel-width);
+      --statusbar-height: var(--ide-status-bar-height);
 
       --bg-page: #20262b;
       --bg-app: #20262b;
@@ -75,6 +85,24 @@
 
       --shadow-soft: 0 10px 28px rgba(8, 12, 14, 0.22);
       --shadow-glow: 0 0 0 3px rgba(24, 166, 166, 0.14);
+
+      /* Semantic IDE colour tokens map to the current palette in stage one. */
+      --ide-shell-bg: var(--bg-app);
+      --ide-panel-bg: var(--panel-bg);
+      --ide-surface-raised: var(--panel-bg-strong);
+      --ide-workspace-bg: var(--workspace-bg);
+      --ide-toolbar-bg: var(--panel-bg-strong);
+      --ide-header-bg: var(--panel-bg-strong);
+      --ide-border: var(--panel-border);
+      --ide-border-strong: var(--panel-border-bright);
+      --ide-text: var(--text-main);
+      --ide-text-muted: var(--text-muted);
+      --ide-text-disabled: color-mix(in srgb, var(--text-muted) 64%, transparent);
+      --ide-accent: var(--accent-cyan);
+      --ide-success: var(--accent-green);
+      --ide-warning: var(--accent-amber);
+      --ide-error: var(--accent-rose);
+      --ide-info: var(--accent-cyan);
       color-scheme: dark;
     }
 
@@ -136,8 +164,9 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      color: var(--text-main);
-      background: var(--bg-page);
+      overscroll-behavior: none;
+      color: var(--ide-text);
+      background: var(--ide-shell-bg);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -151,14 +180,20 @@
       width: 100%;
       height: var(--viewport-height);
       min-width: 0;
+      min-height: 0;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) var(--statusbar-height);
+      grid-template-areas:
+        "application-header"
+        "workbench"
+        "bottom-tools"
+        "status-bar";
+      grid-template-rows: auto minmax(0, 1fr) var(--ide-bottom-panel-height) var(--ide-status-bar-height);
       overflow: hidden;
-      background: var(--bg-app);
+      background: var(--ide-shell-bg);
     }
 
     .topbar {
-      grid-row: 1;
+      grid-area: application-header;
       position: relative;
       z-index: 30;
       display: flex;
@@ -167,8 +202,8 @@
       gap: 18px;
       min-height: var(--topbar-height);
       padding: 14px 18px;
-      border-bottom: 1px solid var(--panel-border);
-      background: var(--panel-bg-strong);
+      border-bottom: 1px solid var(--ide-border);
+      background: var(--ide-header-bg);
     }
 
     html[data-theme='light'] .topbar {
@@ -439,6 +474,7 @@
       color: var(--accent-green);
     }
 
+    .icon-button,
     .panel-hide-button {
       min-width: 34px;
       width: 34px;
@@ -463,26 +499,26 @@
     }
 
     .ide-grid {
-      grid-row: 2;
+      grid-area: workbench;
       min-width: 0;
       min-height: 0;
       display: grid;
-      grid-template-columns: var(--toolbox-width) minmax(340px, 1fr) var(--code-panel-width);
+      grid-template-columns: var(--ide-primary-sidebar-width) minmax(0, 1fr) var(--ide-code-panel-width);
       gap: 14px;
       padding: 14px;
       transition: grid-template-columns 180ms ease;
     }
 
     .toolbox-hidden .ide-grid {
-      grid-template-columns: minmax(340px, 1fr) var(--code-panel-width);
+      grid-template-columns: minmax(0, 1fr) var(--ide-code-panel-width);
     }
 
     .code-hidden .ide-grid {
-      grid-template-columns: var(--toolbox-width) minmax(340px, 1fr);
+      grid-template-columns: var(--ide-primary-sidebar-width) minmax(0, 1fr);
     }
 
     .toolbox-hidden.code-hidden .ide-grid {
-      grid-template-columns: minmax(340px, 1fr);
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .toolbox-hidden .toolbox-panel,
@@ -497,9 +533,9 @@
       min-width: 0;
       min-height: 0;
       overflow: hidden;
-      border: 1px solid var(--panel-border);
+      border: 1px solid var(--ide-border);
       border-radius: var(--radius-xl);
-      background: var(--panel-bg);
+      background: var(--ide-panel-bg);
       box-shadow: var(--shadow-soft);
     }
 
@@ -510,8 +546,8 @@
       gap: 12px;
       min-height: 52px;
       padding: 0 16px;
-      color: var(--text-main);
-      border-bottom: 1px solid var(--panel-border);
+      color: var(--ide-text);
+      border-bottom: 1px solid var(--ide-border);
       background: var(--panel-header-bg);
       font-weight: 900;
       letter-spacing: 0;
@@ -807,7 +843,7 @@
     .workspace-panel {
       display: grid;
       grid-template-rows: 52px minmax(0, 1fr);
-      background: var(--workspace-bg);
+      background: var(--ide-workspace-bg);
     }
 
     .workspace-header {
@@ -1100,7 +1136,7 @@
     }
 
     .statusbar {
-      grid-row: 3;
+      grid-area: status-bar;
       min-width: 0;
       display: flex;
       align-items: center;
@@ -1111,6 +1147,25 @@
       background: rgba(5, 8, 22, 0.78);
       backdrop-filter: blur(16px);
       font-size: 0.86rem;
+    }
+
+    .activity-bar-region,
+    .bottom-tools-region {
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      color: var(--ide-text);
+      border-color: var(--ide-border);
+      background: var(--ide-panel-bg);
+    }
+
+    .activity-bar-region[hidden],
+    .bottom-tools-region[hidden] {
+      display: none;
+    }
+
+    .bottom-tools-region {
+      grid-area: bottom-tools;
     }
 
     .statusbar .autosave-control {
@@ -1239,8 +1294,8 @@
 
     @media (max-width: 1240px) {
       :root {
-        --toolbox-width: 270px;
-        --code-panel-width: 370px;
+        --ide-primary-sidebar-width: 270px;
+        --ide-code-panel-width: 370px;
       }
 
       .brand img {
@@ -1260,7 +1315,7 @@
 
     @media (max-width: 980px) {
       .app-shell {
-        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) var(--ide-bottom-panel-height) auto;
       }
 
       .topbar {
@@ -1299,14 +1354,14 @@
     @media (max-width: 780px) {
       html,
       body {
-        min-height: 100%;
-        overflow: auto;
+        min-height: 0;
+        overflow: hidden;
       }
 
       .app-shell {
-        min-height: var(--viewport-height);
-        height: auto;
-        overflow: visible;
+        min-height: 0;
+        height: var(--viewport-height);
+        overflow: hidden;
       }
 
       .ide-grid,
@@ -1315,8 +1370,9 @@
       .toolbox-hidden.code-hidden .ide-grid {
         grid-template-columns: 1fr;
         grid-auto-rows: auto;
-        min-height: calc(var(--viewport-height) - 150px);
-        overflow: visible;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       .toolbox-panel {
@@ -1462,7 +1518,7 @@
 
 <body>
   <div id="app" class="app-shell" data-theme="light">
-    <header class="topbar" id="navBar" aria-label="Application header">
+    <header class="topbar" id="navBar" data-ide-region="application-header" aria-label="Application header">
       <a class="brand" href="#" aria-label="Visual SML home">
         <img src="./images/logo_with_tagline.png" alt="Visual SML logo" />
       </a>
@@ -1471,7 +1527,7 @@
         <span class="button-icon" aria-hidden="true">☰</span> Menu
       </button>
 
-      <div id="topbarActions" class="topbar-actions">
+      <nav id="topbarActions" class="topbar-actions" data-ide-region="command-toolbar" aria-label="Main command toolbar">
         <div class="action-group file-actions" aria-label="File actions">
           <button id="newWorkspace" class="ghost-button" type="button">
             <span class="button-icon" aria-hidden="true">+</span> New
@@ -1564,14 +1620,16 @@
             <span class="theme-moon">☾</span>
           </span>
         </label>
-      </div>
+      </nav>
     </header>
 
-    <main class="ide-grid" id="divMainRow" aria-label="Visual SML IDE">
-      <aside id="toolboxPanel" class="toolbox-panel" aria-label="Blockly toolbox">
+    <main class="ide-grid" id="divMainRow" data-ide-region="workbench" aria-label="Visual SML IDE">
+      <nav id="activityBar" class="activity-bar-region" data-ide-region="activity-bar" aria-label="Activity bar" hidden></nav>
+
+      <aside id="toolboxPanel" class="toolbox-panel" data-ide-region="primary-sidebar" aria-label="Blockly toolbox">
         <div class="panel-header toolbox-header">
           <span><span class="panel-icon" aria-hidden="true">▦</span> Toolbox</span>
-          <button id="toggleToolboxPanel" class="small-button panel-hide-button" type="button" aria-label="Hide toolbox" title="Hide toolbox">◀</button>
+          <button id="toggleToolboxPanel" class="small-button icon-button panel-hide-button" type="button" aria-label="Hide toolbox" title="Hide toolbox">◀</button>
         </div>
         <label class="toolbox-search" for="toolboxSearch">
           <input id="toolboxSearch" type="search" placeholder="Search blocks..." aria-label="Search blocks" />
@@ -1580,7 +1638,7 @@
         <div class="custom-toolbox-list" id="htmlToolbox" aria-label="Block categories"></div>
       </aside>
 
-      <section class="workspace-panel" aria-label="Blockly workspace">
+      <section class="workspace-panel" data-ide-region="workspace" aria-label="Blockly workspace">
         <div class="panel-header workspace-header">
           <div class="workspace-header-left">
             <button id="showToolboxFromWorkspace" class="small-button workspace-restore-button restore-toolbox-button" type="button" hidden aria-label="Show toolbox" title="Show toolbox">
@@ -1601,13 +1659,13 @@
         </div>
       </section>
 
-      <aside id="textBasedCodeDiv" class="code-panel" aria-label="SML code panel">
+      <aside id="textBasedCodeDiv" class="code-panel" data-ide-region="secondary-sidebar" aria-label="SML code panel">
         <div id="resizeHandle" class="resize-handle" aria-hidden="true"></div>
         <div class="panel-header code-header">
           <span><span class="panel-icon" aria-hidden="true">&lt;/&gt;</span> SML Code</span>
           <div class="code-header-actions">
             <button id="copyCode" class="small-button" type="button" aria-label="Copy generated SML">Copy</button>
-            <button id="toggleCodePanel" class="small-button panel-hide-button" type="button" aria-label="Hide generated SML" title="Hide generated SML">▶</button>
+            <button id="toggleCodePanel" class="small-button icon-button panel-hide-button" type="button" aria-label="Hide generated SML" title="Hide generated SML">▶</button>
           </div>
         </div>
         <div id="smlEditorPane" class="code-pane code-editor-pane active" role="region" aria-label="SML code editor">
@@ -1623,7 +1681,9 @@
       </aside>
     </main>
 
-    <footer class="statusbar" aria-label="IDE status">
+    <section id="bottomTools" class="bottom-tools-region" data-ide-region="bottom-tools" aria-label="Bottom tools" hidden></section>
+
+    <footer class="statusbar" data-ide-region="status-bar" aria-label="IDE status">
       <span class="status-pill"><span class="status-dot"></span> Ready</span>
       <span id="statusLine" class="status-pill status-line" role="status" aria-live="polite">Visual SML workspace ready.</span>
       <span class="status-pill"><span aria-hidden="true">⬡</span> Blocks: <strong id="blockCount">0</strong></span>
@@ -1739,13 +1799,14 @@
 
       function requestLayoutUpdate(message) {
         updateViewportHeight();
-        window.dispatchEvent(new Event("resize"));
-        [0, 80, 180, 320].forEach(function (delay) {
-          window.setTimeout(function () {
-            window.dispatchEvent(new Event("resize"));
-            updateStatus(message);
-          }, delay);
-        });
+        if (window.tarsius && typeof window.tarsius.requestLayoutUpdate === "function") {
+          window.tarsius.requestLayoutUpdate(message);
+          return;
+        }
+        window.dispatchEvent(new CustomEvent("visual-sml:layout-request", {
+          detail: { message: message }
+        }));
+        updateStatus(message);
       }
 
       function setShellTheme(mode) {
@@ -2027,6 +2088,7 @@
         window.addEventListener("pointermove", function (event) {
           if (!dragging) return;
           var nextWidth = Math.min(Math.max(window.innerWidth - event.clientX, 280), 760);
+          root.style.setProperty("--ide-code-panel-width", nextWidth + "px");
           root.style.setProperty("--code-panel-width", nextWidth + "px");
           requestLayoutUpdate();
         });
@@ -2040,8 +2102,6 @@
 
       window.visualSmlUpdateStatus = updateStatus;
       window.visualSmlRequestLayout = requestLayoutUpdate;
-      window.addEventListener("resize", updateViewportHeight);
-      window.visualViewport && window.visualViewport.addEventListener("resize", updateViewportHeight);
 
       var savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) || "light";
       setShellTheme(savedTheme === "dark" ? "dark" : "light");

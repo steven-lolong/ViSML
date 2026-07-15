@@ -18883,19 +18883,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySmlEditorNow: () => (/* binding */ applySmlEditorNow),
 /* harmony export */   convertSmlToVisml: () => (/* binding */ convertSmlToVisml),
-/* harmony export */   getAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.getAutosaveIntervalMinutes),
+/* harmony export */   getAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.getAutosaveIntervalMinutes),
 /* harmony export */   getRendererName: () => (/* binding */ getRendererName),
-/* harmony export */   menuLoadAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.menuLoadAutosave),
-/* harmony export */   menuLoadFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.menuLoadFile),
-/* harmony export */   menuSaveFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.menuSaveFile),
+/* harmony export */   menuLoadAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.menuLoadAutosave),
+/* harmony export */   menuLoadFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.menuLoadFile),
+/* harmony export */   menuSaveFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.menuSaveFile),
 /* harmony export */   refreshGeneratedCode: () => (/* binding */ refreshGeneratedCode),
-/* harmony export */   sampleLoader: () => (/* reexport safe */ _sample_sample_loader__WEBPACK_IMPORTED_MODULE_122__.sampleLoader),
-/* harmony export */   saveAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.saveAutosave),
-/* harmony export */   setAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.setAutosaveIntervalMinutes),
+/* harmony export */   requestLayoutUpdate: () => (/* binding */ requestLayoutUpdate),
+/* harmony export */   sampleLoader: () => (/* reexport safe */ _sample_sample_loader__WEBPACK_IMPORTED_MODULE_123__.sampleLoader),
+/* harmony export */   saveAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.saveAutosave),
+/* harmony export */   setAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.setAutosaveIntervalMinutes),
 /* harmony export */   setRenderer: () => (/* binding */ setRenderer),
-/* harmony export */   setThemesBnW: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_120__.setThemesBnW),
-/* harmony export */   setThemestarsius: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_120__.setThemestarsius),
-/* harmony export */   startAutosaveTimer: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.startAutosaveTimer),
+/* harmony export */   setThemesBnW: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_121__.setThemesBnW),
+/* harmony export */   setThemestarsius: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_121__.setThemestarsius),
+/* harmony export */   startAutosaveTimer: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.startAutosaveTimer),
 /* harmony export */   tarsiusWorkspace: () => (/* binding */ tarsiusWorkspace)
 /* harmony export */ });
 /* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
@@ -19016,12 +19017,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./core/generator/code_generator */ "./src/core/generator/code_generator.ts");
 /* harmony import */ var _core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./core/parser/sml_to_visml */ "./src/core/parser/sml_to_visml.ts");
 /* harmony import */ var _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./ui/sml_code_editor */ "./src/ui/sml_code_editor.ts");
-/* harmony import */ var _ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./ui/context_menu_workspace */ "./src/ui/context_menu_workspace.ts");
-/* harmony import */ var _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./ui/themes_tarsius */ "./src/ui/themes_tarsius.ts");
-/* harmony import */ var _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./assets/js/theme_changer */ "./src/assets/js/theme_changer.ts");
-/* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
-/* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
-/* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
+/* harmony import */ var _ui_layout_resize__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./ui/layout_resize */ "./src/ui/layout_resize.ts");
+/* harmony import */ var _ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./ui/context_menu_workspace */ "./src/ui/context_menu_workspace.ts");
+/* harmony import */ var _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./ui/themes_tarsius */ "./src/ui/themes_tarsius.ts");
+/* harmony import */ var _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./assets/js/theme_changer */ "./src/assets/js/theme_changer.ts");
+/* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
+/* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
+/* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_124__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
 
 // Start Blocks
 
@@ -19149,6 +19151,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 // hljs.initHighlightingOnLoad();
 var blockArea = document.getElementById("tarsiusWorkspaceDiv");
 // Renderer selection. Blockly cannot swap the renderer of a live workspace,
@@ -19183,13 +19186,13 @@ function setRenderer(rendererName) {
     window.location.reload();
 }
 // Updating context menu
-(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_118__.unregisteredUnnecessaryMenu)();
-(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_118__.registerFirstContextMenuOptions)();
+(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_119__.unregisteredUnnecessaryMenu)();
+(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_119__.registerFirstContextMenuOptions)();
 (0,_core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_112__.applyGrammarTooltips)();
 const tarsiusWorkspace = blockly__WEBPACK_IMPORTED_MODULE_0__.inject(blockArea, {
     // plugins:
     // theme: Blockly.Themes.Macaca,
-    theme: _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_119__.MacacaBlackWhite,
+    theme: _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_120__.MacacaBlackWhite,
     renderer: getRendererName(),
     // renderer: "TarsiusRenderer",
     collapse: true,
@@ -19321,9 +19324,9 @@ function convertSmlToVisml(source) {
         mainBlock.setMovable(true);
         mainBlock.setEditable(true);
     }
-    blockly__WEBPACK_IMPORTED_MODULE_0__.svgResize(tarsiusWorkspace);
+    requestLayoutUpdate();
     refreshGeneratedCode();
-    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.scheduleAutosave)();
+    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.scheduleAutosave)();
     updateVisualSmlStatus("SML converted to ViSML blocks.");
 }
 /** Convert the Code tab text into blocks right now (used by the Convert button). */
@@ -19339,34 +19342,25 @@ function eventListenerFortarsius(event) {
     blockly__WEBPACK_IMPORTED_MODULE_0__.Events.disableOrphans(event);
     lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__.generateCode)("sml") ?? "";
     (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.syncSmlEditorFromCode)(lastGeneratedCode);
-    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.scheduleAutosave)();
+    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.scheduleAutosave)();
     updateVisualSmlStatus("Generated SML updated.");
 }
 (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.initSmlCodeEditor)({ convertSmlToBlocks: convertSmlToVisml });
 tarsiusWorkspace.addChangeListener(eventListenerFortarsius);
-(0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_121__.startAutosaveTimer)();
+(0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.startAutosaveTimer)();
 // Render the custom HTML toolbox (left column) from the toolbox definition.
-(0,_ui_html_toolbox__WEBPACK_IMPORTED_MODULE_123__.buildHtmlToolbox)(tarsiusWorkspace);
-let resizeFrame = 0;
-function updatetarsiusWorkspaceSize() {
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-    document.documentElement.style.setProperty("--viewport-height", `${viewportHeight}px`);
-    if (resizeFrame)
-        window.cancelAnimationFrame(resizeFrame);
-    resizeFrame = window.requestAnimationFrame(() => {
-        blockly__WEBPACK_IMPORTED_MODULE_0__.svgResize(tarsiusWorkspace);
-        updateVisualSmlStatus();
-        resizeFrame = 0;
-    });
+(0,_ui_html_toolbox__WEBPACK_IMPORTED_MODULE_124__.buildHtmlToolbox)(tarsiusWorkspace);
+const layoutResizeCoordinator = (0,_ui_layout_resize__WEBPACK_IMPORTED_MODULE_118__.createLayoutResizeCoordinator)({
+    workspace: tarsiusWorkspace,
+    layoutCodeEditor: _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.layoutSmlCodeEditor,
+    updateStatus: updateVisualSmlStatus,
+});
+function requestLayoutUpdate(message) {
+    layoutResizeCoordinator.request(message);
 }
-// update tarsiusWorkspace when the window size is change
-window.addEventListener("resize", updatetarsiusWorkspaceSize, false);
-window.addEventListener("orientationchange", updatetarsiusWorkspaceSize, false);
-window.visualViewport?.addEventListener("resize", updatetarsiusWorkspaceSize, false);
-window.addEventListener("load", updatetarsiusWorkspaceSize, false);
 window.setTimeout(() => {
     refreshGeneratedCode();
-    updatetarsiusWorkspaceSize();
+    requestLayoutUpdate();
 }, 0);
 
 
@@ -19816,6 +19810,78 @@ function buildHtmlToolbox(workspace) {
 
 /***/ },
 
+/***/ "./src/ui/layout_resize.ts"
+/*!*********************************!*\
+  !*** ./src/ui/layout_resize.ts ***!
+  \*********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createLayoutResizeCoordinator: () => (/* binding */ createLayoutResizeCoordinator)
+/* harmony export */ });
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+
+const LAYOUT_REQUEST_EVENT = "visual-sml:layout-request";
+/** Keep viewport-bound CSS, Blockly, and editor geometry in one resize cycle. */
+function createLayoutResizeCoordinator(options) {
+    let resizeFrame = 0;
+    let pendingMessage;
+    const updateViewportHeight = () => {
+        const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+        document.documentElement.style.setProperty("--viewport-height", `${viewportHeight}px`);
+    };
+    const flush = () => {
+        resizeFrame = 0;
+        updateViewportHeight();
+        blockly__WEBPACK_IMPORTED_MODULE_0__.svgResize(options.workspace);
+        options.layoutCodeEditor?.();
+        options.updateStatus?.(pendingMessage);
+        pendingMessage = undefined;
+    };
+    const request = (message) => {
+        if (message !== undefined)
+            pendingMessage = message;
+        updateViewportHeight();
+        if (resizeFrame)
+            return;
+        resizeFrame = window.requestAnimationFrame(flush);
+    };
+    const handleLayoutRequest = (event) => {
+        request(event.detail?.message);
+    };
+    const handleResize = () => request();
+    window.addEventListener(LAYOUT_REQUEST_EVENT, handleLayoutRequest);
+    window.addEventListener("resize", handleResize, false);
+    window.addEventListener("orientationchange", handleResize, false);
+    window.visualViewport?.addEventListener("resize", handleResize, false);
+    const resizeObserver = typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(() => request());
+    ["app", "divMainRow", "blocklyArea", "textBasedCodeDiv"].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element)
+            resizeObserver?.observe(element);
+    });
+    request();
+    return {
+        request,
+        dispose() {
+            if (resizeFrame)
+                window.cancelAnimationFrame(resizeFrame);
+            resizeObserver?.disconnect();
+            window.removeEventListener(LAYOUT_REQUEST_EVENT, handleLayoutRequest);
+            window.removeEventListener("resize", handleResize, false);
+            window.removeEventListener("orientationchange", handleResize, false);
+            window.visualViewport?.removeEventListener("resize", handleResize, false);
+        },
+    };
+}
+
+
+/***/ },
+
 /***/ "./src/ui/screenshot.ts"
 /*!******************************!*\
   !*** ./src/ui/screenshot.ts ***!
@@ -19922,6 +19988,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   applySmlEditorText: () => (/* binding */ applySmlEditorText),
 /* harmony export */   forceSyncSmlEditorFromCode: () => (/* binding */ forceSyncSmlEditorFromCode),
 /* harmony export */   initSmlCodeEditor: () => (/* binding */ initSmlCodeEditor),
+/* harmony export */   layoutSmlCodeEditor: () => (/* binding */ layoutSmlCodeEditor),
 /* harmony export */   syncSmlEditorFromCode: () => (/* binding */ syncSmlEditorFromCode)
 /* harmony export */ });
 /* harmony import */ var highlight_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! highlight.js */ "./node_modules/highlight.js/es/index.js");
@@ -19982,6 +20049,10 @@ function syncEditorHighlightScroll() {
         return;
     highlightArea.style.transform =
         `translate(${-textArea.scrollLeft}px, ${-textArea.scrollTop}px)`;
+}
+/** Notify the native editor/highlight pair after its containing panel changes. */
+function layoutSmlCodeEditor() {
+    syncEditorHighlightScroll();
 }
 function describeParseError(error, source) {
     if (error instanceof _core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_2__.SmlParseError) {

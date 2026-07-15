@@ -60,6 +60,11 @@ function syncEditorHighlightScroll() {
     `translate(${-textArea.scrollLeft}px, ${-textArea.scrollTop}px)`;
 }
 
+/** Notify the native editor/highlight pair after its containing panel changes. */
+export function layoutSmlCodeEditor() {
+  syncEditorHighlightScroll();
+}
+
 function describeParseError(error: unknown, source: string): string {
   if (error instanceof SmlParseError) {
     const line = source.slice(0, error.position).split("\n").length;
