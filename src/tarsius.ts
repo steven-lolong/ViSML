@@ -152,6 +152,8 @@ import {
 } from "./assets/js/fileSvLd";
 import { sampleLoader } from "./sample/sample_loader";
 import { buildHtmlToolbox } from "./ui/html_toolbox";
+import { initializeIdeWorkbench } from "./ui/ide_workbench";
+import downloadScreenshot from "./ui/screenshot";
 
 // hljs.initHighlightingOnLoad();
 var blockArea = document.getElementById("tarsiusWorkspaceDiv");
@@ -372,6 +374,15 @@ const layoutResizeCoordinator = createLayoutResizeCoordinator({
 function requestLayoutUpdate(message?: string) {
   layoutResizeCoordinator.request(message);
 }
+
+initializeIdeWorkbench({
+  workspace: tarsiusWorkspace,
+  requestLayoutUpdate,
+  refreshGeneratedCode,
+  exportWorkspaceImage: () => downloadScreenshot(tarsiusWorkspace),
+  getRendererName,
+  setRenderer,
+});
 
 window.setTimeout(() => {
   refreshGeneratedCode();

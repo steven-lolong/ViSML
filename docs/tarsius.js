@@ -19024,6 +19024,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
 /* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
 /* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_124__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
+/* harmony import */ var _ui_ide_workbench__WEBPACK_IMPORTED_MODULE_125__ = __webpack_require__(/*! ./ui/ide_workbench */ "./src/ui/ide_workbench.ts");
+/* harmony import */ var _ui_screenshot__WEBPACK_IMPORTED_MODULE_126__ = __webpack_require__(/*! ./ui/screenshot */ "./src/ui/screenshot.ts");
 
 // Start Blocks
 
@@ -19140,6 +19142,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 // Start UI
+
+
 
 
 
@@ -19358,6 +19362,14 @@ const layoutResizeCoordinator = (0,_ui_layout_resize__WEBPACK_IMPORTED_MODULE_11
 function requestLayoutUpdate(message) {
     layoutResizeCoordinator.request(message);
 }
+(0,_ui_ide_workbench__WEBPACK_IMPORTED_MODULE_125__.initializeIdeWorkbench)({
+    workspace: tarsiusWorkspace,
+    requestLayoutUpdate,
+    refreshGeneratedCode,
+    exportWorkspaceImage: () => (0,_ui_screenshot__WEBPACK_IMPORTED_MODULE_126__["default"])(tarsiusWorkspace),
+    getRendererName,
+    setRenderer,
+});
 window.setTimeout(() => {
     refreshGeneratedCode();
     requestLayoutUpdate();
@@ -19810,6 +19822,787 @@ function buildHtmlToolbox(workspace) {
 
 /***/ },
 
+/***/ "./src/ui/ide_workbench.ts"
+/*!*********************************!*\
+  !*** ./src/ui/ide_workbench.ts ***!
+  \*********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   initializeIdeWorkbench: () => (/* binding */ initializeIdeWorkbench)
+/* harmony export */ });
+/* harmony import */ var _layout_state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layout_state */ "./src/ui/layout_state.ts");
+
+const asElement = (id) => document.getElementById(id);
+const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+function initializeIdeWorkbench(options) {
+    const root = document.documentElement;
+    const app = asElement("app");
+    if (!app)
+        return;
+    const state = (0,_layout_state__WEBPACK_IMPORTED_MODULE_0__.loadIdeLayoutState)();
+    const compactLayout = window.matchMedia("(max-width: 1080px)");
+    const outputEntries = [];
+    let outlineFrame = 0;
+    let activeRightTab = "code";
+    let bottomMaximized = false;
+    let preMaximizeBottomHeight = state.bottomHeight;
+    const persist = () => (0,_layout_state__WEBPACK_IMPORTED_MODULE_0__.saveIdeLayoutState)(state);
+    const setResizeToken = (name, value) => {
+        root.style.setProperty(name, `${Math.round(value)}px`);
+    };
+    const updateHandleValues = () => {
+        const sidebarHandle = asElement("sidebarResizeHandle");
+        const codeHandle = asElement("resizeHandle");
+        const bottomHandle = asElement("bottomResizeHandle");
+        sidebarHandle?.setAttribute("aria-valuenow", String(state.sidebarWidth));
+        codeHandle?.setAttribute("aria-valuenow", String(state.codeWidth));
+        bottomHandle?.setAttribute("aria-valuenow", String(state.bottomHeight));
+    };
+    const syncPanelControls = () => {
+        const sidebarVisible = !app.classList.contains("toolbox-hidden");
+        const codeVisible = !app.classList.contains("code-hidden");
+        const toolboxHide = asElement("toggleToolboxPanel");
+        const toolboxRestore = asElement("showToolboxFromWorkspace");
+        const codeHide = asElement("toggleCodePanel");
+        const codeRestore = asElement("showCodeFromWorkspace");
+        if (toolboxHide)
+            toolboxHide.setAttribute("aria-expanded", String(sidebarVisible));
+        if (toolboxRestore) {
+            toolboxRestore.hidden = sidebarVisible;
+            toolboxRestore.setAttribute("aria-expanded", String(sidebarVisible));
+        }
+        if (codeHide)
+            codeHide.setAttribute("aria-expanded", String(codeVisible));
+        if (codeRestore) {
+            codeRestore.hidden = codeVisible;
+            codeRestore.disabled = codeVisible;
+            codeRestore.setAttribute("aria-expanded", String(codeVisible));
+        }
+        document.querySelectorAll("[data-panel-state]").forEach((item) => {
+            const panel = item.dataset.panelState;
+            const checked = panel === "sidebar"
+                ? sidebarVisible
+                : panel === "code"
+                    ? codeVisible
+                    : state.bottomVisible;
+            item.setAttribute("aria-checked", String(checked));
+        });
+    };
+    const setSidebarVisible = (visible, message = true) => {
+        state.sidebarVisible = visible;
+        app.classList.toggle("toolbox-hidden", !visible);
+        if (!visible)
+            app.classList.remove("compact-sidebar-open");
+        syncPanelControls();
+        persist();
+        options.requestLayoutUpdate(message
+            ? visible ? "Primary sidebar shown." : "Primary sidebar hidden."
+            : undefined);
+    };
+    const setCodeVisible = (visible, message = true) => {
+        state.codeVisible = visible;
+        app.classList.toggle("code-hidden", !visible);
+        if (!visible)
+            app.classList.remove("compact-code-open");
+        syncPanelControls();
+        persist();
+        options.requestLayoutUpdate(message
+            ? visible ? "Code and outline region shown." : "Code and outline region hidden."
+            : undefined);
+    };
+    const setBottomVisible = (visible, message = true) => {
+        const panel = asElement("bottomTools");
+        state.bottomVisible = visible;
+        if (panel)
+            panel.hidden = !visible;
+        app.classList.toggle("bottom-panel-open", visible);
+        if (!visible) {
+            bottomMaximized = false;
+            app.classList.remove("bottom-panel-maximized");
+        }
+        syncPanelControls();
+        persist();
+        options.requestLayoutUpdate(message
+            ? visible ? "Bottom tools opened." : "Bottom tools closed."
+            : undefined);
+    };
+    const renderActivity = () => {
+        document.querySelectorAll("[data-activity]").forEach((button) => {
+            const active = button.dataset.activity === state.activeActivity;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+            button.setAttribute("aria-current", active ? "page" : "false");
+        });
+        document.querySelectorAll("[data-sidebar-view]").forEach((view) => {
+            view.hidden = view.dataset.sidebarView !== state.activeActivity;
+        });
+        const sidebar = asElement("toolboxPanel");
+        if (sidebar)
+            sidebar.setAttribute("aria-label", state.activeActivity === "blocks"
+                ? "Block toolbox"
+                : state.activeActivity === "files" ? "Project files" : "Settings");
+    };
+    const setActivity = (activity, toggleWhenActive = false) => {
+        const isActive = state.activeActivity === activity;
+        state.activeActivity = activity;
+        renderActivity();
+        if (compactLayout.matches) {
+            const shouldOpen = !isActive || !app.classList.contains("compact-sidebar-open");
+            app.classList.toggle("compact-sidebar-open", shouldOpen);
+            app.classList.remove("compact-code-open");
+            if (!state.sidebarVisible)
+                setSidebarVisible(true, false);
+        }
+        else if (toggleWhenActive && isActive && state.sidebarVisible) {
+            setSidebarVisible(false);
+        }
+        else if (!state.sidebarVisible) {
+            setSidebarVisible(true, false);
+        }
+        persist();
+        options.requestLayoutUpdate(`${activity[0].toUpperCase()}${activity.slice(1)} view selected.`);
+    };
+    const renderBottomTab = () => {
+        document.querySelectorAll("[data-bottom-tab]").forEach((tab) => {
+            const active = tab.dataset.bottomTab === state.activeBottomTab;
+            tab.classList.toggle("active", active);
+            tab.setAttribute("aria-selected", String(active));
+            tab.tabIndex = active ? 0 : -1;
+        });
+        document.querySelectorAll("[data-bottom-pane]").forEach((pane) => {
+            pane.hidden = pane.dataset.bottomPane !== state.activeBottomTab;
+        });
+    };
+    const setBottomTab = (tab, open = true) => {
+        state.activeBottomTab = tab;
+        renderBottomTab();
+        if (open && !state.bottomVisible)
+            setBottomVisible(true, false);
+        persist();
+        options.requestLayoutUpdate(`${tab === "problems" ? "Problems" : "Output"} view selected.`);
+    };
+    const setRightTab = (tab) => {
+        activeRightTab = tab;
+        document.querySelectorAll("[data-right-tab]").forEach((button) => {
+            const active = button.dataset.rightTab === tab;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-selected", String(active));
+            button.tabIndex = active ? 0 : -1;
+        });
+        document.querySelectorAll("[data-right-pane]").forEach((pane) => {
+            pane.hidden = pane.dataset.rightPane !== tab;
+            pane.classList.toggle("active", pane.dataset.rightPane === tab);
+        });
+        asElement("codeHeaderActions")?.toggleAttribute("hidden", tab !== "code");
+        if (tab === "outline")
+            scheduleOutlineRender();
+        options.requestLayoutUpdate(`${tab === "code" ? "Code" : "Outline"} view selected.`);
+    };
+    const appendOutput = (message) => {
+        if (!message)
+            return;
+        const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        const previous = outputEntries[outputEntries.length - 1];
+        if (previous?.message === message) {
+            previous.count += 1;
+            previous.time = time;
+        }
+        else {
+            outputEntries.push({ time, message, count: 1 });
+        }
+        if (outputEntries.length > 80)
+            outputEntries.splice(0, outputEntries.length - 80);
+        const container = asElement("outputLog");
+        if (!container)
+            return;
+        container.replaceChildren(...outputEntries.map((entry) => {
+            const row = document.createElement("div");
+            row.className = "output-entry";
+            const time = document.createElement("time");
+            time.textContent = entry.time;
+            const text = document.createElement("span");
+            text.textContent = entry.count > 1 ? `${entry.message} ×${entry.count}` : entry.message;
+            row.append(time, text);
+            return row;
+        }));
+        container.scrollTop = container.scrollHeight;
+    };
+    const renderProblems = (message = "", level = "idle") => {
+        const list = asElement("problemsList");
+        const badge = asElement("problemsCount");
+        const statusBadge = asElement("statusProblemsCount");
+        if (!list)
+            return;
+        list.replaceChildren();
+        const hasProblem = level === "error" && Boolean(message);
+        if (badge)
+            badge.textContent = hasProblem ? "1" : "0";
+        if (statusBadge)
+            statusBadge.textContent = hasProblem ? "1" : "0";
+        if (!hasProblem) {
+            const empty = document.createElement("div");
+            empty.className = "tool-empty-state";
+            empty.innerHTML = '<span class="empty-state-icon" aria-hidden="true">✓</span><strong>No problems detected</strong><span>Parser feedback will appear here while editing SML.</span>';
+            list.append(empty);
+            return;
+        }
+        const item = document.createElement("div");
+        item.className = "problem-entry error";
+        item.innerHTML = '<span class="problem-severity" aria-hidden="true">×</span>';
+        const body = document.createElement("div");
+        const title = document.createElement("strong");
+        title.textContent = "SML parse error";
+        const description = document.createElement("span");
+        description.textContent = message;
+        body.append(title, description);
+        item.append(body);
+        list.append(item);
+    };
+    function scheduleOutlineRender() {
+        if (outlineFrame)
+            window.cancelAnimationFrame(outlineFrame);
+        outlineFrame = window.requestAnimationFrame(() => {
+            outlineFrame = 0;
+            renderOutline();
+        });
+    }
+    function renderOutline() {
+        const container = asElement("programOutline");
+        if (!container)
+            return;
+        container.replaceChildren();
+        const topBlocks = options.workspace.getTopBlocks(true);
+        if (!topBlocks.length) {
+            const empty = document.createElement("div");
+            empty.className = "side-empty-state";
+            empty.textContent = "The workspace has no blocks.";
+            container.append(empty);
+            return;
+        }
+        const addBlock = (block, depth) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "outline-item";
+            button.style.setProperty("--outline-depth", String(depth));
+            button.dataset.blockId = block.id;
+            const disclosure = document.createElement("span");
+            disclosure.className = "outline-disclosure";
+            const children = block.getChildren(true);
+            disclosure.textContent = children.length ? "⌄" : "·";
+            const label = document.createElement("span");
+            label.className = "outline-label";
+            const blockText = block.toString?.(54, "…") || block.type;
+            label.textContent = String(blockText).replace(/\s+/g, " ").trim() || block.type;
+            const type = document.createElement("span");
+            type.className = "outline-type";
+            type.textContent = block.type.replace(/_/g, " ");
+            button.append(disclosure, label, type);
+            container.append(button);
+            children.forEach((child) => addBlock(child, depth + 1));
+        };
+        topBlocks.forEach((block) => addBlock(block, 0));
+    }
+    const setPerspective = (perspective, announce = true) => {
+        state.perspective = perspective;
+        app.dataset.perspective = perspective;
+        app.classList.toggle("perspective-presentation", perspective === "presentation");
+        if (perspective === "presentation") {
+            app.classList.remove("compact-sidebar-open", "compact-code-open");
+        }
+        const select = asElement("perspectiveSelect");
+        if (select)
+            select.value = perspective;
+        document.querySelectorAll("[data-perspective]").forEach((item) => {
+            item.setAttribute("aria-checked", String(item.dataset.perspective === perspective));
+        });
+        persist();
+        options.requestLayoutUpdate(announce
+            ? `${perspective === "edit" ? "Edit" : "Presentation"} perspective activated.`
+            : undefined);
+    };
+    const toggleBottomMaximize = () => {
+        if (!state.bottomVisible)
+            setBottomVisible(true, false);
+        bottomMaximized = !bottomMaximized;
+        app.classList.toggle("bottom-panel-maximized", bottomMaximized);
+        const button = asElement("maximizeBottomPanel");
+        if (bottomMaximized) {
+            preMaximizeBottomHeight = state.bottomHeight;
+            if (button) {
+                button.title = "Restore bottom panel";
+                button.setAttribute("aria-label", "Restore bottom panel");
+            }
+        }
+        else {
+            state.bottomHeight = preMaximizeBottomHeight;
+            setResizeToken("--ide-bottom-panel-height", state.bottomHeight);
+            if (button) {
+                button.title = "Maximize bottom panel";
+                button.setAttribute("aria-label", "Maximize bottom panel");
+            }
+        }
+        options.requestLayoutUpdate(bottomMaximized ? "Bottom tools maximized." : "Bottom tools restored.");
+    };
+    const openCompactCode = () => {
+        if (!state.codeVisible)
+            setCodeVisible(true, false);
+        app.classList.toggle("compact-code-open");
+        app.classList.remove("compact-sidebar-open");
+        options.requestLayoutUpdate();
+    };
+    const toggleSidebarCommand = () => {
+        if (compactLayout.matches) {
+            setActivity(state.activeActivity, true);
+            return;
+        }
+        setSidebarVisible(!state.sidebarVisible);
+    };
+    const toggleCodeCommand = () => {
+        if (compactLayout.matches) {
+            openCompactCode();
+            return;
+        }
+        setCodeVisible(!state.codeVisible);
+    };
+    const clickExisting = (id) => asElement(id)?.click();
+    const commands = [
+        { id: "file.new", label: "New Workspace", category: "File", run: () => clickExisting("newWorkspace") },
+        { id: "file.open", label: "Open Workspace…", category: "File", shortcut: "Ctrl+O", run: () => clickExisting("loadWorkspace") },
+        { id: "file.save", label: "Save Workspace…", category: "File", shortcut: "Ctrl+S", run: () => clickExisting("saveWorkspace") },
+        { id: "file.autosave", label: "Load Autosave", category: "File", run: () => clickExisting("loadAutosave") },
+        { id: "edit.undo", label: "Undo", category: "Edit", shortcut: "Ctrl+Z", run: () => options.workspace.undo(false) },
+        { id: "edit.redo", label: "Redo", category: "Edit", shortcut: "Ctrl+Shift+Z", run: () => options.workspace.undo(true) },
+        { id: "view.blocks", label: "Show Blocks", category: "View", run: () => setActivity("blocks") },
+        { id: "view.files", label: "Show Project Files", category: "View", run: () => setActivity("files") },
+        { id: "view.settings", label: "Show Settings", category: "View", run: () => setActivity("settings") },
+        { id: "view.sidebar", label: "Toggle Primary Sidebar", category: "View", shortcut: "Ctrl+B", run: toggleSidebarCommand },
+        { id: "view.code", label: "Toggle Code / Outline", category: "View", run: toggleCodeCommand },
+        { id: "view.bottom", label: "Toggle Bottom Tools", category: "View", shortcut: "Ctrl+J", run: () => setBottomVisible(!state.bottomVisible) },
+        { id: "view.problems", label: "Show Problems", category: "View", run: () => setBottomTab("problems") },
+        { id: "view.output", label: "Show Output", category: "View", run: () => setBottomTab("output") },
+        { id: "view.fullscreen", label: "Toggle Full Screen", category: "View", shortcut: "F11", run: () => toggleFullscreen() },
+        { id: "workspace.zoomIn", label: "Zoom In", category: "Workspace", run: () => { options.workspace.zoomCenter(1); options.requestLayoutUpdate(); } },
+        { id: "workspace.zoomOut", label: "Zoom Out", category: "Workspace", run: () => { options.workspace.zoomCenter(-1); options.requestLayoutUpdate(); } },
+        { id: "workspace.fit", label: "Fit Blocks in View", category: "Workspace", run: () => { options.workspace.zoomToFit(); options.requestLayoutUpdate(); } },
+        { id: "workspace.center", label: "Center Workspace", category: "Workspace", run: () => { options.workspace.scrollCenter(); options.requestLayoutUpdate(); } },
+        { id: "build.generate", label: "Synchronize Generated SML", category: "Build", run: () => { options.refreshGeneratedCode(); options.requestLayoutUpdate("Generated SML synchronized."); } },
+        { id: "build.export", label: "Export Workspace as PNG", category: "Build", run: options.exportWorkspaceImage },
+        { id: "run.unavailable", label: "Execution runtime is not configured", category: "Run", enabled: false, run: () => undefined },
+        { id: "perspective.edit", label: "Activate Edit Perspective", category: "Perspective", run: () => setPerspective("edit") },
+        { id: "perspective.presentation", label: "Activate Presentation Perspective", category: "Perspective", run: () => setPerspective("presentation") },
+        { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => clickExisting("usageApp") },
+        { id: "help.about", label: "About Visual SML", category: "Help", run: () => clickExisting("aboutApp") },
+    ];
+    const commandMap = new Map(commands.map((command) => [command.id, command]));
+    const runCommand = (id) => {
+        const command = commandMap.get(id);
+        if (!command || command.enabled === false)
+            return;
+        closeMenus();
+        closeCommandPalette();
+        command.run();
+        options.requestLayoutUpdate();
+    };
+    function toggleFullscreen() {
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(console.error);
+        }
+        else {
+            app.requestFullscreen().catch((error) => {
+                console.error(error);
+                options.requestLayoutUpdate("Full screen could not be opened.");
+            });
+        }
+    }
+    const closeMenus = () => {
+        document.querySelectorAll(".app-menu").forEach((menu) => { menu.hidden = true; });
+        document.querySelectorAll("[data-menu-target]").forEach((button) => {
+            button.setAttribute("aria-expanded", "false");
+        });
+    };
+    const palette = asElement("commandPalette");
+    const paletteInput = asElement("commandPaletteInput");
+    const paletteResults = asElement("commandPaletteResults");
+    let paletteSelection = 0;
+    let filteredCommands = commands;
+    const renderCommandPalette = () => {
+        if (!paletteResults)
+            return;
+        const query = paletteInput?.value.trim().toLowerCase() || "";
+        filteredCommands = commands.filter((command) => `${command.category} ${command.label}`.toLowerCase().includes(query));
+        paletteSelection = clamp(paletteSelection, 0, Math.max(0, filteredCommands.length - 1));
+        paletteResults.replaceChildren(...filteredCommands.map((command, index) => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "command-result";
+            item.dataset.command = command.id;
+            item.setAttribute("role", "option");
+            item.setAttribute("aria-selected", String(index === paletteSelection));
+            item.disabled = command.enabled === false;
+            if (index === paletteSelection)
+                item.classList.add("selected");
+            const category = document.createElement("span");
+            category.className = "command-category";
+            category.textContent = command.category;
+            const label = document.createElement("span");
+            label.className = "command-label";
+            label.textContent = command.label;
+            item.append(category, label);
+            if (command.shortcut) {
+                const shortcut = document.createElement("kbd");
+                shortcut.textContent = command.shortcut;
+                item.append(shortcut);
+            }
+            return item;
+        }));
+        if (!filteredCommands.length) {
+            const empty = document.createElement("div");
+            empty.className = "command-empty";
+            empty.textContent = "No matching commands";
+            paletteResults.append(empty);
+        }
+    };
+    const openCommandPalette = () => {
+        if (!palette)
+            return;
+        closeMenus();
+        palette.hidden = false;
+        paletteSelection = 0;
+        if (paletteInput)
+            paletteInput.value = "";
+        renderCommandPalette();
+        window.requestAnimationFrame(() => paletteInput?.focus());
+    };
+    function closeCommandPalette() {
+        if (palette)
+            palette.hidden = true;
+    }
+    const setupPointerResize = (handleId, bodyClass, readValue, writeValue, valueFromPointer) => {
+        const handle = asElement(handleId);
+        if (!handle)
+            return;
+        let dragging = false;
+        handle.addEventListener("pointerdown", (event) => {
+            if (event.button !== 0)
+                return;
+            dragging = true;
+            handle.setPointerCapture(event.pointerId);
+            document.body.classList.add(bodyClass);
+            event.preventDefault();
+        });
+        handle.addEventListener("pointermove", (event) => {
+            if (!dragging)
+                return;
+            writeValue(valueFromPointer(event));
+            updateHandleValues();
+            options.requestLayoutUpdate();
+        });
+        const finish = () => {
+            if (!dragging)
+                return;
+            dragging = false;
+            document.body.classList.remove(bodyClass);
+            persist();
+            options.requestLayoutUpdate();
+        };
+        handle.addEventListener("pointerup", finish);
+        handle.addEventListener("pointercancel", finish);
+        handle.addEventListener("keydown", (event) => {
+            const horizontal = handle.getAttribute("aria-orientation") === "vertical";
+            const decrease = horizontal ? event.key === "ArrowLeft" : event.key === "ArrowDown";
+            const increase = horizontal ? event.key === "ArrowRight" : event.key === "ArrowUp";
+            if (!decrease && !increase)
+                return;
+            event.preventDefault();
+            writeValue(readValue() + (increase ? 16 : -16));
+            updateHandleValues();
+            persist();
+            options.requestLayoutUpdate();
+        });
+    };
+    setupPointerResize("sidebarResizeHandle", "resizing-sidebar", () => state.sidebarWidth, (value) => {
+        state.sidebarWidth = clamp(value, 220, 380);
+        setResizeToken("--ide-primary-sidebar-width", state.sidebarWidth);
+    }, (event) => event.clientX - (compactLayout.matches ? 0 : 50));
+    setupPointerResize("bottomResizeHandle", "resizing-bottom-panel", () => state.bottomHeight, (value) => {
+        state.bottomHeight = clamp(value, 160, Math.min(520, window.innerHeight - 180));
+        setResizeToken("--ide-bottom-panel-height", state.bottomHeight);
+    }, (event) => window.innerHeight - event.clientY - 24);
+    const codeHandle = asElement("resizeHandle");
+    codeHandle?.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+            return;
+        event.preventDefault();
+        state.codeWidth = clamp(state.codeWidth + (event.key === "ArrowLeft" ? 16 : -16), 320, 720);
+        setResizeToken("--ide-code-panel-width", state.codeWidth);
+        root.style.setProperty("--code-panel-width", `${state.codeWidth}px`);
+        updateHandleValues();
+        persist();
+        options.requestLayoutUpdate();
+    });
+    window.addEventListener("pointerup", () => {
+        const value = Number.parseFloat(getComputedStyle(root).getPropertyValue("--ide-code-panel-width"));
+        if (Number.isFinite(value)) {
+            state.codeWidth = clamp(value, 320, 720);
+            persist();
+            updateHandleValues();
+        }
+    });
+    document.addEventListener("click", (event) => {
+        const target = event.target;
+        const menuButton = target?.closest("[data-menu-target]");
+        if (menuButton) {
+            const menu = asElement(menuButton.dataset.menuTarget || "");
+            const opening = Boolean(menu?.hidden);
+            closeMenus();
+            if (menu && opening) {
+                menu.hidden = false;
+                menuButton.setAttribute("aria-expanded", "true");
+            }
+            event.stopPropagation();
+            return;
+        }
+        const commandItem = target?.closest("[data-command]");
+        if (commandItem) {
+            runCommand(commandItem.dataset.command || "");
+            return;
+        }
+        const activity = target?.closest("[data-activity]")?.dataset.activity;
+        if (activity) {
+            setActivity(activity, true);
+            return;
+        }
+        const bottomTab = target?.closest("[data-bottom-tab]")?.dataset.bottomTab;
+        if (bottomTab) {
+            setBottomTab(bottomTab);
+            return;
+        }
+        const rightTab = target?.closest("[data-right-tab]")?.dataset.rightTab;
+        if (rightTab) {
+            setRightTab(rightTab);
+            return;
+        }
+        const outlineItem = target?.closest("[data-block-id]");
+        if (outlineItem) {
+            const block = options.workspace.getBlockById(outlineItem.dataset.blockId || "");
+            if (block) {
+                block.select();
+                options.workspace.centerOnBlock(block.id);
+            }
+            return;
+        }
+        const renderer = target?.closest("[data-renderer-choice]")?.dataset.rendererChoice;
+        if (renderer) {
+            options.setRenderer(renderer);
+            return;
+        }
+        const theme = target?.closest("[data-theme-choice]")?.dataset.themeChoice;
+        if (theme === "dark")
+            window.setDarkTheme?.();
+        if (theme === "light")
+            window.setLightTheme?.();
+        if (theme) {
+            document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+                button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme));
+            });
+        }
+        if (!target?.closest(".menu-system"))
+            closeMenus();
+    });
+    ["toggleToolboxPanel", "showToolboxFromWorkspace", "toggleCodePanel", "showCodeFromWorkspace"].forEach((id) => {
+        asElement(id)?.addEventListener("click", () => window.setTimeout(() => {
+            state.sidebarVisible = !app.classList.contains("toolbox-hidden");
+            state.codeVisible = !app.classList.contains("code-hidden");
+            if (id.includes("Toolbox"))
+                app.classList.remove("compact-sidebar-open");
+            if (id.includes("Code"))
+                app.classList.remove("compact-code-open");
+            syncPanelControls();
+            persist();
+        }, 0));
+    });
+    asElement("commandPaletteTrigger")?.addEventListener("click", openCommandPalette);
+    asElement("closeBottomPanel")?.addEventListener("click", () => setBottomVisible(false));
+    asElement("maximizeBottomPanel")?.addEventListener("click", toggleBottomMaximize);
+    asElement("workspaceToggleBottom")?.addEventListener("click", () => setBottomVisible(!state.bottomVisible));
+    asElement("workspaceUndo")?.addEventListener("click", () => options.workspace.undo(false));
+    asElement("workspaceRedo")?.addEventListener("click", () => options.workspace.undo(true));
+    asElement("workspaceZoomOut")?.addEventListener("click", () => runCommand("workspace.zoomOut"));
+    asElement("workspaceZoomIn")?.addEventListener("click", () => runCommand("workspace.zoomIn"));
+    asElement("workspaceFit")?.addEventListener("click", () => runCommand("workspace.fit"));
+    asElement("workspaceFullscreen")?.addEventListener("click", toggleFullscreen);
+    asElement("perspectiveSelect")?.addEventListener("change", (event) => {
+        setPerspective(event.target.value);
+    });
+    asElement("themeToggle")?.addEventListener("change", () => window.setTimeout(() => {
+        document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.themeChoice === root.dataset.theme));
+        });
+    }, 0));
+    document.querySelector(".menu-system")?.addEventListener("keydown", (event) => {
+        const target = event.target;
+        const trigger = target.closest("[data-menu-target]");
+        const menu = target.closest(".app-menu");
+        if (trigger && (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ")) {
+            event.preventDefault();
+            trigger.click();
+            window.requestAnimationFrame(() => {
+                asElement(trigger.dataset.menuTarget || "")
+                    ?.querySelector("button:not(:disabled)")?.focus();
+            });
+            return;
+        }
+        if (!menu || (event.key !== "ArrowDown" && event.key !== "ArrowUp"))
+            return;
+        const items = [...menu.querySelectorAll("button:not(:disabled)")];
+        const index = items.indexOf(target);
+        if (index < 0)
+            return;
+        event.preventDefault();
+        items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+    });
+    asElement("programOutline")?.addEventListener("keydown", (event) => {
+        const target = event.target;
+        if (event.key === "Enter" || event.key === " ")
+            target.click();
+    });
+    const handleTabKeys = (event, selector) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+            return;
+        const tabs = [...document.querySelectorAll(selector)].filter((tab) => !tab.disabled);
+        const current = tabs.indexOf(event.target);
+        if (current < 0)
+            return;
+        event.preventDefault();
+        tabs[(current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length].focus();
+    };
+    asElement("rightPanelTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-right-tab]"));
+    asElement("bottomToolTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-bottom-tab]"));
+    paletteInput?.addEventListener("input", () => {
+        paletteSelection = 0;
+        renderCommandPalette();
+    });
+    paletteInput?.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            paletteSelection = clamp(paletteSelection + (event.key === "ArrowDown" ? 1 : -1), 0, Math.max(0, filteredCommands.length - 1));
+            renderCommandPalette();
+            return;
+        }
+        if (event.key === "Enter" && filteredCommands[paletteSelection]) {
+            event.preventDefault();
+            runCommand(filteredCommands[paletteSelection].id);
+        }
+    });
+    document.addEventListener("keydown", (event) => {
+        const modifier = event.ctrlKey || event.metaKey;
+        if ((modifier && event.shiftKey && event.key.toLowerCase() === "p") || event.key === "F1") {
+            event.preventDefault();
+            openCommandPalette();
+            return;
+        }
+        if (event.key === "Escape") {
+            closeCommandPalette();
+            closeMenus();
+            app.classList.remove("compact-sidebar-open", "compact-code-open");
+            options.requestLayoutUpdate();
+            return;
+        }
+        if (!modifier)
+            return;
+        if (event.key.toLowerCase() === "s") {
+            event.preventDefault();
+            runCommand("file.save");
+        }
+        else if (event.key.toLowerCase() === "o") {
+            event.preventDefault();
+            runCommand("file.open");
+        }
+        else if (event.key.toLowerCase() === "b") {
+            event.preventDefault();
+            runCommand("view.sidebar");
+        }
+        else if (event.key.toLowerCase() === "j") {
+            event.preventDefault();
+            runCommand("view.bottom");
+        }
+    });
+    palette?.addEventListener("mousedown", (event) => {
+        if (event.target === palette)
+            closeCommandPalette();
+    });
+    document.addEventListener("fullscreenchange", () => options.requestLayoutUpdate());
+    document.addEventListener("visual-sml:editor-status", (event) => {
+        const detail = event.detail;
+        renderProblems(detail?.message || "", detail?.state || "idle");
+    });
+    compactLayout.addEventListener("change", () => {
+        app.classList.remove("compact-sidebar-open", "compact-code-open");
+        options.requestLayoutUpdate();
+    });
+    options.workspace.addChangeListener(() => scheduleOutlineRender());
+    const currentFile = asElement("workspaceFileLabel");
+    const syncFileLabels = () => {
+        const name = currentFile?.textContent?.trim() || "untitled.vsml";
+        const titleFile = asElement("titleFileLabel");
+        const projectFile = asElement("projectFileName");
+        if (titleFile)
+            titleFile.textContent = name;
+        if (projectFile)
+            projectFile.textContent = name;
+    };
+    if (currentFile)
+        new MutationObserver(syncFileLabels).observe(currentFile, { childList: true, characterData: true, subtree: true });
+    const editorStatus = asElement("smlConvertStatus");
+    renderProblems(editorStatus?.textContent || "", editorStatus?.dataset.state || "idle");
+    const windowAny = window;
+    const previousStatusUpdate = windowAny.visualSmlUpdateStatus;
+    windowAny.visualSmlUpdateStatus = (message) => {
+        previousStatusUpdate?.(message);
+        if (!message)
+            return;
+        appendOutput(message);
+        const saveState = asElement("saveStateLabel");
+        if (saveState) {
+            if (/autosaved|saved|loaded|ready/i.test(message))
+                saveState.textContent = "Saved";
+            else if (/updated|converted|inserted|cleared/i.test(message))
+                saveState.textContent = "Modified";
+        }
+    };
+    setResizeToken("--ide-primary-sidebar-width", state.sidebarWidth);
+    setResizeToken("--ide-code-panel-width", state.codeWidth);
+    setResizeToken("--ide-bottom-panel-height", state.bottomHeight);
+    app.classList.toggle("toolbox-hidden", !state.sidebarVisible);
+    app.classList.toggle("code-hidden", !state.codeVisible);
+    renderActivity();
+    renderBottomTab();
+    setBottomVisible(state.bottomVisible, false);
+    setPerspective(state.perspective, false);
+    setRightTab(activeRightTab);
+    syncPanelControls();
+    syncFileLabels();
+    updateHandleValues();
+    scheduleOutlineRender();
+    appendOutput("Visual SML workbench initialized.");
+    document.querySelectorAll("[data-renderer-choice]").forEach((button) => {
+        button.setAttribute("aria-checked", String(button.dataset.rendererChoice === options.getRendererName()));
+    });
+    document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.themeChoice === root.dataset.theme));
+    });
+    const rendererStatus = asElement("statusRenderer");
+    if (rendererStatus)
+        rendererStatus.textContent = options.getRendererName() === "GoropaRenderer" ? "Goropa" : "Macaca Nigra";
+    options.requestLayoutUpdate("Visual SML workbench ready.");
+}
+
+
+/***/ },
+
 /***/ "./src/ui/layout_resize.ts"
 /*!*********************************!*\
   !*** ./src/ui/layout_resize.ts ***!
@@ -19877,6 +20670,77 @@ function createLayoutResizeCoordinator(options) {
             window.visualViewport?.removeEventListener("resize", handleResize, false);
         },
     };
+}
+
+
+/***/ },
+
+/***/ "./src/ui/layout_state.ts"
+/*!********************************!*\
+  !*** ./src/ui/layout_state.ts ***!
+  \********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DEFAULT_IDE_LAYOUT_STATE: () => (/* binding */ DEFAULT_IDE_LAYOUT_STATE),
+/* harmony export */   IDE_LAYOUT_STORAGE_KEY: () => (/* binding */ IDE_LAYOUT_STORAGE_KEY),
+/* harmony export */   loadIdeLayoutState: () => (/* binding */ loadIdeLayoutState),
+/* harmony export */   saveIdeLayoutState: () => (/* binding */ saveIdeLayoutState)
+/* harmony export */ });
+const IDE_LAYOUT_STORAGE_KEY = "visual-sml.layout.v2";
+const DEFAULT_IDE_LAYOUT_STATE = {
+    activeActivity: "blocks",
+    sidebarVisible: true,
+    sidebarWidth: 272,
+    codeVisible: true,
+    codeWidth: 430,
+    bottomVisible: false,
+    bottomHeight: 260,
+    activeBottomTab: "problems",
+    perspective: "edit",
+};
+const clamp = (value, minimum, maximum, fallback) => {
+    const number = Number(value);
+    return Number.isFinite(number)
+        ? Math.min(maximum, Math.max(minimum, Math.round(number)))
+        : fallback;
+};
+const oneOf = (value, values, fallback) => values.includes(value) ? value : fallback;
+function loadIdeLayoutState() {
+    let candidate = {};
+    try {
+        candidate = JSON.parse(window.localStorage.getItem(IDE_LAYOUT_STORAGE_KEY) || "{}");
+    }
+    catch (error) {
+        console.warn("Ignoring invalid saved IDE layout.", error);
+    }
+    return {
+        activeActivity: oneOf(candidate.activeActivity, ["blocks", "files", "settings"], "blocks"),
+        sidebarVisible: typeof candidate.sidebarVisible === "boolean"
+            ? candidate.sidebarVisible
+            : DEFAULT_IDE_LAYOUT_STATE.sidebarVisible,
+        sidebarWidth: clamp(candidate.sidebarWidth, 220, 380, DEFAULT_IDE_LAYOUT_STATE.sidebarWidth),
+        codeVisible: typeof candidate.codeVisible === "boolean"
+            ? candidate.codeVisible
+            : DEFAULT_IDE_LAYOUT_STATE.codeVisible,
+        codeWidth: clamp(candidate.codeWidth, 320, 720, DEFAULT_IDE_LAYOUT_STATE.codeWidth),
+        bottomVisible: typeof candidate.bottomVisible === "boolean"
+            ? candidate.bottomVisible
+            : DEFAULT_IDE_LAYOUT_STATE.bottomVisible,
+        bottomHeight: clamp(candidate.bottomHeight, 160, 520, DEFAULT_IDE_LAYOUT_STATE.bottomHeight),
+        activeBottomTab: oneOf(candidate.activeBottomTab, ["problems", "output"], "problems"),
+        perspective: oneOf(candidate.perspective, ["edit", "presentation"], "edit"),
+    };
+}
+function saveIdeLayoutState(state) {
+    try {
+        window.localStorage.setItem(IDE_LAYOUT_STORAGE_KEY, JSON.stringify(state));
+    }
+    catch (error) {
+        console.warn("IDE layout could not be saved.", error);
+    }
 }
 
 
@@ -20012,6 +20876,7 @@ const IMPORT_DEBOUNCE_MS = 450;
 const SYNC_SUPPRESSION_MS = 1500;
 let textArea = null;
 let highlightArea = null;
+let lineNumberArea = null;
 let statusArea = null;
 let convert = null;
 let importTimer;
@@ -20035,6 +20900,9 @@ function setEditorStatus(message, state = "idle") {
     else {
         statusArea.dataset.state = state;
     }
+    document.dispatchEvent(new CustomEvent("visual-sml:editor-status", {
+        detail: { message, state },
+    }));
 }
 function updateEditorHighlight() {
     if (!textArea || !highlightArea)
@@ -20042,13 +20910,22 @@ function updateEditorHighlight() {
     const highlighted = highlight_js__WEBPACK_IMPORTED_MODULE_0__["default"].highlight(textArea.value, { language: "sml" }).value;
     // A trailing newline keeps the overlay the same height as the textarea.
     highlightArea.innerHTML = highlighted + "\n";
+    updateEditorLineNumbers();
     syncEditorHighlightScroll();
+}
+function updateEditorLineNumbers() {
+    if (!textArea || !lineNumberArea)
+        return;
+    const lineCount = Math.max(1, textArea.value.split("\n").length);
+    lineNumberArea.textContent = Array.from({ length: lineCount }, (_, index) => index + 1).join("\n");
 }
 function syncEditorHighlightScroll() {
     if (!textArea || !highlightArea)
         return;
     highlightArea.style.transform =
         `translate(${-textArea.scrollLeft}px, ${-textArea.scrollTop}px)`;
+    if (lineNumberArea)
+        lineNumberArea.style.transform = `translateY(${-textArea.scrollTop}px)`;
 }
 /** Notify the native editor/highlight pair after its containing panel changes. */
 function layoutSmlCodeEditor() {
@@ -20140,6 +21017,7 @@ function forceSyncSmlEditorFromCode(code, options = {}) {
 function initSmlCodeEditor(options) {
     textArea = document.getElementById("smlSourceArea");
     highlightArea = document.getElementById("smlEditorHighlight");
+    lineNumberArea = document.getElementById("smlEditorLineNumbers");
     statusArea = document.getElementById("smlConvertStatus");
     convert = options.convertSmlToBlocks;
     if (!textArea)
@@ -20205,19 +21083,19 @@ const Macaca = blockly__WEBPACK_IMPORTED_MODULE_0__.Theme.defineTheme("nigra", {
         operator_blocks: { colourPrimary: "#cf8b3a", colourSecondary: "#e7b84a", colourTertiary: "#f0d27f" },
     },
     componentStyles: {
-        workspaceBackgroundColour: "#252c31",
-        toolboxBackgroundColour: "#263036",
-        toolboxForegroundColour: "#eef3f5",
-        flyoutBackgroundColour: "#2b3338",
-        flyoutForegroundColour: "#eef3f5",
+        workspaceBackgroundColour: "#171a20",
+        toolboxBackgroundColour: "#1a1d24",
+        toolboxForegroundColour: "#f1f3f5",
+        flyoutBackgroundColour: "#1d2027",
+        flyoutForegroundColour: "#f1f3f5",
         flyoutOpacity: 1,
-        scrollbarColour: "#50606a",
-        insertionMarkerColour: "#18a6a6",
+        scrollbarColour: "#414955",
+        insertionMarkerColour: "#5b8def",
         insertionMarkerOpacity: 0.34,
         scrollbarOpacity: 0.72,
-        cursorColour: "#18a6a6",
-        markerColour: "#2fb7a8",
-        blackBackground: "#252c31",
+        cursorColour: "#5b8def",
+        markerColour: "#58a6ff",
+        blackBackground: "#171a20",
     },
 });
 const MacacaBlackWhite = blockly__WEBPACK_IMPORTED_MODULE_0__.Theme.defineTheme("nigraBlackWhite", {
@@ -20235,20 +21113,20 @@ const MacacaBlackWhite = blockly__WEBPACK_IMPORTED_MODULE_0__.Theme.defineTheme(
         operator_blocks: { colourPrimary: "#cf8b3a", colourSecondary: "#e7b84a", colourTertiary: "#f0d27f" },
     },
     componentStyles: {
-        workspaceBackgroundColour: "#ffffff",
-        toolboxBackgroundColour: "#eceff1",
+        workspaceBackgroundColour: "#f7f8fa",
+        toolboxBackgroundColour: "#f7f8fa",
         toolboxForegroundColour: "#1e252b",
         flyoutBackgroundColour: "#ffffff",
         flyoutForegroundColour: "#1e252b",
         flyoutOpacity: 1,
-        scrollbarColour: "#aeb9bf",
-        insertionMarkerColour: "#18a6a6",
+        scrollbarColour: "#b9c0ca",
+        insertionMarkerColour: "#356fd2",
         insertionMarkerOpacity: 0.3,
         scrollbarOpacity: 0.62,
-        cursorColour: "#18a6a6",
+        cursorColour: "#356fd2",
         markerColour: "#3c8c5a",
         startHats: true,
-        blackBackground: "#ffffff",
+        blackBackground: "#f7f8fa",
     },
 });
 

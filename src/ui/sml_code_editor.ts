@@ -19,6 +19,7 @@ const SYNC_SUPPRESSION_MS = 1500;
 
 let textArea: HTMLTextAreaElement | null = null;
 let highlightArea: HTMLElement | null = null;
+let lineNumberArea: HTMLElement | null = null;
 let statusArea: HTMLElement | null = null;
 let convert: ((source: string) => void) | null = null;
 
@@ -44,6 +45,9 @@ function setEditorStatus(message: string, state: "idle" | "ok" | "error" = "idle
   } else {
     statusArea.dataset.state = state;
   }
+  document.dispatchEvent(new CustomEvent("visual-sml:editor-status", {
+    detail: { message, state },
+  }));
 }
 
 function updateEditorHighlight() {
@@ -51,13 +55,21 @@ function updateEditorHighlight() {
   const highlighted = hljs.highlight(textArea.value, { language: "sml" }).value;
   // A trailing newline keeps the overlay the same height as the textarea.
   highlightArea.innerHTML = highlighted + "\n";
+  updateEditorLineNumbers();
   syncEditorHighlightScroll();
+}
+
+function updateEditorLineNumbers() {
+  if (!textArea || !lineNumberArea) return;
+  const lineCount = Math.max(1, textArea.value.split("\n").length);
+  lineNumberArea.textContent = Array.from({ length: lineCount }, (_, index) => index + 1).join("\n");
 }
 
 function syncEditorHighlightScroll() {
   if (!textArea || !highlightArea) return;
   highlightArea.style.transform =
     `translate(${-textArea.scrollLeft}px, ${-textArea.scrollTop}px)`;
+  if (lineNumberArea) lineNumberArea.style.transform = `translateY(${-textArea.scrollTop}px)`;
 }
 
 /** Notify the native editor/highlight pair after its containing panel changes. */
@@ -152,6 +164,7 @@ export function forceSyncSmlEditorFromCode(
 export function initSmlCodeEditor(options: { convertSmlToBlocks: (source: string) => void }) {
   textArea = document.getElementById("smlSourceArea") as HTMLTextAreaElement | null;
   highlightArea = document.getElementById("smlEditorHighlight");
+  lineNumberArea = document.getElementById("smlEditorLineNumbers");
   statusArea = document.getElementById("smlConvertStatus");
   convert = options.convertSmlToBlocks;
   if (!textArea) return;

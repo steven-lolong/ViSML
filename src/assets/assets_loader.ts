@@ -2,6 +2,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Tooltip, Toast, Popover, Modal } from "bootstrap";
 import "./css/popper_fixer.css";
+import "./css/ide.css";
 import { show_hide_block, show_hide_source_block } from "./js/show_hide_div";
 import "./images/light_yellow_cyan.svg";
 import "./images/cyan.svg";
