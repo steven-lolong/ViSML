@@ -498,6 +498,10 @@ textarea:focus-visible,
   display: none;
 }
 
+.menu-toggle > span[aria-hidden="true"] {
+  display: none;
+}
+
 .topbar-actions,
 .command-toolbar {
   min-width: 0;
@@ -2185,6 +2189,10 @@ html:not([data-theme="light"]) .app-modal .btn-close {
     height: 28px;
     display: inline-flex;
     padding: 0;
+  }
+
+  .menu-toggle > span[aria-hidden="true"] {
+    display: inline;
   }
 
   .perspective-control {
