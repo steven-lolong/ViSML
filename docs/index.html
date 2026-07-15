@@ -242,7 +242,7 @@
           <label class="toolbox-search" for="toolboxSearch">
             <span class="search-icon" aria-hidden="true">⌕</span>
             <input id="toolboxSearch" type="search" placeholder="Search blocks" aria-label="Search blocks" />
-            <kbd>⌘F</kbd>
+            <kbd>Ctrl F</kbd>
           </label>
           <div class="custom-toolbox-list" id="htmlToolbox" aria-label="Block categories"></div>
         </section>
@@ -463,9 +463,7 @@
       var THEME_STORAGE_KEY = "visual-sml-theme-mode";
       var root = document.documentElement;
       var app = document.getElementById("app");
-      var layout = document.getElementById("divMainRow");
       var menuToggle = document.getElementById("menuToggle");
-      var topbarActions = document.getElementById("topbarActions");
       var themeToggle = document.getElementById("themeToggle");
       var examplesButton = document.getElementById("examplesMenuButton");
       var examplesSubMenu = document.getElementById("examplesSubMenu");
@@ -530,6 +528,9 @@
         root.dataset.theme = mode;
         app.dataset.theme = mode;
         if (themeToggle) themeToggle.checked = mode === "dark";
+        document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
+          button.setAttribute("aria-pressed", String(button.getAttribute("data-theme-choice") === mode));
+        });
         var metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.content = mode === "dark" ? "#111318" : "#f2f4f7";
       }
@@ -820,8 +821,8 @@
       window.visualSmlUpdateStatus = updateStatus;
       window.visualSmlRequestLayout = requestLayoutUpdate;
 
-      var savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) || "dark";
-      setShellTheme(savedTheme === "dark" ? "dark" : "light");
+      var savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+      setShellTheme(savedTheme === "light" ? "light" : "dark");
       renderToolboxToggleState();
       renderCodeToggleState();
       updateViewportHeight();

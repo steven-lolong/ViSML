@@ -19427,49 +19427,16 @@ function registWorspaceScopeMenu() {
     blockly__WEBPACK_IMPORTED_MODULE_0__.ContextMenuRegistry.registry.register(screenshotDownloadMenu);
     blockly__WEBPACK_IMPORTED_MODULE_0__.ContextMenuRegistry.registry.register(aboutMenu);
 }
-/**
- * Register the block-scoped "Type" context-menu item.
- *
- * NOTE: This feature relies on the legacy `Blockly.Bubble` API, which was
- * removed in Blockly v11 (replaced by `Blockly.bubbles.*`). The call sites are
- * cast to `any` so the project compiles; the bubble creation logic still needs
- * to be ported to the new `Blockly.bubbles` API before this menu item will work
- * at runtime.
- */
+/** Expose the unavailable type inspector honestly without invoking legacy UI. */
 function registBlockScopeMenu() {
-    const BlocklyAny = blockly__WEBPACK_IMPORTED_MODULE_0__;
     const blockItem = {
-        displayText: "Type",
+        displayText: "Type information unavailable",
         preconditionFn: function (scope) {
             if (scope.block.hasType)
-                return "enabled";
+                return "disabled";
             return "hidden";
         },
-        callback: function (scope) {
-            let parent_ = scope.block;
-            let mainWS = blockly__WEBPACK_IMPORTED_MODULE_0__.getMainWorkspace();
-            blockly__WEBPACK_IMPORTED_MODULE_0__.Events.fire(new blockly__WEBPACK_IMPORTED_MODULE_0__.Events.BubbleOpen(parent_, parent_.bubileVisible, "type"));
-            if (!parent_.bubileVisible) {
-                let paragraph_ = BlocklyAny.Bubble.textToDom("Hallo");
-                let parentLoc = parent_.getRelativeToSurfaceXY();
-                let imgVar = blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgMath.getRelativeXY(parent_.getSvgRoot());
-                let newCoor = new blockly__WEBPACK_IMPORTED_MODULE_0__.utils.Coordinate(parentLoc.x, parentLoc.y);
-                parent_.bubble_ = BlocklyAny.Bubble.createNonEditableBubble(paragraph_, parent_, newCoor);
-                parent_.bubble_.setColour(parent_.style.colourPrimary);
-                parent_.bubileVisible = true;
-                mainWS.addChangeListener((event) => {
-                    if (event.blockID === parent_.blockID &&
-                        event.__proto__.type === "move") {
-                        parent_.setAnchorLocation(event.newCoordinate);
-                    }
-                });
-            }
-            else {
-                parent_.bubileVisible = false;
-                parent_.bubble_.dispose();
-                parent_.bubble_ = null;
-            }
-        },
+        callback: function () { },
         scopeType: blockly__WEBPACK_IMPORTED_MODULE_0__.ContextMenuRegistry.ScopeType.BLOCK,
         id: "blockType",
         weight: 10,
@@ -19843,7 +19810,7 @@ function initializeIdeWorkbench(options) {
     if (!app)
         return;
     const state = (0,_layout_state__WEBPACK_IMPORTED_MODULE_0__.loadIdeLayoutState)();
-    const compactLayout = window.matchMedia("(max-width: 1080px)");
+    const compactLayout = window.matchMedia("(max-width: 1200px)");
     const outputEntries = [];
     let outlineFrame = 0;
     let activeRightTab = "code";
@@ -19916,6 +19883,9 @@ function initializeIdeWorkbench(options) {
     const setBottomVisible = (visible, message = true) => {
         const panel = asElement("bottomTools");
         state.bottomVisible = visible;
+        if (visible && compactLayout.matches) {
+            app.classList.remove("compact-sidebar-open", "compact-code-open");
+        }
         if (panel)
             panel.hidden = !visible;
         app.classList.toggle("bottom-panel-open", visible);
@@ -19950,6 +19920,8 @@ function initializeIdeWorkbench(options) {
         state.activeActivity = activity;
         renderActivity();
         if (compactLayout.matches) {
+            if (state.bottomVisible)
+                setBottomVisible(false, false);
             const shouldOpen = !isActive || !app.classList.contains("compact-sidebar-open");
             app.classList.toggle("compact-sidebar-open", shouldOpen);
             app.classList.remove("compact-code-open");
@@ -20147,6 +20119,8 @@ function initializeIdeWorkbench(options) {
         options.requestLayoutUpdate(bottomMaximized ? "Bottom tools maximized." : "Bottom tools restored.");
     };
     const openCompactCode = () => {
+        if (state.bottomVisible)
+            setBottomVisible(false, false);
         if (!state.codeVisible)
             setCodeVisible(true, false);
         app.classList.toggle("compact-code-open");
@@ -20228,6 +20202,7 @@ function initializeIdeWorkbench(options) {
     const paletteResults = asElement("commandPaletteResults");
     let paletteSelection = 0;
     let filteredCommands = commands;
+    let paletteReturnFocus = null;
     const renderCommandPalette = () => {
         if (!paletteResults)
             return;
@@ -20237,6 +20212,7 @@ function initializeIdeWorkbench(options) {
         paletteResults.replaceChildren(...filteredCommands.map((command, index) => {
             const item = document.createElement("button");
             item.type = "button";
+            item.id = `command-result-${index}`;
             item.className = "command-result";
             item.dataset.command = command.id;
             item.setAttribute("role", "option");
@@ -20263,12 +20239,19 @@ function initializeIdeWorkbench(options) {
             empty.className = "command-empty";
             empty.textContent = "No matching commands";
             paletteResults.append(empty);
+            paletteInput?.removeAttribute("aria-activedescendant");
+        }
+        else {
+            paletteInput?.setAttribute("aria-activedescendant", `command-result-${paletteSelection}`);
         }
     };
     const openCommandPalette = () => {
         if (!palette)
             return;
         closeMenus();
+        paletteReturnFocus = document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
         palette.hidden = false;
         paletteSelection = 0;
         if (paletteInput)
@@ -20277,8 +20260,11 @@ function initializeIdeWorkbench(options) {
         window.requestAnimationFrame(() => paletteInput?.focus());
     };
     function closeCommandPalette() {
-        if (palette)
-            palette.hidden = true;
+        if (!palette || palette.hidden)
+            return;
+        palette.hidden = true;
+        paletteReturnFocus?.focus();
+        paletteReturnFocus = null;
     }
     const setupPointerResize = (handleId, bodyClass, readValue, writeValue, valueFromPointer) => {
         const handle = asElement(handleId);
@@ -20477,7 +20463,9 @@ function initializeIdeWorkbench(options) {
         if (current < 0)
             return;
         event.preventDefault();
-        tabs[(current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length].focus();
+        const next = tabs[(current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+        next.focus();
+        next.click();
     };
     asElement("rightPanelTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-right-tab]"));
     asElement("bottomToolTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-bottom-tab]"));
@@ -20528,6 +20516,15 @@ function initializeIdeWorkbench(options) {
         else if (event.key.toLowerCase() === "j") {
             event.preventDefault();
             runCommand("view.bottom");
+        }
+        else if (event.key.toLowerCase() === "f" && document.activeElement?.id !== "smlSourceArea") {
+            event.preventDefault();
+            setActivity("blocks");
+            window.requestAnimationFrame(() => {
+                const search = asElement("toolboxSearch");
+                search?.focus();
+                search?.select();
+            });
         }
     });
     palette?.addEventListener("mousedown", (event) => {
@@ -20687,6 +20684,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   DEFAULT_IDE_LAYOUT_STATE: () => (/* binding */ DEFAULT_IDE_LAYOUT_STATE),
 /* harmony export */   IDE_LAYOUT_STORAGE_KEY: () => (/* binding */ IDE_LAYOUT_STORAGE_KEY),
 /* harmony export */   loadIdeLayoutState: () => (/* binding */ loadIdeLayoutState),
+/* harmony export */   normalizeIdeLayoutState: () => (/* binding */ normalizeIdeLayoutState),
 /* harmony export */   saveIdeLayoutState: () => (/* binding */ saveIdeLayoutState)
 /* harmony export */ });
 const IDE_LAYOUT_STORAGE_KEY = "visual-sml.layout.v2";
@@ -20708,6 +20706,29 @@ const clamp = (value, minimum, maximum, fallback) => {
         : fallback;
 };
 const oneOf = (value, values, fallback) => values.includes(value) ? value : fallback;
+/** Convert untrusted persisted JSON into a complete, bounded layout state. */
+function normalizeIdeLayoutState(candidate) {
+    const value = candidate && typeof candidate === "object" && !Array.isArray(candidate)
+        ? candidate
+        : {};
+    return {
+        activeActivity: oneOf(value.activeActivity, ["blocks", "files", "settings"], "blocks"),
+        sidebarVisible: typeof value.sidebarVisible === "boolean"
+            ? value.sidebarVisible
+            : DEFAULT_IDE_LAYOUT_STATE.sidebarVisible,
+        sidebarWidth: clamp(value.sidebarWidth, 220, 380, DEFAULT_IDE_LAYOUT_STATE.sidebarWidth),
+        codeVisible: typeof value.codeVisible === "boolean"
+            ? value.codeVisible
+            : DEFAULT_IDE_LAYOUT_STATE.codeVisible,
+        codeWidth: clamp(value.codeWidth, 320, 720, DEFAULT_IDE_LAYOUT_STATE.codeWidth),
+        bottomVisible: typeof value.bottomVisible === "boolean"
+            ? value.bottomVisible
+            : DEFAULT_IDE_LAYOUT_STATE.bottomVisible,
+        bottomHeight: clamp(value.bottomHeight, 160, 520, DEFAULT_IDE_LAYOUT_STATE.bottomHeight),
+        activeBottomTab: oneOf(value.activeBottomTab, ["problems", "output"], "problems"),
+        perspective: oneOf(value.perspective, ["edit", "presentation"], "edit"),
+    };
+}
 function loadIdeLayoutState() {
     let candidate = {};
     try {
@@ -20716,23 +20737,7 @@ function loadIdeLayoutState() {
     catch (error) {
         console.warn("Ignoring invalid saved IDE layout.", error);
     }
-    return {
-        activeActivity: oneOf(candidate.activeActivity, ["blocks", "files", "settings"], "blocks"),
-        sidebarVisible: typeof candidate.sidebarVisible === "boolean"
-            ? candidate.sidebarVisible
-            : DEFAULT_IDE_LAYOUT_STATE.sidebarVisible,
-        sidebarWidth: clamp(candidate.sidebarWidth, 220, 380, DEFAULT_IDE_LAYOUT_STATE.sidebarWidth),
-        codeVisible: typeof candidate.codeVisible === "boolean"
-            ? candidate.codeVisible
-            : DEFAULT_IDE_LAYOUT_STATE.codeVisible,
-        codeWidth: clamp(candidate.codeWidth, 320, 720, DEFAULT_IDE_LAYOUT_STATE.codeWidth),
-        bottomVisible: typeof candidate.bottomVisible === "boolean"
-            ? candidate.bottomVisible
-            : DEFAULT_IDE_LAYOUT_STATE.bottomVisible,
-        bottomHeight: clamp(candidate.bottomHeight, 160, 520, DEFAULT_IDE_LAYOUT_STATE.bottomHeight),
-        activeBottomTab: oneOf(candidate.activeBottomTab, ["problems", "output"], "problems"),
-        perspective: oneOf(candidate.perspective, ["edit", "presentation"], "edit"),
-    };
+    return normalizeIdeLayoutState(candidate);
 }
 function saveIdeLayoutState(state) {
     try {

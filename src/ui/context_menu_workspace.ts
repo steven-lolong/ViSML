@@ -35,56 +35,15 @@ function registWorspaceScopeMenu() {
   Blockly.ContextMenuRegistry.registry.register(aboutMenu as any);
 }
 
-/**
- * Register the block-scoped "Type" context-menu item.
- *
- * NOTE: This feature relies on the legacy `Blockly.Bubble` API, which was
- * removed in Blockly v11 (replaced by `Blockly.bubbles.*`). The call sites are
- * cast to `any` so the project compiles; the bubble creation logic still needs
- * to be ported to the new `Blockly.bubbles` API before this menu item will work
- * at runtime.
- */
+/** Expose the unavailable type inspector honestly without invoking legacy UI. */
 function registBlockScopeMenu() {
-  const BlocklyAny = Blockly as any;
   const blockItem = {
-    displayText: "Type",
+    displayText: "Type information unavailable",
     preconditionFn: function (scope: any) {
-      if (scope.block.hasType) return "enabled";
+      if (scope.block.hasType) return "disabled";
       return "hidden";
     },
-    callback: function (scope: any) {
-      let parent_: any = scope.block;
-      let mainWS = Blockly.getMainWorkspace();
-
-      Blockly.Events.fire(
-        new Blockly.Events.BubbleOpen(parent_, parent_.bubileVisible, "type" as any)
-      );
-      if (!parent_.bubileVisible) {
-        let paragraph_ = BlocklyAny.Bubble.textToDom("Hallo");
-        let parentLoc = parent_.getRelativeToSurfaceXY();
-        let imgVar = Blockly.utils.svgMath.getRelativeXY(parent_.getSvgRoot());
-        let newCoor = new Blockly.utils.Coordinate(parentLoc.x, parentLoc.y);
-        parent_.bubble_ = BlocklyAny.Bubble.createNonEditableBubble(
-          paragraph_,
-          parent_,
-          newCoor
-        );
-        parent_.bubble_.setColour(parent_.style.colourPrimary);
-        parent_.bubileVisible = true;
-        mainWS.addChangeListener((event: any) => {
-          if (
-            event.blockID === parent_.blockID &&
-            event.__proto__.type === "move"
-          ) {
-            parent_.setAnchorLocation(event.newCoordinate);
-          }
-        });
-      } else {
-        parent_.bubileVisible = false;
-        parent_.bubble_.dispose();
-        parent_.bubble_ = null;
-      }
-    },
+    callback: function () { /* Disabled until a real type-information provider exists. */ },
     scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
     id: "blockType",
     weight: 10,

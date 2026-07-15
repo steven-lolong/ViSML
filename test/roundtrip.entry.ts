@@ -127,8 +127,20 @@ import "../src/core/generator/sml/blocks/declarations/strbind";
 import { SML } from "../src/core/generator/sml/sml";
 import { smlToVismlWorkspaceState, SmlParseError } from "../src/core/parser/sml_to_visml";
 import { sampleWorkspaces } from "../src/sample/sample_loader";
+import {
+  DEFAULT_IDE_LAYOUT_STATE,
+  normalizeIdeLayoutState,
+} from "../src/ui/layout_state";
 
-export { Blockly, SML, smlToVismlWorkspaceState, SmlParseError, sampleWorkspaces };
+export {
+  Blockly,
+  SML,
+  smlToVismlWorkspaceState,
+  SmlParseError,
+  sampleWorkspaces,
+  DEFAULT_IDE_LAYOUT_STATE,
+  normalizeIdeLayoutState,
+};
 
 /** Walk a workspace state and collect every referenced block type. */
 export function collectBlockTypes(state: any): string[] {

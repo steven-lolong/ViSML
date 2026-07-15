@@ -18,6 +18,8 @@ const {
   stateToCode,
   findUnregisteredType,
   sampleWorkspaces,
+  DEFAULT_IDE_LAYOUT_STATE,
+  normalizeIdeLayoutState,
 } = require("./dist/roundtrip.bundle.js");
 
 /** SML programs covering every construct the generator can emit. */
@@ -240,9 +242,55 @@ for (const sampleName of sampleNames) {
   }
 }
 
+console.log("\nLayout state normalization:");
+const layoutCases = [
+  ["null storage falls back safely", null, DEFAULT_IDE_LAYOUT_STATE],
+  [
+    "dimensions are clamped",
+    { sidebarWidth: -20, codeWidth: 5000, bottomHeight: 12 },
+    { ...DEFAULT_IDE_LAYOUT_STATE, sidebarWidth: 220, codeWidth: 720, bottomHeight: 160 },
+  ],
+  [
+    "valid settings survive normalization",
+    {
+      activeActivity: "settings",
+      sidebarVisible: false,
+      sidebarWidth: 334,
+      codeVisible: false,
+      codeWidth: 512,
+      bottomVisible: true,
+      bottomHeight: 318,
+      activeBottomTab: "output",
+      perspective: "presentation",
+    },
+    {
+      activeActivity: "settings",
+      sidebarVisible: false,
+      sidebarWidth: 334,
+      codeVisible: false,
+      codeWidth: 512,
+      bottomVisible: true,
+      bottomHeight: 318,
+      activeBottomTab: "output",
+      perspective: "presentation",
+    },
+  ],
+];
+let layoutPassed = 0;
+for (const [name, candidate, expected] of layoutCases) {
+  const actual = normalizeIdeLayoutState(candidate);
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    fail(name, "layout state did not normalize as expected", JSON.stringify({ expected, actual }, null, 2));
+    continue;
+  }
+  layoutPassed++;
+  console.log(`ok    ${name}`);
+}
+
 console.log(
   `\n${passed}/${CASES.length} text round-trips passed, ` +
-  `${samplesPassed}/${sampleNames.length} sample round-trips passed` +
+  `${samplesPassed}/${sampleNames.length} sample round-trips passed, ` +
+  `${layoutPassed}/${layoutCases.length} layout-state cases passed` +
   (failures ? `, ${failures} FAILED` : "")
 );
 process.exit(failures ? 1 : 0);

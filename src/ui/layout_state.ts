@@ -38,31 +38,40 @@ const clamp = (value: unknown, minimum: number, maximum: number, fallback: numbe
 const oneOf = <T extends string>(value: unknown, values: readonly T[], fallback: T): T =>
   values.includes(value as T) ? value as T : fallback;
 
+/** Convert untrusted persisted JSON into a complete, bounded layout state. */
+export function normalizeIdeLayoutState(candidate: unknown): IdeLayoutState {
+  const value = candidate && typeof candidate === "object" && !Array.isArray(candidate)
+    ? candidate as Partial<IdeLayoutState>
+    : {};
+
+  return {
+    activeActivity: oneOf(value.activeActivity, ["blocks", "files", "settings"], "blocks"),
+    sidebarVisible: typeof value.sidebarVisible === "boolean"
+      ? value.sidebarVisible
+      : DEFAULT_IDE_LAYOUT_STATE.sidebarVisible,
+    sidebarWidth: clamp(value.sidebarWidth, 220, 380, DEFAULT_IDE_LAYOUT_STATE.sidebarWidth),
+    codeVisible: typeof value.codeVisible === "boolean"
+      ? value.codeVisible
+      : DEFAULT_IDE_LAYOUT_STATE.codeVisible,
+    codeWidth: clamp(value.codeWidth, 320, 720, DEFAULT_IDE_LAYOUT_STATE.codeWidth),
+    bottomVisible: typeof value.bottomVisible === "boolean"
+      ? value.bottomVisible
+      : DEFAULT_IDE_LAYOUT_STATE.bottomVisible,
+    bottomHeight: clamp(value.bottomHeight, 160, 520, DEFAULT_IDE_LAYOUT_STATE.bottomHeight),
+    activeBottomTab: oneOf(value.activeBottomTab, ["problems", "output"], "problems"),
+    perspective: oneOf(value.perspective, ["edit", "presentation"], "edit"),
+  };
+}
+
 export function loadIdeLayoutState(): IdeLayoutState {
-  let candidate: Partial<IdeLayoutState> = {};
+  let candidate: unknown = {};
   try {
     candidate = JSON.parse(window.localStorage.getItem(IDE_LAYOUT_STORAGE_KEY) || "{}");
   } catch (error) {
     console.warn("Ignoring invalid saved IDE layout.", error);
   }
 
-  return {
-    activeActivity: oneOf(candidate.activeActivity, ["blocks", "files", "settings"], "blocks"),
-    sidebarVisible: typeof candidate.sidebarVisible === "boolean"
-      ? candidate.sidebarVisible
-      : DEFAULT_IDE_LAYOUT_STATE.sidebarVisible,
-    sidebarWidth: clamp(candidate.sidebarWidth, 220, 380, DEFAULT_IDE_LAYOUT_STATE.sidebarWidth),
-    codeVisible: typeof candidate.codeVisible === "boolean"
-      ? candidate.codeVisible
-      : DEFAULT_IDE_LAYOUT_STATE.codeVisible,
-    codeWidth: clamp(candidate.codeWidth, 320, 720, DEFAULT_IDE_LAYOUT_STATE.codeWidth),
-    bottomVisible: typeof candidate.bottomVisible === "boolean"
-      ? candidate.bottomVisible
-      : DEFAULT_IDE_LAYOUT_STATE.bottomVisible,
-    bottomHeight: clamp(candidate.bottomHeight, 160, 520, DEFAULT_IDE_LAYOUT_STATE.bottomHeight),
-    activeBottomTab: oneOf(candidate.activeBottomTab, ["problems", "output"], "problems"),
-    perspective: oneOf(candidate.perspective, ["edit", "presentation"], "edit"),
-  };
+  return normalizeIdeLayoutState(candidate);
 }
 
 export function saveIdeLayoutState(state: IdeLayoutState): void {

@@ -40,7 +40,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   if (!app) return;
 
   const state: IdeLayoutState = loadIdeLayoutState();
-  const compactLayout = window.matchMedia("(max-width: 1080px)");
+  const compactLayout = window.matchMedia("(max-width: 1200px)");
   const outputEntries: Array<{ time: string; message: string; count: number }> = [];
   let outlineFrame = 0;
   let activeRightTab: RightTab = "code";
@@ -118,6 +118,9 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   const setBottomVisible = (visible: boolean, message = true) => {
     const panel = asElement<HTMLElement>("bottomTools");
     state.bottomVisible = visible;
+    if (visible && compactLayout.matches) {
+      app.classList.remove("compact-sidebar-open", "compact-code-open");
+    }
     if (panel) panel.hidden = !visible;
     app.classList.toggle("bottom-panel-open", visible);
     if (!visible) {
@@ -154,6 +157,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     renderActivity();
 
     if (compactLayout.matches) {
+      if (state.bottomVisible) setBottomVisible(false, false);
       const shouldOpen = !isActive || !app.classList.contains("compact-sidebar-open");
       app.classList.toggle("compact-sidebar-open", shouldOpen);
       app.classList.remove("compact-code-open");
@@ -346,6 +350,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   };
 
   const openCompactCode = () => {
+    if (state.bottomVisible) setBottomVisible(false, false);
     if (!state.codeVisible) setCodeVisible(true, false);
     app.classList.toggle("compact-code-open");
     app.classList.remove("compact-sidebar-open");
@@ -432,6 +437,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   const paletteResults = asElement<HTMLElement>("commandPaletteResults");
   let paletteSelection = 0;
   let filteredCommands = commands;
+  let paletteReturnFocus: HTMLElement | null = null;
 
   const renderCommandPalette = () => {
     if (!paletteResults) return;
@@ -442,6 +448,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     paletteResults.replaceChildren(...filteredCommands.map((command, index) => {
       const item = document.createElement("button");
       item.type = "button";
+      item.id = `command-result-${index}`;
       item.className = "command-result";
       item.dataset.command = command.id;
       item.setAttribute("role", "option");
@@ -467,12 +474,18 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       empty.className = "command-empty";
       empty.textContent = "No matching commands";
       paletteResults.append(empty);
+      paletteInput?.removeAttribute("aria-activedescendant");
+    } else {
+      paletteInput?.setAttribute("aria-activedescendant", `command-result-${paletteSelection}`);
     }
   };
 
   const openCommandPalette = () => {
     if (!palette) return;
     closeMenus();
+    paletteReturnFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     palette.hidden = false;
     paletteSelection = 0;
     if (paletteInput) paletteInput.value = "";
@@ -481,7 +494,10 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   };
 
   function closeCommandPalette() {
-    if (palette) palette.hidden = true;
+    if (!palette || palette.hidden) return;
+    palette.hidden = true;
+    paletteReturnFocus?.focus();
+    paletteReturnFocus = null;
   }
 
   const setupPointerResize = (
@@ -700,7 +716,9 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     const current = tabs.indexOf(event.target as HTMLButtonElement);
     if (current < 0) return;
     event.preventDefault();
-    tabs[(current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length].focus();
+    const next = tabs[(current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+    next.focus();
+    next.click();
   };
   asElement<HTMLElement>("rightPanelTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-right-tab]"));
   asElement<HTMLElement>("bottomToolTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-bottom-tab]"));
@@ -753,6 +771,14 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     } else if (event.key.toLowerCase() === "j") {
       event.preventDefault();
       runCommand("view.bottom");
+    } else if (event.key.toLowerCase() === "f" && document.activeElement?.id !== "smlSourceArea") {
+      event.preventDefault();
+      setActivity("blocks");
+      window.requestAnimationFrame(() => {
+        const search = asElement<HTMLInputElement>("toolboxSearch");
+        search?.focus();
+        search?.select();
+      });
     }
   });
 
