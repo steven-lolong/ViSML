@@ -45,6 +45,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   let outlineFrame = 0;
   let activeRightTab: RightTab = "code";
   let bottomMaximized = false;
+  let rightPanelMaximized = false;
   let preMaximizeBottomHeight = state.bottomHeight;
 
   const persist = () => saveIdeLayoutState(state);
@@ -107,7 +108,17 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   const setCodeVisible = (visible: boolean, message = true) => {
     state.codeVisible = visible;
     app.classList.toggle("code-hidden", !visible);
-    if (!visible) app.classList.remove("compact-code-open");
+    if (!visible) {
+      app.classList.remove("compact-code-open", "right-panel-maximized");
+      rightPanelMaximized = false;
+      const maximizeButton = asElement<HTMLButtonElement>("maximizeRightPanel");
+      if (maximizeButton) {
+        maximizeButton.textContent = "□";
+        maximizeButton.title = "Maximize code and outline region";
+        maximizeButton.setAttribute("aria-label", "Maximize code and outline region");
+        maximizeButton.setAttribute("aria-pressed", "false");
+      }
+    }
     syncPanelControls();
     persist();
     options.requestLayoutUpdate(message
@@ -314,7 +325,15 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     app.dataset.perspective = perspective;
     app.classList.toggle("perspective-presentation", perspective === "presentation");
     if (perspective === "presentation") {
-      app.classList.remove("compact-sidebar-open", "compact-code-open");
+      rightPanelMaximized = false;
+      app.classList.remove("compact-sidebar-open", "compact-code-open", "right-panel-maximized");
+      const maximizeButton = asElement<HTMLButtonElement>("maximizeRightPanel");
+      if (maximizeButton) {
+        maximizeButton.textContent = "□";
+        maximizeButton.title = "Maximize code and outline region";
+        maximizeButton.setAttribute("aria-label", "Maximize code and outline region");
+        maximizeButton.setAttribute("aria-pressed", "false");
+      }
     }
     const select = asElement<HTMLSelectElement>("perspectiveSelect");
     if (select) select.value = perspective;
@@ -349,6 +368,27 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     options.requestLayoutUpdate(bottomMaximized ? "Bottom tools maximized." : "Bottom tools restored.");
   };
 
+  const toggleRightPanelMaximize = () => {
+    if (!state.codeVisible) setCodeVisible(true, false);
+    rightPanelMaximized = !rightPanelMaximized;
+    app.classList.toggle("right-panel-maximized", rightPanelMaximized);
+    if (rightPanelMaximized) {
+      app.classList.remove("compact-sidebar-open", "compact-code-open");
+    } else if (compactLayout.matches) {
+      app.classList.add("compact-code-open");
+    }
+    const button = asElement<HTMLButtonElement>("maximizeRightPanel");
+    if (button) {
+      button.textContent = rightPanelMaximized ? "▣" : "□";
+      button.title = rightPanelMaximized ? "Restore code and outline region" : "Maximize code and outline region";
+      button.setAttribute("aria-label", button.title);
+      button.setAttribute("aria-pressed", String(rightPanelMaximized));
+    }
+    options.requestLayoutUpdate(rightPanelMaximized
+      ? `${activeRightTab === "code" ? "Code" : "Outline"} view maximized.`
+      : `${activeRightTab === "code" ? "Code" : "Outline"} view restored.`);
+  };
+
   const openCompactCode = () => {
     if (state.bottomVisible) setBottomVisible(false, false);
     if (!state.codeVisible) setCodeVisible(true, false);
@@ -373,13 +413,11 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     setCodeVisible(!state.codeVisible);
   };
 
-  const clickExisting = (id: string) => asElement<HTMLButtonElement>(id)?.click();
-
   const commands: IdeCommand[] = [
-    { id: "file.new", label: "New Workspace", category: "File", run: () => clickExisting("newWorkspace") },
-    { id: "file.open", label: "Open Workspace…", category: "File", shortcut: "Ctrl+O", run: () => clickExisting("loadWorkspace") },
-    { id: "file.save", label: "Save Workspace…", category: "File", shortcut: "Ctrl+S", run: () => clickExisting("saveWorkspace") },
-    { id: "file.autosave", label: "Load Autosave", category: "File", run: () => clickExisting("loadAutosave") },
+    { id: "file.new", label: "New Workspace", category: "File", run: () => (window as any).clearWorkspace?.() },
+    { id: "file.open", label: "Open Workspace…", category: "File", shortcut: "Ctrl+O", run: () => (window as any).tarsius?.menuLoadFile?.() },
+    { id: "file.save", label: "Save Workspace…", category: "File", shortcut: "Ctrl+S", run: () => (window as any).tarsius?.menuSaveFile?.() },
+    { id: "file.autosave", label: "Load Autosave", category: "File", run: () => (window as any).tarsius?.menuLoadAutosave?.() },
     { id: "edit.undo", label: "Undo", category: "Edit", shortcut: "Ctrl+Z", run: () => options.workspace.undo(false) },
     { id: "edit.redo", label: "Redo", category: "Edit", shortcut: "Ctrl+Shift+Z", run: () => options.workspace.undo(true) },
     { id: "view.blocks", label: "Show Blocks", category: "View", run: () => setActivity("blocks") },
@@ -400,8 +438,8 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     { id: "run.unavailable", label: "Execution runtime is not configured", category: "Run", enabled: false, run: () => undefined },
     { id: "perspective.edit", label: "Activate Edit Perspective", category: "Perspective", run: () => setPerspective("edit") },
     { id: "perspective.presentation", label: "Activate Presentation Perspective", category: "Perspective", run: () => setPerspective("presentation") },
-    { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => clickExisting("usageApp") },
-    { id: "help.about", label: "About Visual SML", category: "Help", run: () => clickExisting("aboutApp") },
+    { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => (window as any).showUsage?.() },
+    { id: "help.about", label: "About Visual SML", category: "Help", run: () => (window as any).showAbout?.() },
   ];
   const commandMap = new Map(commands.map((command) => [command.id, command]));
 
@@ -668,6 +706,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
   asElement<HTMLElement>("commandPaletteTrigger")?.addEventListener("click", openCommandPalette);
   asElement<HTMLElement>("closeBottomPanel")?.addEventListener("click", () => setBottomVisible(false));
   asElement<HTMLElement>("maximizeBottomPanel")?.addEventListener("click", toggleBottomMaximize);
+  asElement<HTMLElement>("maximizeRightPanel")?.addEventListener("click", toggleRightPanelMaximize);
   asElement<HTMLElement>("workspaceToggleBottom")?.addEventListener("click", () => setBottomVisible(!state.bottomVisible));
   asElement<HTMLElement>("workspaceUndo")?.addEventListener("click", () => options.workspace.undo(false));
   asElement<HTMLElement>("workspaceRedo")?.addEventListener("click", () => options.workspace.undo(true));

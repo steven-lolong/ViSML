@@ -212,14 +212,14 @@ textarea:focus-visible,
   background: var(--ide-shell-bg);
 }
 
-/* Application title bar and command toolbar */
+/* Unified application bar */
 .topbar {
   grid-area: application-header;
   min-width: 0;
   position: relative;
   z-index: 80;
   display: grid;
-  grid-template-rows: var(--ide-titlebar-height) var(--ide-command-toolbar-height);
+  grid-template-rows: var(--ide-titlebar-height);
   color: var(--ide-text);
   background: var(--ide-toolbar-bg);
   border-bottom: 1px solid var(--ide-border);
@@ -468,7 +468,8 @@ textarea:focus-visible,
   z-index: 0;
   left: 2px;
   border-radius: 50%;
-  background: var(--button-bg-hover);
+  background: var(--ide-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ide-accent-hover) 55%, transparent);
   transition: transform 120ms ease;
 }
 
@@ -483,7 +484,8 @@ textarea:focus-visible,
 
 .theme-switch input:not(:checked) + .theme-slider > span:first-child,
 .theme-switch input:checked + .theme-slider > span:last-child {
-  color: var(--ide-text);
+  color: #fff;
+  font-weight: 700;
 }
 
 .theme-switch:hover .theme-slider,
@@ -1397,6 +1399,12 @@ textarea:focus-visible,
   gap: 1px;
 }
 
+.code-context-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
 .language-badge {
   padding: 2px 5px;
   color: var(--ide-text-disabled);
@@ -2134,6 +2142,30 @@ html:not([data-theme="light"]) .app-modal .btn-close {
     display: none;
   }
 
+  .menu-open .menu-system {
+    height: 36px;
+    position: absolute;
+    z-index: 90;
+    top: var(--ide-titlebar-height);
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    background: var(--ide-toolbar-bg);
+    border-bottom: 1px solid var(--ide-border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+  }
+
+  .menu-open .menu-button {
+    padding-inline: 6px;
+  }
+
+  .menu-open .menu-root:nth-last-child(-n + 3) .app-menu {
+    right: 0;
+    left: auto;
+  }
+
   .command-center {
     width: 32px;
     height: 26px;
@@ -2153,23 +2185,6 @@ html:not([data-theme="light"]) .app-modal .btn-close {
     height: 28px;
     display: inline-flex;
     padding: 0;
-  }
-
-  .command-toolbar {
-    height: var(--ide-command-toolbar-height);
-    position: absolute;
-    top: var(--ide-titlebar-height);
-    right: 0;
-    left: 0;
-    z-index: 90;
-    display: none;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--ide-border);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
-  }
-
-  .menu-open .command-toolbar {
-    display: flex;
   }
 
   .perspective-control {
@@ -2272,6 +2287,24 @@ html:not([data-theme="light"]) .app-modal .btn-close {
   .status-item {
     padding-inline: 5px;
   }
+}
+
+#app.right-panel-maximized .code-panel {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 60;
+  inset: 0;
+  visibility: visible;
+  transform: none;
+  border-left: 0;
+}
+
+#app.right-panel-maximized .resize-handle,
+#app.right-panel-maximized .bottom-tools-region {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

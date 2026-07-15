@@ -25,15 +25,15 @@
           <span class="brand-name">Visual SML</span>
         </a>
 
-        <nav class="menu-system" aria-label="Application menu">
+        <nav id="appMenu" class="menu-system" aria-label="Application menu">
           <div class="menu-root">
             <button class="menu-button" type="button" data-menu-target="fileMenu" aria-haspopup="menu" aria-expanded="false">File</button>
             <div id="fileMenu" class="app-menu" role="menu" hidden>
-              <button type="button" role="menuitem" data-command="file.new"><span>New Workspace</span></button>
-              <button type="button" role="menuitem" data-command="file.open"><span>Open Workspace…</span><kbd>Ctrl+O</kbd></button>
-              <button type="button" role="menuitem" data-command="file.save"><span>Save Workspace…</span><kbd>Ctrl+S</kbd></button>
+              <button id="newWorkspace" type="button" role="menuitem" data-command="file.new"><span>New Workspace</span></button>
+              <button id="loadWorkspace" type="button" role="menuitem" data-command="file.open"><span>Open Workspace…</span><kbd>Ctrl+O</kbd></button>
+              <button id="saveWorkspace" type="button" role="menuitem" data-command="file.save"><span>Save Workspace…</span><kbd>Ctrl+S</kbd></button>
               <div class="menu-separator" role="separator"></div>
-              <button type="button" role="menuitem" data-command="file.autosave"><span>Load Autosave</span></button>
+              <button id="loadAutosave" type="button" role="menuitem" data-command="file.autosave"><span>Load Autosave</span></button>
             </div>
           </div>
           <div class="menu-root">
@@ -69,19 +69,34 @@
             </div>
           </div>
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="toolsMenu" aria-haspopup="menu" aria-expanded="false">Tools</button>
+            <button id="rendererMenuButton" class="menu-button" type="button" data-menu-target="toolsMenu" aria-haspopup="menu" aria-expanded="false">Tools</button>
             <div id="toolsMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="view.settings"><span>Settings</span></button>
+              <div class="menu-separator" role="separator"></div>
+              <button type="button" role="menuitemradio" aria-checked="true" data-renderer-id="MNRenderer"><span>Renderer: Macaca Nigra</span></button>
+              <button type="button" role="menuitemradio" aria-checked="false" data-renderer-id="GoropaRenderer"><span>Renderer: Goropa</span></button>
               <div class="menu-separator" role="separator"></div>
               <button type="button" role="menuitemradio" data-perspective="edit" data-command="perspective.edit" aria-checked="true"><span>Edit Perspective</span></button>
               <button type="button" role="menuitemradio" data-perspective="presentation" data-command="perspective.presentation" aria-checked="false"><span>Presentation Perspective</span></button>
             </div>
           </div>
           <div class="menu-root">
+            <button id="examplesMenuButton" class="menu-button" type="button" data-menu-target="examplesSubMenu" aria-haspopup="menu" aria-expanded="false">Examples</button>
+            <div id="examplesSubMenu" class="app-menu examples-app-menu" role="menu" hidden>
+              <button type="button" role="menuitem" data-sample-id="factorial"><span class="example-menu-title">Factorial</span></button>
+              <button type="button" role="menuitem" data-sample-id="caseMatch"><span class="example-menu-title">Case Match</span></button>
+              <button type="button" role="menuitem" data-sample-id="fCurrying"><span class="example-menu-title">Currying Function</span></button>
+              <button type="button" role="menuitem" data-sample-id="fUncurrying"><span class="example-menu-title">Uncurrying Function</span></button>
+              <button type="button" role="menuitem" data-sample-id="fPatterMatching"><span class="example-menu-title">Pattern Matching</span></button>
+              <button type="button" role="menuitem" data-sample-id="binaryTree"><span class="example-menu-title">Binary Tree</span></button>
+              <button type="button" role="menuitem" data-sample-id="signatureNStructure"><span class="example-menu-title">Signature and Structure</span></button>
+            </div>
+          </div>
+          <div class="menu-root">
             <button class="menu-button" type="button" data-menu-target="helpMenu" aria-haspopup="menu" aria-expanded="false">Help</button>
             <div id="helpMenu" class="app-menu" role="menu" hidden>
-              <button type="button" role="menuitem" data-command="help.usage"><span>Usage Guide</span></button>
-              <button type="button" role="menuitem" data-command="help.about"><span>About Visual SML</span></button>
+              <button id="usageApp" type="button" role="menuitem" data-command="help.usage"><span>Usage Guide</span></button>
+              <button id="aboutApp" type="button" role="menuitem" data-command="help.about"><span>About Visual SML</span></button>
             </div>
           </div>
         </nav>
@@ -101,107 +116,11 @@
           <input id="themeToggle" type="checkbox" aria-label="Toggle dark theme" />
           <span class="theme-slider" aria-hidden="true"><span>☀</span><span>☾</span></span>
         </label>
-        <button id="menuToggle" class="menu-toggle icon-button" type="button" aria-controls="topbarActions" aria-expanded="false">
-          <span aria-hidden="true">☰</span><span class="visually-hidden">Toggle command toolbar</span>
+        <button id="menuToggle" class="menu-toggle icon-button" type="button" aria-controls="appMenu" aria-expanded="false">
+          <span aria-hidden="true">☰</span><span class="visually-hidden">Open application menu</span>
         </button>
+        <input type="file" id="fileElem" accept=".vsml,.json,application/json" hidden />
       </div>
-
-      <nav id="topbarActions" class="topbar-actions command-toolbar" data-ide-region="command-toolbar" aria-label="Main command toolbar">
-        <div class="action-group file-actions" aria-label="File actions">
-          <button id="newWorkspace" class="toolbar-button" type="button" title="New workspace" aria-label="New workspace"><span aria-hidden="true">＋</span></button>
-          <button id="loadWorkspace" class="toolbar-button" type="button" title="Open workspace" aria-label="Open workspace"><span aria-hidden="true">↥</span></button>
-          <button id="saveWorkspace" class="toolbar-button accent-button" type="button" title="Save workspace" aria-label="Save workspace"><span aria-hidden="true">⌑</span></button>
-          <button id="loadAutosave" class="toolbar-button" type="button" title="Load autosave" aria-label="Load autosave"><span aria-hidden="true">↶</span></button>
-          <input type="file" id="fileElem" accept=".vsml,.json,application/json" hidden />
-        </div>
-        <div class="toolbar-separator" role="separator"></div>
-        <div class="action-group" aria-label="Edit actions">
-          <button class="toolbar-button" type="button" data-command="edit.undo" title="Undo" aria-label="Undo"><span aria-hidden="true">↶</span></button>
-          <button class="toolbar-button" type="button" data-command="edit.redo" title="Redo" aria-label="Redo"><span aria-hidden="true">↷</span></button>
-        </div>
-        <div class="toolbar-separator" role="separator"></div>
-        <div class="action-group example-actions" aria-label="Examples and generation">
-          <div class="example-menu-wrapper">
-            <button id="examplesMenuButton" class="toolbar-button toolbar-text-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="examplesSubMenu" title="Load example workspace">
-              <span aria-hidden="true">▤</span><span>Examples</span>
-            </button>
-            <div id="examplesSubMenu" class="example-submenu" role="menu" hidden>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="factorial">
-                <span class="example-menu-title">Factorial</span>
-                <span class="example-menu-description">Load a recursive factorial function.</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="caseMatch">
-                <span class="example-menu-title">Case Match</span>
-                <span class="example-menu-description">Load a pattern-matching case expression.</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="fCurrying">
-                <span class="example-menu-title">Currying Function</span>
-                <span class="example-menu-description">Load a curried function example.</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="fUncurrying">
-                <span class="example-menu-title">Uncurrying Function</span>
-                <span class="example-menu-description">Load an uncurried function example.</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="fPatterMatching">
-                <span class="example-menu-title">Pattern Matching</span>
-                <span class="example-menu-description">Load a function pattern-matching example.</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="binaryTree">
-                <span class="example-menu-title">Binary Tree</span>
-                <span class="example-menu-description">Load a datatype declaration example.</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitem" data-sample-id="signatureNStructure">
-                <span class="example-menu-title">Signature and Structure</span>
-                <span class="example-menu-description">Load a module language example.</span>
-              </button>
-            </div>
-          </div>
-          <button class="toolbar-button toolbar-text-button" type="button" data-command="build.generate" title="Synchronize generated SML"><span aria-hidden="true">▷</span><span>Generate</span></button>
-        </div>
-        <div class="toolbar-spacer"></div>
-        <div class="action-group toolbar-view-actions" aria-label="View actions">
-          <button class="toolbar-button" type="button" data-command="view.sidebar" title="Toggle sidebar" aria-label="Toggle sidebar"><span aria-hidden="true">◧</span></button>
-          <button class="toolbar-button" type="button" data-command="view.code" title="Toggle code and outline" aria-label="Toggle code and outline"><span aria-hidden="true">⌘</span></button>
-          <button class="toolbar-button" type="button" data-command="view.bottom" title="Toggle bottom tools" aria-label="Toggle bottom tools"><span aria-hidden="true">▱</span></button>
-        </div>
-        <label class="perspective-control" for="perspectiveSelect">
-          <span>Perspective</span>
-          <select id="perspectiveSelect" aria-label="Workbench perspective">
-            <option value="edit">Edit</option>
-            <option value="presentation">Presentation</option>
-          </select>
-        </label>
-
-        <div class="action-group renderer-actions legacy-overflow-actions" aria-label="Renderer options">
-          <div class="example-menu-wrapper">
-            <button id="rendererMenuButton" class="ghost-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="rendererSubMenu">
-              <span class="button-icon" aria-hidden="true">⬢</span> Renderer
-            </button>
-            <div id="rendererSubMenu" class="example-submenu" role="menu" hidden>
-              <button class="example-menu-item" type="button" role="menuitemradio" aria-checked="true" data-renderer-id="MNRenderer">
-                <span class="example-menu-title">Macaca Nigra</span>
-                <span class="example-menu-description">Thrasos-based renderer with ViSML notches (default).</span>
-              </button>
-              <button class="example-menu-item" type="button" role="menuitemradio" aria-checked="false" data-renderer-id="GoropaRenderer">
-                <span class="example-menu-title">Goropa</span>
-                <span class="example-menu-description">Text-code look with grammar notches as non-terminal cues.</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="action-group run-actions legacy-overflow-actions" aria-label="Workspace actions">
-          <button id="clearWorkspace" class="toolbar-button danger-button" type="button">
-            <span class="button-icon" aria-hidden="true">×</span> Clear Workspace
-          </button>
-          <button id="usageApp" class="toolbar-button" type="button">
-            <span class="button-icon" aria-hidden="true">?</span> Usage
-          </button>
-          <button id="aboutApp" class="toolbar-button" type="button">
-            <span class="button-icon" aria-hidden="true">ⓘ</span> About
-          </button>
-        </div>
-      </nav>
     </header>
 
     <main class="ide-grid" id="divMainRow" data-ide-region="workbench" aria-label="Visual SML IDE">
@@ -338,10 +257,13 @@
             <button id="codeTab" class="editor-tab active" type="button" role="tab" data-right-tab="code" aria-controls="smlEditorPane" aria-selected="true">Code</button>
             <button id="outlineTab" class="editor-tab" type="button" role="tab" data-right-tab="outline" aria-controls="outlinePane" aria-selected="false" tabindex="-1">Outline</button>
           </div>
-          <div id="codeHeaderActions" class="code-header-actions">
-            <span class="language-badge">SML</span>
-            <button id="copyCode" class="icon-button" type="button" aria-label="Copy SML code" title="Copy SML code">⧉</button>
-            <button type="button" class="icon-button" data-command="build.generate" aria-label="Synchronize code from blocks" title="Synchronize code from blocks">↻</button>
+          <div class="code-header-actions">
+            <div id="codeHeaderActions" class="code-context-actions">
+              <span class="language-badge">SML</span>
+              <button id="copyCode" class="icon-button" type="button" aria-label="Copy SML code" title="Copy SML code">⧉</button>
+              <button type="button" class="icon-button" data-command="build.generate" aria-label="Synchronize code from blocks" title="Synchronize code from blocks">↻</button>
+            </div>
+            <button id="maximizeRightPanel" type="button" class="icon-button" aria-label="Maximize code and outline region" title="Maximize code and outline region">□</button>
             <button id="toggleCodePanel" class="icon-button panel-hide-button" type="button" aria-label="Hide code and outline" title="Hide code and outline">›</button>
           </div>
         </div>
@@ -468,7 +390,7 @@
       var examplesButton = document.getElementById("examplesMenuButton");
       var examplesSubMenu = document.getElementById("examplesSubMenu");
       var rendererButton = document.getElementById("rendererMenuButton");
-      var rendererSubMenu = document.getElementById("rendererSubMenu");
+      var rendererSubMenu = document.getElementById("toolsMenu");
       var resizeHandle = document.getElementById("resizeHandle");
       var codePanel = document.getElementById("textBasedCodeDiv");
       var smlSourceArea = document.getElementById("smlSourceArea");
@@ -527,7 +449,10 @@
       function setShellTheme(mode) {
         root.dataset.theme = mode;
         app.dataset.theme = mode;
-        if (themeToggle) themeToggle.checked = mode === "dark";
+        if (themeToggle) {
+          themeToggle.checked = mode === "dark";
+          themeToggle.setAttribute("aria-label", mode === "dark" ? "Switch to light theme" : "Switch to dark theme");
+        }
         document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
           button.setAttribute("aria-pressed", String(button.getAttribute("data-theme-choice") === mode));
         });
@@ -567,7 +492,7 @@
         if (!app || !menuToggle) return;
         app.classList.remove("menu-open");
         menuToggle.setAttribute("aria-expanded", "false");
-        menuToggle.innerHTML = '<span aria-hidden="true">☰</span><span class="visually-hidden">Toggle command toolbar</span>';
+        menuToggle.innerHTML = '<span aria-hidden="true">☰</span><span class="visually-hidden">Open application menu</span>';
       }
 
       function renderToolboxToggleState() {
@@ -691,34 +616,19 @@
         var isOpen = app.classList.contains("menu-open");
         menuToggle.setAttribute("aria-expanded", String(isOpen));
         menuToggle.innerHTML = isOpen
-          ? '<span aria-hidden="true">×</span><span class="visually-hidden">Close command toolbar</span>'
-          : '<span aria-hidden="true">☰</span><span class="visually-hidden">Open command toolbar</span>';
+          ? '<span aria-hidden="true">×</span><span class="visually-hidden">Close application menu</span>'
+          : '<span aria-hidden="true">☰</span><span class="visually-hidden">Open application menu</span>';
         requestLayoutUpdate();
       });
 
-      examplesButton && examplesButton.addEventListener("click", function (event) {
-        event.stopPropagation();
-        var open = examplesSubMenu.hidden;
-        closeRendererMenu();
-        examplesSubMenu.hidden = !open;
-        examplesButton.setAttribute("aria-expanded", String(open));
-      });
-
-      rendererButton && rendererButton.addEventListener("click", function (event) {
-        event.stopPropagation();
-        var open = rendererSubMenu.hidden;
-        closeExamplesMenu();
-        rendererSubMenu.hidden = !open;
-        rendererButton.setAttribute("aria-expanded", String(open));
-        if (open) refreshRendererMenuSelection();
-      });
+      rendererButton && rendererButton.addEventListener("click", refreshRendererMenuSelection);
 
       rendererSubMenu && rendererSubMenu.addEventListener("click", function (event) {
         var item = closestFromEvent(event, "[data-renderer-id]");
         if (!item || !window.tarsius || !window.tarsius.setRenderer) return;
         closeRendererMenu();
         closeTopbarMenu();
-        updateStatus("Switching renderer to " + item.querySelector(".example-menu-title").textContent + "...");
+        updateStatus("Switching " + item.textContent.trim() + "...");
         window.tarsius.setRenderer(item.getAttribute("data-renderer-id"));
       });
 
@@ -748,19 +658,6 @@
         }
       });
 
-      document.getElementById("newWorkspace").addEventListener("click", window.clearWorkspace);
-      document.getElementById("clearWorkspace").addEventListener("click", window.clearWorkspace);
-      document.getElementById("saveWorkspace").addEventListener("click", function () {
-        if (window.tarsius && window.tarsius.menuSaveFile) window.tarsius.menuSaveFile();
-        updateStatus("Workspace save requested.");
-      });
-      document.getElementById("loadWorkspace").addEventListener("click", function () {
-        if (window.tarsius && window.tarsius.menuLoadFile) window.tarsius.menuLoadFile();
-        updateStatus("Choose a .vsml workspace file.");
-      });
-      document.getElementById("loadAutosave").addEventListener("click", function () {
-        if (window.tarsius && window.tarsius.menuLoadAutosave) window.tarsius.menuLoadAutosave();
-      });
       autosaveInterval && autosaveInterval.addEventListener("input", function (event) {
         var value = Number(event.target.value);
         if (window.tarsius && window.tarsius.setAutosaveIntervalMinutes) {
@@ -768,8 +665,6 @@
         }
         updateAutosaveIntervalControl(value);
       });
-      document.getElementById("usageApp").addEventListener("click", window.showUsage);
-      document.getElementById("aboutApp").addEventListener("click", window.showAbout);
       document.getElementById("copyCode").addEventListener("click", window.copyCode);
       document.getElementById("convertSmlToBlocks").addEventListener("click", window.convertSmlToBlocks);
       document.getElementById("toggleToolboxPanel").addEventListener("click", window.toggleToolbox);
