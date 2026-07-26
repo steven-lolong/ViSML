@@ -69,6 +69,12 @@
     <symbol id="icon-function" viewBox="0 0 24 24"><path d="M5 20V8a3 3 0 0 1 3-3h1.5M3.5 12H10M14 9l6 6M20 9l-6 6" /></symbol>
     <symbol id="icon-datatype" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3" /><path d="M4.5 6v12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V6" /><path d="M4.5 12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3" /></symbol>
     <symbol id="icon-exception" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19zM12 9.5v5M12 17.5h.01" /></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 20 1-4L15.5 5.5l3 3L8 19z" /><path d="m14 7 3 3" /></symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></symbol>
+    <symbol id="icon-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" /></symbol>
+    <symbol id="icon-examples" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v18H6.5A2.5 2.5 0 0 1 4 18.5z" /><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v18h5.5a2.5 2.5 0 0 0 2.5-2.5z" /></symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9.3 9.3a2.7 2.7 0 0 1 5.2 1c0 1.8-2.7 2.2-2.7 4" /><path d="M12 17.2h.01" /></symbol>
   </defs></svg>
 
   <div id="app" class="app-shell">
@@ -81,7 +87,7 @@
 
         <nav id="appMenu" class="menu-system" aria-label="Application menu">
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="fileMenu" aria-haspopup="menu" aria-expanded="false">File</button>
+            <button class="menu-button" type="button" data-menu-target="fileMenu" aria-haspopup="menu" aria-expanded="false"><svg class="app-icon" aria-hidden="true"><use href="#icon-file"></use></svg><span>File</span></button>
             <div id="fileMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="file.new"><span>New Workspace</span></button>
               <button type="button" role="menuitem" data-command="file.open"><span>Open Workspace…</span><kbd>Ctrl+O</kbd></button>
@@ -92,7 +98,7 @@
           </div>
 
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="editMenu" aria-haspopup="menu" aria-expanded="false">Edit</button>
+            <button class="menu-button" type="button" data-menu-target="editMenu" aria-haspopup="menu" aria-expanded="false"><svg class="app-icon" aria-hidden="true"><use href="#icon-edit"></use></svg><span>Edit</span></button>
             <div id="editMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="edit.undo"><span>Undo</span><kbd>Ctrl+Z</kbd></button>
               <button type="button" role="menuitem" data-command="edit.redo"><span>Redo</span><kbd>Ctrl+Shift+Z</kbd></button>
@@ -102,7 +108,7 @@
           </div>
 
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="viewMenu" aria-haspopup="menu" aria-expanded="false">View</button>
+            <button class="menu-button" type="button" data-menu-target="viewMenu" aria-haspopup="menu" aria-expanded="false"><svg class="app-icon" aria-hidden="true"><use href="#icon-eye"></use></svg><span>View</span></button>
             <div id="viewMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitemcheckbox" data-command="view.sidebar" data-panel-state="sidebar" aria-checked="true"><span>Blocks Sidebar</span><kbd>Ctrl+B</kbd></button>
               <button type="button" role="menuitemcheckbox" data-command="view.code" data-panel-state="code" aria-checked="true"><span>Code Panel</span></button>
@@ -117,7 +123,7 @@
           </div>
 
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="smlMenu" aria-haspopup="menu" aria-expanded="false">SML</button>
+            <button class="menu-button" type="button" data-menu-target="smlMenu" aria-haspopup="menu" aria-expanded="false"><svg class="app-icon" aria-hidden="true"><use href="#icon-code"></use></svg><span>SML</span></button>
             <div id="smlMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="build.generate"><span>Regenerate SML from Blocks</span></button>
               <button type="button" role="menuitem" data-command="build.apply"><span>Apply Edited SML to Blocks</span></button>
@@ -127,7 +133,7 @@
           </div>
 
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="examplesMenu" aria-haspopup="menu" aria-expanded="false">Examples</button>
+            <button class="menu-button" type="button" data-menu-target="examplesMenu" aria-haspopup="menu" aria-expanded="false"><svg class="app-icon" aria-hidden="true"><use href="#icon-examples"></use></svg><span>Examples</span></button>
             <div id="examplesMenu" class="app-menu examples-app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-sample-id="factorial"><span>Factorial</span></button>
               <button type="button" role="menuitem" data-sample-id="caseMatch"><span>Case Match</span></button>
@@ -140,7 +146,7 @@
           </div>
 
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="helpMenu" aria-haspopup="menu" aria-expanded="false">Help</button>
+            <button class="menu-button" type="button" data-menu-target="helpMenu" aria-haspopup="menu" aria-expanded="false"><svg class="app-icon" aria-hidden="true"><use href="#icon-help"></use></svg><span>Help</span></button>
             <div id="helpMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="help.usage"><span>Usage Guide</span></button>
               <button type="button" role="menuitem" data-command="help.about"><span>About Visual SML</span></button>

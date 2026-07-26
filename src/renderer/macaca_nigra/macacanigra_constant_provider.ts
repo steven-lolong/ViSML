@@ -83,8 +83,11 @@ export class MacacaNigraConstantProvider extends Blockly.blockRendering
       p(-8, 0), p(0, 6), p(8, 0), p(0, 10), p(-10, 0),
       // S -> M
       p(14, 0),
-      // M, entered/left at its bottom-left corner
-      p(0, -18), p(4, 0), p(5, 10), p(5, -10), p(4, 0), p(0, 18), p(-18, 0),
+      // M, entered/left at its bottom-left corner. The valley notch dives
+      // almost all the way to the baseline (16 of the 18-unit leg height) so
+      // the gap between the legs reads as clearly transparent rather than
+      // leaving a solid wedge that makes the M look like a filled trapezoid.
+      p(0, -18), p(4, 0), p(5, 16), p(5, -16), p(4, 0), p(0, 18), p(-18, 0),
       // M -> L
       p(22, 0),
       // L, entered/left at its bottom-left corner

@@ -16491,8 +16491,11 @@ class MacacaNigraConstantProvider extends blockly__WEBPACK_IMPORTED_MODULE_0__.b
             p(-8, 0), p(0, 6), p(8, 0), p(0, 10), p(-10, 0),
             // S -> M
             p(14, 0),
-            // M, entered/left at its bottom-left corner
-            p(0, -18), p(4, 0), p(5, 10), p(5, -10), p(4, 0), p(0, 18), p(-18, 0),
+            // M, entered/left at its bottom-left corner. The valley notch dives
+            // almost all the way to the baseline (16 of the 18-unit leg height) so
+            // the gap between the legs reads as clearly transparent rather than
+            // leaving a solid wedge that makes the M look like a filled trapezoid.
+            p(0, -18), p(4, 0), p(5, 16), p(5, -16), p(4, 0), p(0, 18), p(-18, 0),
             // M -> L
             p(22, 0),
             // L, entered/left at its bottom-left corner
@@ -21018,6 +21021,62 @@ function svgToPng_(data, width, height, callback) {
     img.src = data;
 }
 /**
+ * The real rendered extent of the workspace's top-level blocks, in workspace
+ * coordinates. `workspace.getBlocksBoundingBox()` is layout metrics, not
+ * rendered geometry: it excludes anything a custom renderer draws outside
+ * those metrics, chiefly a start hat (the "ViSML" lettering standing above
+ * the main Program block reaches ~18 units above the block's own top edge,
+ * while its layout height is a nominal 5) — using it here cropped that
+ * decoration out of the exported screenshot. Each top block's own SVG
+ * `getBBox()` includes everything actually painted, so union those instead
+ * and fall back to the layout metrics only if nothing is renderable.
+ * @param {!Blockly.WorkspaceSvg} workspace The workspace.
+ * @returns {{x: number, y: number, width: number, height: number}} The box.
+ */
+function renderedBlocksBoundingBox_(workspace) {
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    for (const block of workspace.getTopBlocks(false)) {
+        const root = block.getSvgRoot && block.getSvgRoot();
+        if (!root)
+            continue;
+        let local;
+        try {
+            local = root.getBBox();
+        }
+        catch (e) {
+            continue;
+        }
+        const xy = block.getRelativeToSurfaceXY();
+        left = Math.min(left, xy.x + local.x);
+        top = Math.min(top, xy.y + local.y);
+        right = Math.max(right, xy.x + local.x + local.width);
+        bottom = Math.max(bottom, xy.y + local.y + local.height);
+    }
+    if (!isFinite(left)) {
+        const bBox = workspace.getBlocksBoundingBox();
+        const x = bBox.x ?? bBox.left;
+        const y = bBox.y ?? bBox.top;
+        return {
+            x,
+            y,
+            width: bBox.width ?? bBox.right - x,
+            height: bBox.height ?? bBox.bottom - y,
+        };
+    }
+    // A few units of breathing room so the outermost ink (e.g. the hat's
+    // pointed tips) doesn't sit flush against the image edge.
+    const margin = 4;
+    return {
+        x: left - margin,
+        y: top - margin,
+        width: right - left + margin * 2,
+        height: bottom - top + margin * 2,
+    };
+}
+/**
  * Create an SVG of the blocks on the workspace.
  * @param {!Blockly.WorkspaceSvg} workspace The workspace.
  * @param {!Function} callback Callback.
@@ -21029,11 +21088,11 @@ function workspaceToSvg_(workspace, callback, customCss) {
     for (let i = 0; i < textAreas.length; i++) {
         textAreas[i].innerHTML = textAreas[i].value;
     }
-    const bBox = workspace.getBlocksBoundingBox();
-    const x = bBox.x || bBox.left;
-    const y = bBox.y || bBox.top;
-    const width = bBox.width || bBox.right - x;
-    const height = bBox.height || bBox.bottom - y;
+    const bBox = renderedBlocksBoundingBox_(workspace);
+    const x = bBox.x;
+    const y = bBox.y;
+    const width = bBox.width;
+    const height = bBox.height;
     const blockCanvas = workspace.getCanvas();
     const clone = blockCanvas.cloneNode(true);
     clone.removeAttribute('transform');

@@ -305,11 +305,19 @@ textarea:focus-visible,
 
 .menu-button {
   min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 0 8px;
   color: var(--ide-text-muted);
   background: transparent;
   font-size: 12px;
   cursor: default;
+}
+
+.menu-button .app-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .menu-button:hover,
