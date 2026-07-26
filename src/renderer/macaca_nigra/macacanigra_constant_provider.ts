@@ -25,8 +25,13 @@ export class MacacaNigraConstantProvider extends Blockly.blockRendering
     this.NOTCH_WIDTH = 15;
     this.NOTCH_HEIGHT = 7;
     this.CORNER_RADIUS = 8;
-    this.TAB_HEIGHT = 20;
-    this.TAB_WIDTH = 15;
+    // Scaled down from 20/15 to match the ~10-unit scale every other
+    // connector shape in this family uses (see horizontal_notchs_standard.ts).
+    // At 20/15 the stock puzzle tab -- the only shape here left unstyled,
+    // used for "valbind" -- rendered noticeably larger than its siblings
+    // instead of matching their scale.
+    this.TAB_HEIGHT = 10;
+    this.TAB_WIDTH = 10;
     this.ADD_START_HATS = true;
     this.START_HAT_HEIGHT = 5;
     this.START_HAT_WIDTH = 82;
@@ -35,6 +40,26 @@ export class MacacaNigraConstantProvider extends Blockly.blockRendering
     this.DARK_PATH_OFFSET = 0;
 
     // geras only
+
+    // Stock Blockly padding is tuned for the default ~15-tall puzzle-tab/notch
+    // look; this renderer's connector shapes (and the padding scale below)
+    // are already smaller, so the stock gaps around them read as oversized.
+    this.SMALL_PADDING = 2;
+    this.MEDIUM_PADDING = 3;
+    this.MEDIUM_LARGE_PADDING = 5;
+    this.LARGE_PADDING = 6;
+    this.STATEMENT_INPUT_PADDING_LEFT = 10;
+    this.BETWEEN_STATEMENT_PADDING_Y = 3;
+    // These are derived from the padding constants above inside the base
+    // provider's own constructor, which already ran (via super(), above)
+    // before the overrides just above took effect -- so they're still
+    // holding the stock values and must be re-derived here by hand, the
+    // same way the base class derives them.
+    this.TOP_ROW_MIN_HEIGHT = this.MEDIUM_PADDING;
+    this.TOP_ROW_PRECEDES_STATEMENT_MIN_HEIGHT = this.LARGE_PADDING;
+    this.BOTTOM_ROW_MIN_HEIGHT = this.MEDIUM_PADDING;
+    this.BOTTOM_ROW_AFTER_STATEMENT_MIN_HEIGHT = this.LARGE_PADDING;
+    this.TALL_INPUT_FIELD_OFFSET_Y = this.MEDIUM_PADDING;
   }
 
   /**
