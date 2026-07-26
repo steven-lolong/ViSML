@@ -299,12 +299,11 @@ function updateVisualSmlStatus(message?: string) {
     zoomLabel.textContent = `${zoomPercent}%`;
     zoomLabel.title = `Blockly zoom level: ${zoomPercent}%`;
   }
-
-  const windowAny = window as any;
-  if (typeof windowAny.visualSmlUpdateStatus === "function") {
-    windowAny.visualSmlUpdateStatus(message);
-  }
 }
+
+// `fileSvLd` reports save/load progress through these globals; this module is
+// their single definition, so the status line has exactly one writer.
+(window as any).visualSmlUpdateStatus = updateVisualSmlStatus;
 
 let lastGeneratedCode = "";
 
@@ -375,13 +374,40 @@ function requestLayoutUpdate(message?: string) {
   layoutResizeCoordinator.request(message);
 }
 
+(window as any).visualSmlRequestLayout = requestLayoutUpdate;
+
+// The Bootstrap modals live in the separate `assets` bundle, which exposes
+// itself on `window.assets`; reach it through there rather than pulling a
+// second copy of Bootstrap into this bundle.
+function showUsageModal() {
+  (window as any).assets?.usage?.();
+}
+
+function showAboutModal() {
+  (window as any).assets?.about?.();
+}
+
 initializeIdeWorkbench({
   workspace: tarsiusWorkspace,
   requestLayoutUpdate,
   refreshGeneratedCode,
+  applySmlEditorNow,
   exportWorkspaceImage: () => downloadScreenshot(tarsiusWorkspace),
   getRendererName,
   setRenderer,
+  setBlocklyTheme: (mode) => (mode === "dark" ? setThemestarsius() : setThemesBnW()),
+  loadSample: sampleLoader,
+  newWorkspace: () => {
+    if (!window.confirm("Clear the workspace and start a new Visual SML file?")) return;
+    window.location.reload();
+  },
+  openWorkspace: menuLoadFile,
+  saveWorkspace: menuSaveFile,
+  loadAutosave: menuLoadAutosave,
+  getAutosaveMinutes: getAutosaveIntervalMinutes,
+  setAutosaveMinutes: setAutosaveIntervalMinutes,
+  showAbout: showAboutModal,
+  showUsage: showUsageModal,
 });
 
 window.setTimeout(() => {

@@ -17,6 +17,21 @@ import { SmlParseError } from "../core/parser/sml_to_visml";
 const IMPORT_DEBOUNCE_MS = 450;
 const SYNC_SUPPRESSION_MS = 1500;
 
+/** A parse failure located in the editor text. */
+export interface SmlDiagnostic {
+  message: string;
+  line: number;
+  column: number;
+  /** Character offset into the editor text. */
+  position: number;
+}
+
+export interface SmlEditorStatusDetail {
+  message: string;
+  state: "idle" | "ok" | "error";
+  diagnostic: SmlDiagnostic | null;
+}
+
 let textArea: HTMLTextAreaElement | null = null;
 let highlightArea: HTMLElement | null = null;
 let lineNumberArea: HTMLElement | null = null;
@@ -37,17 +52,35 @@ function hasSmlContent(text: string): boolean {
   return text.replace(/\(\*[\s\S]*?\*\)/g, "").trim().length > 0;
 }
 
-function setEditorStatus(message: string, state: "idle" | "ok" | "error" = "idle") {
-  if (!statusArea) return;
-  statusArea.textContent = message;
-  if (state === "idle") {
-    statusArea.removeAttribute("data-state");
-  } else {
-    statusArea.dataset.state = state;
+function setEditorStatus(
+  message: string,
+  state: "idle" | "ok" | "error" = "idle",
+  diagnostic: SmlDiagnostic | null = null,
+) {
+  if (statusArea) {
+    statusArea.textContent = message;
+    if (state === "idle") {
+      statusArea.removeAttribute("data-state");
+    } else {
+      statusArea.dataset.state = state;
+    }
   }
-  document.dispatchEvent(new CustomEvent("visual-sml:editor-status", {
-    detail: { message, state },
+  document.dispatchEvent(new CustomEvent<SmlEditorStatusDetail>("visual-sml:editor-status", {
+    detail: { message, state, diagnostic },
   }));
+}
+
+/** Move the caret to a parse-error position and focus the editor. */
+export function revealEditorPosition(position: number) {
+  if (!textArea) return;
+  const offset = Math.max(0, Math.min(position, textArea.value.length));
+  textArea.focus();
+  textArea.setSelectionRange(offset, offset);
+  // Scroll the caret line into view; textarea has no scrollIntoView for carets.
+  const lineHeight = Number.parseFloat(getComputedStyle(textArea).lineHeight) || 18;
+  const line = textArea.value.slice(0, offset).split("\n").length - 1;
+  textArea.scrollTop = Math.max(0, (line * lineHeight) - (textArea.clientHeight / 2));
+  syncEditorHighlightScroll();
 }
 
 function updateEditorHighlight() {
@@ -77,12 +110,23 @@ export function layoutSmlCodeEditor() {
   syncEditorHighlightScroll();
 }
 
-function describeParseError(error: unknown, source: string): string {
+/** Turn a thrown parser error into a located diagnostic. */
+function describeParseError(error: unknown, source: string): SmlDiagnostic {
   if (error instanceof SmlParseError) {
-    const line = source.slice(0, error.position).split("\n").length;
-    return `${error.message.replace(/ at character \d+\.$/, "")} (line ${line}).`;
+    const before = source.slice(0, error.position).split("\n");
+    return {
+      message: error.message.replace(/ at character \d+\.$/, ""),
+      line: before.length,
+      column: (before[before.length - 1]?.length ?? 0) + 1,
+      position: error.position,
+    };
   }
-  return error instanceof Error ? error.message : "SML could not be converted.";
+  return {
+    message: error instanceof Error ? error.message : "SML could not be converted.",
+    line: 0,
+    column: 0,
+    position: 0,
+  };
 }
 
 /**
@@ -111,7 +155,9 @@ export function applySmlEditorText(options: { reportEmpty?: boolean } = {}): boo
     return true;
   } catch (error) {
     console.error(error);
-    setEditorStatus(describeParseError(error, source), "error");
+    const diagnostic = describeParseError(error, source);
+    const where = diagnostic.line ? ` (line ${diagnostic.line}, column ${diagnostic.column})` : "";
+    setEditorStatus(`${diagnostic.message}${where}.`, "error", diagnostic);
     return false;
   }
 }

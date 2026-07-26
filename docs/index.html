@@ -13,84 +13,137 @@
   <link rel="icon" href="./favicon.ico" sizes="any" />
   <style>
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #111318; }
+    html[data-theme="light"], html[data-theme="light"] body { background: #f2f4f7; }
   </style>
+  <script>
+    /*
+     * Pre-paint bootstrap ONLY. Applying the saved theme before first paint
+     * avoids a flash of the wrong colour scheme; everything else about the
+     * workbench (panels, sizes, views, commands) is owned by
+     * src/ui/ide_workbench.ts so that each concern has a single writer.
+     */
+    (function () {
+      try {
+        var mode = window.localStorage.getItem("visual-sml-theme-mode") === "light" ? "light" : "dark";
+        document.documentElement.dataset.theme = mode;
+      } catch (error) {
+        document.documentElement.dataset.theme = "dark";
+      }
+      function setViewportHeight() {
+        var height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty("--viewport-height", height + "px");
+      }
+      setViewportHeight();
+      window.addEventListener("resize", setViewportHeight);
+      if (window.visualViewport) window.visualViewport.addEventListener("resize", setViewportHeight);
+    })();
+  </script>
 </head>
 
 <body>
-  <div id="app" class="app-shell" data-theme="dark">
+  <!--
+    Icon sprite. Every glyph is a stroked 24x24 outline so a single `.app-icon`
+    rule (see ide.css) can size and colour them all from `currentColor`.
+    Referenced with <use href="#icon-NAME">; see createIcon() in src/ui/html_toolbox.ts.
+  -->
+  <svg class="icon-sprite" aria-hidden="true" focusable="false"><defs>
+    <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="m16 16 4 4" /></symbol>
+    <symbol id="icon-blocks" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" /><rect x="13" y="4" width="7" height="7" /><rect x="4" y="13" width="7" height="7" /><path d="M13 16h7M16.5 13v7" /></symbol>
+    <symbol id="icon-program" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" /><path d="m12 12 8-4.5M12 12v9M12 12 4 7.5" /></symbol>
+    <symbol id="icon-constant" viewBox="0 0 24 24"><path d="M5 9h14M5 15h14M10 4 8 20M17 4l-2 16" /></symbol>
+    <symbol id="icon-identifier" viewBox="0 0 24 24"><path d="M4 11.5 11.5 4H20v8.5L12.5 20z" /><circle cx="15.5" cy="8.5" r="1.5" /></symbol>
+    <symbol id="icon-expression" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" /></symbol>
+    <symbol id="icon-pattern" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" /><circle cx="17" cy="7" r="3.5" /><path d="m7 13.5 3.5 7h-7z" /><rect x="13.5" y="13.5" width="7" height="7" /></symbol>
+    <symbol id="icon-type" viewBox="0 0 24 24"><path d="M4 7V4.5h16V7M12 4.5V19M9 19h6" /></symbol>
+    <symbol id="icon-structure" viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5z" /><path d="m3 12 9 4.5 9-4.5M3 16.5 12 21l9-4.5" /></symbol>
+    <symbol id="icon-signature" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4M9 12h6M9 16h4" /></symbol>
+    <symbol id="icon-declaration" viewBox="0 0 24 24"><path d="m4 20 1-4L15.5 5.5l3 3L8 19z" /><path d="m14 7 3 3" /></symbol>
+    <symbol id="icon-operator" viewBox="0 0 24 24"><path d="M4 8h8M8 4v8M4 17h8M16 5l5 5M21 5l-5 5M16 16h5M16 19h5" /></symbol>
+    <symbol id="icon-lambda" viewBox="0 0 24 24"><path d="M5 20 13.5 4M11.5 12 17 20" /></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><path d="M9 4H5.5v16H9M15 4h3.5v16H15M10 12h4" /></symbol>
+    <symbol id="icon-tuple" viewBox="0 0 24 24"><path d="M10 4c-3 4-3 12 0 16M14 4c3 4 3 12 0 16" /></symbol>
+    <symbol id="icon-record" viewBox="0 0 24 24"><path d="M10.5 4C8.5 4 9 10 6 12c3 2 2.5 8 4.5 8M13.5 4c2 0 1.5 6 4.5 8-3 2-2.5 8-4.5 8" /></symbol>
+    <symbol id="icon-spec" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" /></symbol>
+    <symbol id="icon-value" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" /><circle cx="12" cy="12" r="2.5" /></symbol>
+    <symbol id="icon-function" viewBox="0 0 24 24"><path d="M5 20V8a3 3 0 0 1 3-3h1.5M3.5 12H10M14 9l6 6M20 9l-6 6" /></symbol>
+    <symbol id="icon-datatype" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3" /><path d="M4.5 6v12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V6" /><path d="M4.5 12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3" /></symbol>
+    <symbol id="icon-exception" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19zM12 9.5v5M12 17.5h.01" /></symbol>
+  </defs></svg>
+
+  <div id="app" class="app-shell">
     <header class="topbar" id="navBar" data-ide-region="application-header" aria-label="Application header">
       <div class="titlebar">
-        <a class="brand" href="#" aria-label="Visual SML home">
+        <span class="brand">
           <img src="./images/logo_small.png" alt="" />
           <span class="brand-name">Visual SML</span>
-        </a>
+        </span>
 
         <nav id="appMenu" class="menu-system" aria-label="Application menu">
           <div class="menu-root">
             <button class="menu-button" type="button" data-menu-target="fileMenu" aria-haspopup="menu" aria-expanded="false">File</button>
             <div id="fileMenu" class="app-menu" role="menu" hidden>
-              <button id="newWorkspace" type="button" role="menuitem" data-command="file.new"><span>New Workspace</span></button>
-              <button id="loadWorkspace" type="button" role="menuitem" data-command="file.open"><span>Open Workspace…</span><kbd>Ctrl+O</kbd></button>
-              <button id="saveWorkspace" type="button" role="menuitem" data-command="file.save"><span>Save Workspace…</span><kbd>Ctrl+S</kbd></button>
+              <button type="button" role="menuitem" data-command="file.new"><span>New Workspace</span></button>
+              <button type="button" role="menuitem" data-command="file.open"><span>Open Workspace…</span><kbd>Ctrl+O</kbd></button>
+              <button type="button" role="menuitem" data-command="file.save"><span>Save Workspace…</span><kbd>Ctrl+S</kbd></button>
               <div class="menu-separator" role="separator"></div>
-              <button id="loadAutosave" type="button" role="menuitem" data-command="file.autosave"><span>Load Autosave</span></button>
+              <button type="button" role="menuitem" data-command="file.autosave"><span>Load Autosave</span></button>
             </div>
           </div>
+
           <div class="menu-root">
             <button class="menu-button" type="button" data-menu-target="editMenu" aria-haspopup="menu" aria-expanded="false">Edit</button>
             <div id="editMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="edit.undo"><span>Undo</span><kbd>Ctrl+Z</kbd></button>
               <button type="button" role="menuitem" data-command="edit.redo"><span>Redo</span><kbd>Ctrl+Shift+Z</kbd></button>
+              <div class="menu-separator" role="separator"></div>
+              <button type="button" role="menuitem" data-command="edit.findBlock"><span>Search Blocks</span><kbd>Ctrl+F</kbd></button>
             </div>
           </div>
+
           <div class="menu-root">
             <button class="menu-button" type="button" data-menu-target="viewMenu" aria-haspopup="menu" aria-expanded="false">View</button>
             <div id="viewMenu" class="app-menu" role="menu" hidden>
-              <button type="button" role="menuitemcheckbox" data-command="view.sidebar" data-panel-state="sidebar" aria-checked="true"><span>Primary Sidebar</span><kbd>Ctrl+B</kbd></button>
-              <button type="button" role="menuitemcheckbox" data-command="view.code" data-panel-state="code" aria-checked="true"><span>Code / Outline</span></button>
-              <button type="button" role="menuitemcheckbox" data-command="view.bottom" data-panel-state="bottom" aria-checked="false"><span>Bottom Tools</span><kbd>Ctrl+J</kbd></button>
+              <button type="button" role="menuitemcheckbox" data-command="view.sidebar" data-panel-state="sidebar" aria-checked="true"><span>Blocks Sidebar</span><kbd>Ctrl+B</kbd></button>
+              <button type="button" role="menuitemcheckbox" data-command="view.code" data-panel-state="code" aria-checked="true"><span>Code Panel</span></button>
+              <button type="button" role="menuitemcheckbox" data-command="view.diagnostics" data-panel-state="bottom" aria-checked="false"><span>Diagnostics</span><kbd>Ctrl+J</kbd></button>
               <div class="menu-separator" role="separator"></div>
-              <button type="button" role="menuitem" data-command="view.problems"><span>Problems</span></button>
-              <button type="button" role="menuitem" data-command="view.output"><span>Output</span></button>
+              <button type="button" role="menuitem" data-command="view.codeTab"><span>Generated Code</span></button>
+              <button type="button" role="menuitem" data-command="view.outline"><span>Program Outline</span></button>
+              <div class="menu-separator" role="separator"></div>
+              <button type="button" role="menuitem" data-command="view.settings"><span>Settings</span></button>
               <button type="button" role="menuitem" data-command="view.fullscreen"><span>Full Screen</span><kbd>F11</kbd></button>
             </div>
           </div>
+
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="buildMenu" aria-haspopup="menu" aria-expanded="false">Build</button>
-            <div id="buildMenu" class="app-menu" role="menu" hidden>
-              <button type="button" role="menuitem" data-command="build.generate"><span>Synchronize Generated SML</span></button>
+            <button class="menu-button" type="button" data-menu-target="smlMenu" aria-haspopup="menu" aria-expanded="false">SML</button>
+            <div id="smlMenu" class="app-menu" role="menu" hidden>
+              <button type="button" role="menuitem" data-command="build.generate"><span>Regenerate SML from Blocks</span></button>
+              <button type="button" role="menuitem" data-command="build.apply"><span>Apply Edited SML to Blocks</span></button>
+              <div class="menu-separator" role="separator"></div>
               <button type="button" role="menuitem" data-command="build.export"><span>Export Workspace as PNG</span></button>
             </div>
           </div>
+
           <div class="menu-root">
-            <button id="rendererMenuButton" class="menu-button" type="button" data-menu-target="toolsMenu" aria-haspopup="menu" aria-expanded="false">Tools</button>
-            <div id="toolsMenu" class="app-menu" role="menu" hidden>
-              <button type="button" role="menuitem" data-command="view.settings"><span>Settings</span></button>
-              <div class="menu-separator" role="separator"></div>
-              <button type="button" role="menuitemradio" aria-checked="true" data-renderer-id="MNRenderer"><span>Renderer: Macaca Nigra</span></button>
-              <button type="button" role="menuitemradio" aria-checked="false" data-renderer-id="GoropaRenderer"><span>Renderer: Goropa</span></button>
-              <div class="menu-separator" role="separator"></div>
-              <button type="button" role="menuitemradio" data-perspective="edit" data-command="perspective.edit" aria-checked="true"><span>Edit Perspective</span></button>
-              <button type="button" role="menuitemradio" data-perspective="presentation" data-command="perspective.presentation" aria-checked="false"><span>Presentation Perspective</span></button>
+            <button class="menu-button" type="button" data-menu-target="examplesMenu" aria-haspopup="menu" aria-expanded="false">Examples</button>
+            <div id="examplesMenu" class="app-menu examples-app-menu" role="menu" hidden>
+              <button type="button" role="menuitem" data-sample-id="factorial"><span>Factorial</span></button>
+              <button type="button" role="menuitem" data-sample-id="caseMatch"><span>Case Match</span></button>
+              <button type="button" role="menuitem" data-sample-id="fCurrying"><span>Currying Function</span></button>
+              <button type="button" role="menuitem" data-sample-id="fUncurrying"><span>Uncurrying Function</span></button>
+              <button type="button" role="menuitem" data-sample-id="fPatterMatching"><span>Pattern Matching</span></button>
+              <button type="button" role="menuitem" data-sample-id="binaryTree"><span>Binary Tree</span></button>
+              <button type="button" role="menuitem" data-sample-id="signatureNStructure"><span>Signature and Structure</span></button>
             </div>
           </div>
-          <div class="menu-root">
-            <button id="examplesMenuButton" class="menu-button" type="button" data-menu-target="examplesSubMenu" aria-haspopup="menu" aria-expanded="false">Examples</button>
-            <div id="examplesSubMenu" class="app-menu examples-app-menu" role="menu" hidden>
-              <button type="button" role="menuitem" data-sample-id="factorial"><span class="example-menu-title">Factorial</span></button>
-              <button type="button" role="menuitem" data-sample-id="caseMatch"><span class="example-menu-title">Case Match</span></button>
-              <button type="button" role="menuitem" data-sample-id="fCurrying"><span class="example-menu-title">Currying Function</span></button>
-              <button type="button" role="menuitem" data-sample-id="fUncurrying"><span class="example-menu-title">Uncurrying Function</span></button>
-              <button type="button" role="menuitem" data-sample-id="fPatterMatching"><span class="example-menu-title">Pattern Matching</span></button>
-              <button type="button" role="menuitem" data-sample-id="binaryTree"><span class="example-menu-title">Binary Tree</span></button>
-              <button type="button" role="menuitem" data-sample-id="signatureNStructure"><span class="example-menu-title">Signature and Structure</span></button>
-            </div>
-          </div>
+
           <div class="menu-root">
             <button class="menu-button" type="button" data-menu-target="helpMenu" aria-haspopup="menu" aria-expanded="false">Help</button>
             <div id="helpMenu" class="app-menu" role="menu" hidden>
-              <button id="usageApp" type="button" role="menuitem" data-command="help.usage"><span>Usage Guide</span></button>
-              <button id="aboutApp" type="button" role="menuitem" data-command="help.about"><span>About Visual SML</span></button>
+              <button type="button" role="menuitem" data-command="help.usage"><span>Usage Guide</span></button>
+              <button type="button" role="menuitem" data-command="help.about"><span>About Visual SML</span></button>
             </div>
           </div>
         </nav>
@@ -99,13 +152,6 @@
           <span aria-hidden="true">⌕</span><span>Search commands</span><kbd>Ctrl+Shift+P</kbd>
         </button>
 
-        <div class="title-context" aria-label="Current workspace">
-          <span id="titleFileLabel">untitled.vsml</span>
-          <span class="title-divider" aria-hidden="true">—</span>
-          <span>Visual SML</span>
-        </div>
-
-        <span id="saveStateLabel" class="save-state" title="Workspace save state">Saved</span>
         <label class="theme-switch" for="themeToggle" title="Toggle light or dark theme">
           <input id="themeToggle" type="checkbox" aria-label="Toggle dark theme" />
           <span class="theme-slider" aria-hidden="true"><span>☀</span><span>☾</span></span>
@@ -118,24 +164,11 @@
     </header>
 
     <main class="ide-grid" id="divMainRow" data-ide-region="workbench" aria-label="Visual SML IDE">
-      <nav id="activityBar" class="activity-bar-region" data-ide-region="activity-bar" aria-label="Activity bar">
+      <nav id="activityBar" class="activity-bar-region" data-ide-region="activity-bar" aria-label="Sidebar views">
         <div class="activity-primary">
-          <button class="activity-button active" type="button" data-activity="blocks" aria-label="Blocks" title="Blocks" aria-pressed="true">
+          <button class="activity-button active" type="button" data-activity="blocks" aria-label="Blocks" title="Blocks (Ctrl+B)" aria-pressed="true">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" /></svg>
             <span class="activity-indicator"></span>
-          </button>
-          <button class="activity-button" type="button" data-activity="files" aria-label="Project files" title="Project files" aria-pressed="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h6l2 2h9v11h-17z" /></svg>
-            <span class="activity-indicator"></span>
-          </button>
-          <button class="activity-button" type="button" data-command="view.code" aria-label="Code and outline" title="Code and outline">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-2-12-4 14" /></svg>
-          </button>
-          <button class="activity-button" type="button" data-command="view.problems" aria-label="Problems" title="Problems">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 20h18.4zm0 5v6m0 3v.2" /></svg>
-          </button>
-          <button class="activity-button" type="button" data-command="view.output" aria-label="Output" title="Output">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 7 4 5-4 5m6 0h8" /></svg>
           </button>
         </div>
         <div class="activity-secondary">
@@ -146,44 +179,25 @@
         </div>
       </nav>
 
-      <aside id="toolboxPanel" class="toolbox-panel" data-ide-region="primary-sidebar" aria-label="Blockly toolbox">
+      <aside id="toolboxPanel" class="toolbox-panel" data-ide-region="primary-sidebar" aria-label="Block toolbox">
         <section class="sidebar-view" data-sidebar-view="blocks" aria-label="Blocks">
           <div class="panel-header toolbox-header">
             <span>Blocks</span>
-            <button id="toggleToolboxPanel" class="icon-button panel-hide-button" type="button" aria-label="Hide primary sidebar" title="Hide primary sidebar">‹</button>
+            <button id="toggleToolboxPanel" class="icon-button panel-hide-button" type="button" aria-label="Hide blocks sidebar" title="Hide blocks sidebar"><svg class="app-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
           </div>
           <label class="toolbox-search" for="toolboxSearch">
-            <span class="search-icon" aria-hidden="true">⌕</span>
+            <svg class="app-icon search-icon" aria-hidden="true"><use href="#icon-search"></use></svg>
             <input id="toolboxSearch" type="search" placeholder="Search blocks" aria-label="Search blocks" />
             <kbd>Ctrl F</kbd>
           </label>
+          <div id="toolboxSearchEmpty" class="side-empty-state" hidden>No blocks match that search.</div>
           <div class="custom-toolbox-list" id="htmlToolbox" aria-label="Block categories"></div>
-        </section>
-
-        <section class="sidebar-view" data-sidebar-view="files" aria-label="Project files" hidden>
-          <div class="panel-header">
-            <span>Project</span>
-            <button class="icon-button panel-hide-button" type="button" data-command="view.sidebar" aria-label="Hide primary sidebar" title="Hide primary sidebar">‹</button>
-          </div>
-          <div class="sidebar-section-heading">Workspace</div>
-          <button class="project-file active" type="button" data-command="view.blocks">
-            <span class="file-icon" aria-hidden="true">SML</span>
-            <span id="projectFileName">untitled.vsml</span>
-            <span class="file-state" title="Current workspace">●</span>
-          </button>
-          <div class="sidebar-action-list" aria-label="File commands">
-            <button type="button" data-command="file.new"><span aria-hidden="true">＋</span>New Workspace</button>
-            <button type="button" data-command="file.open"><span aria-hidden="true">↥</span>Open Workspace…</button>
-            <button type="button" data-command="file.save"><span aria-hidden="true">⌑</span>Save Workspace…</button>
-            <button type="button" data-command="file.autosave"><span aria-hidden="true">↶</span>Load Autosave</button>
-          </div>
-          <div class="side-empty-state">Visual SML currently works with one workspace file at a time.</div>
         </section>
 
         <section class="sidebar-view" data-sidebar-view="settings" aria-label="Settings" hidden>
           <div class="panel-header">
             <span>Settings</span>
-            <button class="icon-button panel-hide-button" type="button" data-command="view.sidebar" aria-label="Hide primary sidebar" title="Hide primary sidebar">‹</button>
+            <button class="icon-button panel-hide-button" type="button" data-command="view.sidebar" aria-label="Hide sidebar" title="Hide sidebar"><svg class="app-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
           </div>
           <div class="settings-scroll">
             <fieldset class="settings-group">
@@ -201,6 +215,7 @@
               <button class="setting-option" type="button" data-renderer-choice="GoropaRenderer" role="radio" aria-checked="false">
                 <strong>Goropa</strong><span>Text-code appearance</span>
               </button>
+              <p class="settings-note">Switching the renderer reloads the page; your workspace is preserved.</p>
             </fieldset>
             <fieldset class="settings-group">
               <legend>Autosave interval</legend>
@@ -211,7 +226,7 @@
             </fieldset>
           </div>
         </section>
-        <div id="sidebarResizeHandle" class="sidebar-resize-handle" role="separator" aria-label="Resize primary sidebar" aria-orientation="vertical" aria-valuemin="220" aria-valuemax="380" aria-valuenow="272" tabindex="0"></div>
+        <div id="sidebarResizeHandle" class="sidebar-resize-handle" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin="220" aria-valuemax="380" aria-valuenow="272" tabindex="0" title="Drag to resize, double-click to collapse"></div>
       </aside>
 
       <section class="workspace-panel" data-ide-region="workspace" aria-label="Blockly workspace">
@@ -220,21 +235,19 @@
             <button id="showToolboxFromWorkspace" class="icon-button workspace-restore-button restore-toolbox-button" type="button" hidden aria-label="Show blocks sidebar" title="Show blocks sidebar">
               <span aria-hidden="true">›</span>
             </button>
-            <span class="workspace-heading"><span class="workspace-kind" aria-hidden="true">◇</span><span id="workspaceTitle" class="workspace-title">Block Workspace</span></span>
             <span id="workspaceFileLabel" class="workspace-file-label" title="Current workspace file">untitled.vsml</span>
           </div>
           <div class="workspace-controls" aria-label="Workspace controls">
-            <button id="workspaceUndo" class="icon-button" type="button" aria-label="Undo" title="Undo"><span aria-hidden="true">↶</span></button>
-            <button id="workspaceRedo" class="icon-button" type="button" aria-label="Redo" title="Redo"><span aria-hidden="true">↷</span></button>
+            <button id="workspaceUndo" class="icon-button" type="button" aria-label="Undo" title="Undo (Ctrl+Z)"><span aria-hidden="true">↶</span></button>
+            <button id="workspaceRedo" class="icon-button" type="button" aria-label="Redo" title="Redo (Ctrl+Shift+Z)"><span aria-hidden="true">↷</span></button>
             <span class="control-separator" aria-hidden="true"></span>
             <button id="workspaceZoomOut" class="icon-button" type="button" aria-label="Zoom out" title="Zoom out"><span aria-hidden="true">−</span></button>
             <span id="zoomLabel" class="zoom-label" title="Blockly zoom level">100%</span>
             <button id="workspaceZoomIn" class="icon-button" type="button" aria-label="Zoom in" title="Zoom in"><span aria-hidden="true">＋</span></button>
             <button id="workspaceFit" class="icon-button" type="button" aria-label="Fit blocks in view" title="Fit blocks in view"><span aria-hidden="true">⌗</span></button>
             <span class="control-separator" aria-hidden="true"></span>
-            <button id="workspaceToggleBottom" class="icon-button" type="button" aria-label="Toggle bottom tools" title="Toggle bottom tools"><span aria-hidden="true">▱</span></button>
-            <button id="workspaceFullscreen" class="icon-button" type="button" aria-label="Toggle full screen" title="Toggle full screen"><span aria-hidden="true">⛶</span></button>
-            <button id="showCodeFromWorkspace" class="icon-button workspace-restore-button restore-code-button" type="button" hidden aria-label="Show code and outline" title="Show code and outline">
+            <button id="workspaceFullscreen" class="icon-button" type="button" aria-label="Toggle full screen" title="Toggle full screen (F11)"><span aria-hidden="true">⛶</span></button>
+            <button id="showCodeFromWorkspace" class="icon-button workspace-restore-button restore-code-button" type="button" hidden aria-label="Show code panel" title="Show code panel">
               <span aria-hidden="true">‹</span>
             </button>
           </div>
@@ -245,7 +258,7 @@
       </section>
 
       <aside id="textBasedCodeDiv" class="code-panel" data-ide-region="secondary-sidebar" aria-label="SML code panel">
-        <div id="resizeHandle" class="resize-handle" role="separator" aria-label="Resize code and outline region" aria-orientation="vertical" aria-valuemin="320" aria-valuemax="720" aria-valuenow="430" tabindex="0"></div>
+        <div id="resizeHandle" class="resize-handle" role="separator" aria-label="Resize code panel" aria-orientation="vertical" aria-valuemin="320" aria-valuemax="720" aria-valuenow="430" tabindex="0" title="Drag to resize, double-click to collapse"></div>
         <div class="panel-header code-header">
           <div id="rightPanelTabs" class="editor-tabs" role="tablist" aria-label="Code and outline views">
             <button id="codeTab" class="editor-tab active" type="button" role="tab" data-right-tab="code" aria-controls="smlEditorPane" aria-selected="true">Code</button>
@@ -253,15 +266,13 @@
           </div>
           <div class="code-header-actions">
             <div id="codeHeaderActions" class="code-context-actions">
-              <span class="language-badge">SML</span>
               <button id="copyCode" class="icon-button" type="button" aria-label="Copy SML code" title="Copy SML code">⧉</button>
-              <button type="button" class="icon-button" data-command="build.generate" aria-label="Synchronize code from blocks" title="Synchronize code from blocks">↻</button>
+              <button type="button" class="icon-button" data-command="build.generate" aria-label="Regenerate SML from blocks" title="Regenerate SML from blocks">↻</button>
             </div>
-            <button id="maximizeRightPanel" type="button" class="icon-button" aria-label="Maximize code and outline region" title="Maximize code and outline region">□</button>
-            <button id="toggleCodePanel" class="icon-button panel-hide-button" type="button" aria-label="Hide code and outline" title="Hide code and outline">›</button>
+            <button id="toggleCodePanel" class="icon-button panel-hide-button" type="button" aria-label="Hide code panel" title="Hide code panel">›</button>
           </div>
         </div>
-        <div id="smlEditorPane" class="code-pane code-editor-pane active" data-right-pane="code" role="tabpanel" aria-labelledby="codeTab">
+        <div id="smlEditorPane" class="code-pane code-editor-pane" data-right-pane="code" role="tabpanel" aria-labelledby="codeTab">
           <div class="code-editor-wrap">
             <div class="line-number-gutter" aria-hidden="true"><pre id="smlEditorLineNumbers">1</pre></div>
             <div class="code-editor-layer">
@@ -279,42 +290,28 @@
             <span>Program structure</span>
             <button class="icon-button" type="button" data-command="workspace.center" aria-label="Center workspace" title="Center workspace">⌾</button>
           </div>
-          <div id="programOutline" class="program-outline" role="tree" aria-label="Program block outline"></div>
+          <div id="programOutline" class="program-outline" aria-label="Program block outline"></div>
         </div>
       </aside>
     </main>
 
-    <section id="bottomTools" class="bottom-tools-region" data-ide-region="bottom-tools" aria-label="Bottom tools" hidden>
-      <div id="bottomResizeHandle" class="bottom-resize-handle" role="separator" aria-label="Resize bottom tools" aria-orientation="horizontal" aria-valuemin="160" aria-valuemax="520" aria-valuenow="260" tabindex="0"></div>
+    <section id="bottomTools" class="bottom-tools-region" data-ide-region="diagnostics" aria-label="SML diagnostics" hidden>
+      <div id="bottomResizeHandle" class="bottom-resize-handle" role="separator" aria-label="Resize diagnostics panel" aria-orientation="horizontal" aria-valuemin="120" aria-valuemax="420" aria-valuenow="180" tabindex="0" title="Drag to resize, double-click to close"></div>
       <div class="bottom-panel-header">
-        <div id="bottomToolTabs" class="bottom-tabs" role="tablist" aria-label="Bottom tool views">
-          <button id="problemsTab" class="bottom-tab active" type="button" role="tab" data-bottom-tab="problems" aria-controls="problemsPane" aria-selected="true">Problems <span id="problemsCount" class="tab-count">0</span></button>
-          <button id="outputTab" class="bottom-tab" type="button" role="tab" data-bottom-tab="output" aria-controls="outputPane" aria-selected="false" tabindex="-1">Output</button>
-        </div>
-        <div class="bottom-header-actions">
-          <button id="maximizeBottomPanel" class="icon-button" type="button" aria-label="Maximize bottom panel" title="Maximize bottom panel">⌃</button>
-          <button id="closeBottomPanel" class="icon-button" type="button" aria-label="Close bottom panel" title="Close bottom panel">×</button>
-        </div>
+        <span class="bottom-panel-title">Diagnostics</span>
+        <button id="closeBottomPanel" class="icon-button" type="button" aria-label="Close diagnostics" title="Close diagnostics">×</button>
       </div>
-      <div class="bottom-panel-content">
-        <section id="problemsPane" class="bottom-pane" data-bottom-pane="problems" role="tabpanel" aria-labelledby="problemsTab">
-          <div id="problemsList" class="problems-list"></div>
-        </section>
-        <section id="outputPane" class="bottom-pane" data-bottom-pane="output" role="tabpanel" aria-labelledby="outputTab" hidden>
-          <div class="output-toolbar"><span>Workbench events</span><span>Current session</span></div>
-          <div id="outputLog" class="output-log" role="log" aria-live="polite"></div>
-        </section>
-      </div>
+      <div id="diagnosticsList" class="diagnostics-list" role="log" aria-live="polite"></div>
     </section>
 
     <footer class="statusbar" data-ide-region="status-bar" aria-label="IDE status">
-      <button class="status-item status-problems" type="button" data-command="view.problems" title="Show Problems"><span aria-hidden="true">×</span><span id="statusProblemsCount">0</span></button>
-      <span class="status-item"><span class="status-dot" aria-hidden="true"></span>Ready</span>
+      <button class="status-item status-problems" type="button" data-command="view.diagnostics" title="Toggle diagnostics (Ctrl+J)">
+        Diagnostics <strong id="statusDiagnostics">0</strong>
+      </button>
       <span id="statusLine" class="status-item status-line" role="status" aria-live="polite">Visual SML workspace ready.</span>
       <span class="status-spacer"></span>
-      <span class="status-item" title="Current renderer"><span aria-hidden="true">◇</span><span id="statusRenderer">Macaca Nigra</span></span>
-      <span class="status-item">Blocks <strong id="blockCount">0</strong></span>
-      <span class="status-item">SML</span>
+      <span class="status-item" title="Current renderer"><span id="statusRenderer">Macaca Nigra</span></span>
+      <span class="status-item" title="Blocks in workspace">Blocks <strong id="blockCount">0</strong></span>
       <button class="status-item status-version" type="button" data-command="help.about" title="About Visual SML">ViSML 5.0.0</button>
     </footer>
   </div>
@@ -367,364 +364,14 @@
           <ol>
             <li>Click or drag a block from the left toolbox into the workspace.</li>
             <li>Connect blocks with matching connector shapes to build SML declarations and expressions.</li>
-            <li>Use the generated code panel to inspect or copy the Standard ML output.</li>
+            <li>Read or edit the Standard ML in the Code panel — edits are parsed back into blocks as you type.</li>
+            <li>Parse errors appear in the Diagnostics panel (<kbd>Ctrl+J</kbd>); click one to jump to it.</li>
           </ol>
+          <p class="mb-0">Press <kbd>Ctrl+Shift+P</kbd> for the command palette.</p>
         </div>
       </div>
     </div>
   </div>
-
-  <script>
-    (function () {
-      var THEME_STORAGE_KEY = "visual-sml-theme-mode";
-      var root = document.documentElement;
-      var app = document.getElementById("app");
-      var menuToggle = document.getElementById("menuToggle");
-      var themeToggle = document.getElementById("themeToggle");
-      var examplesButton = document.getElementById("examplesMenuButton");
-      var examplesSubMenu = document.getElementById("examplesSubMenu");
-      var rendererButton = document.getElementById("rendererMenuButton");
-      var rendererSubMenu = document.getElementById("toolsMenu");
-      var resizeHandle = document.getElementById("resizeHandle");
-      var codePanel = document.getElementById("textBasedCodeDiv");
-      var smlSourceArea = document.getElementById("smlSourceArea");
-      var smlConvertStatus = document.getElementById("smlConvertStatus");
-      var autosaveInterval = document.getElementById("autosaveInterval");
-      var autosaveIntervalLabel = document.getElementById("autosaveIntervalLabel");
-
-      function getWorkspace() {
-        return window.tarsius && window.tarsius.tarsiusWorkspace;
-      }
-
-      function closestFromEvent(event, selector) {
-        var target = event.target;
-        if (!target) return null;
-        if (target.nodeType !== 1) target = target.parentElement;
-        return target && target.closest ? target.closest(selector) : null;
-      }
-
-      function updateViewportHeight() {
-        var height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        root.style.setProperty("--viewport-height", height + "px");
-      }
-
-      function updateStatus(message) {
-        var workspace = getWorkspace();
-        var statusLine = document.getElementById("statusLine");
-        var blockCount = document.getElementById("blockCount");
-        var zoomLabel = document.getElementById("zoomLabel");
-        if (message && statusLine) statusLine.textContent = message;
-        if (workspace && blockCount) blockCount.textContent = String(workspace.getAllBlocks(false).length);
-        if (workspace && zoomLabel) {
-          var zoom = Math.round((workspace.scale || 1) * 100);
-          zoomLabel.textContent = zoom + "%";
-          zoomLabel.title = "Blockly zoom level: " + zoom + "%";
-        }
-      }
-
-      function updateAutosaveIntervalControl(minutes) {
-        var value = Number(minutes) || 2;
-        if (autosaveInterval) autosaveInterval.value = String(value);
-        if (autosaveIntervalLabel) autosaveIntervalLabel.textContent = value + " min";
-      }
-
-      function requestLayoutUpdate(message) {
-        updateViewportHeight();
-        if (window.tarsius && typeof window.tarsius.requestLayoutUpdate === "function") {
-          window.tarsius.requestLayoutUpdate(message);
-          return;
-        }
-        window.dispatchEvent(new CustomEvent("visual-sml:layout-request", {
-          detail: { message: message }
-        }));
-        updateStatus(message);
-      }
-
-      function setShellTheme(mode) {
-        root.dataset.theme = mode;
-        app.dataset.theme = mode;
-        if (themeToggle) {
-          themeToggle.checked = mode === "dark";
-          themeToggle.setAttribute("aria-label", mode === "dark" ? "Switch to light theme" : "Switch to dark theme");
-        }
-        document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
-          button.setAttribute("aria-pressed", String(button.getAttribute("data-theme-choice") === mode));
-        });
-        var metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) metaThemeColor.content = mode === "dark" ? "#111318" : "#f2f4f7";
-      }
-
-      function applyBlocklyTheme(mode) {
-        if (!window.tarsius) return;
-        if (mode === "dark" && window.tarsius.setThemestarsius) window.tarsius.setThemestarsius();
-        if (mode === "light" && window.tarsius.setThemesBnW) window.tarsius.setThemesBnW();
-      }
-
-      function closeExamplesMenu() {
-        if (!examplesButton || !examplesSubMenu) return;
-        examplesSubMenu.hidden = true;
-        examplesButton.setAttribute("aria-expanded", "false");
-      }
-
-      function closeRendererMenu() {
-        if (!rendererButton || !rendererSubMenu) return;
-        rendererSubMenu.hidden = true;
-        rendererButton.setAttribute("aria-expanded", "false");
-      }
-
-      function refreshRendererMenuSelection() {
-        if (!rendererSubMenu) return;
-        var current = window.tarsius && window.tarsius.getRendererName
-          ? window.tarsius.getRendererName()
-          : "MNRenderer";
-        rendererSubMenu.querySelectorAll("[data-renderer-id]").forEach(function (item) {
-          item.setAttribute("aria-checked", String(item.getAttribute("data-renderer-id") === current));
-        });
-      }
-
-      function closeTopbarMenu() {
-        if (!app || !menuToggle) return;
-        app.classList.remove("menu-open");
-        menuToggle.setAttribute("aria-expanded", "false");
-        menuToggle.innerHTML = '<span aria-hidden="true">☰</span><span class="visually-hidden">Open application menu</span>';
-      }
-
-      function renderToolboxToggleState() {
-        var hidden = app.classList.contains("toolbox-hidden");
-        var hideButton = document.getElementById("toggleToolboxPanel");
-        var restoreButton = document.getElementById("showToolboxFromWorkspace");
-        if (hideButton) {
-          hideButton.textContent = "‹";
-          hideButton.setAttribute("aria-expanded", String(!hidden));
-          hideButton.setAttribute("aria-label", "Hide toolbox");
-          hideButton.title = "Hide toolbox";
-        }
-        if (restoreButton) {
-          restoreButton.hidden = !hidden;
-          restoreButton.setAttribute("aria-expanded", String(!hidden));
-        }
-      }
-
-      function renderCodeToggleState() {
-        var hidden = app.classList.contains("code-hidden");
-        var hideButton = document.getElementById("toggleCodePanel");
-        var restoreButton = document.getElementById("showCodeFromWorkspace");
-        if (hideButton) {
-          hideButton.textContent = "›";
-          hideButton.setAttribute("aria-expanded", String(!hidden));
-          hideButton.setAttribute("aria-label", "Hide generated code");
-          hideButton.title = "Hide generated code";
-        }
-        if (restoreButton) {
-          restoreButton.hidden = !hidden;
-          restoreButton.setAttribute("aria-expanded", String(!hidden));
-          restoreButton.disabled = !hidden;
-        }
-      }
-
-      window.setDarkTheme = function () {
-        setShellTheme("dark");
-        window.localStorage.setItem(THEME_STORAGE_KEY, "dark");
-        applyBlocklyTheme("dark");
-        closeExamplesMenu();
-        requestLayoutUpdate("Night theme enabled.");
-      };
-
-      window.setLightTheme = function () {
-        setShellTheme("light");
-        window.localStorage.setItem(THEME_STORAGE_KEY, "light");
-        applyBlocklyTheme("light");
-        closeExamplesMenu();
-        requestLayoutUpdate("Light theme enabled.");
-      };
-
-      window.toggleCode = function () {
-        app.classList.toggle("code-hidden");
-        renderCodeToggleState();
-        requestLayoutUpdate(app.classList.contains("code-hidden") ? "Generated code panel hidden." : "Generated code panel shown.");
-      };
-
-      window.toggleToolbox = function () {
-        app.classList.toggle("toolbox-hidden");
-        renderToolboxToggleState();
-        requestLayoutUpdate(app.classList.contains("toolbox-hidden") ? "Toolbox hidden." : "Toolbox shown.");
-      };
-
-      window.refreshCode = function () {
-        if (window.tarsius && window.tarsius.refreshGeneratedCode) {
-          window.tarsius.refreshGeneratedCode();
-        } else {
-          updateStatus("Generated code refreshed.");
-        }
-        requestLayoutUpdate("Generated code refreshed.");
-      };
-
-      window.clearWorkspace = function () {
-        if (!window.confirm("Clear the workspace and start a new Visual SML file?")) return;
-        window.location.reload();
-      };
-
-      window.copyCode = function () {
-        var text = smlSourceArea ? smlSourceArea.value : "";
-        var button = document.getElementById("copyCode");
-        var done = function (ok) {
-          if (!button) return;
-          button.textContent = ok ? "✓" : "!";
-          window.setTimeout(function () { button.textContent = "⧉"; }, 1200);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(function () {
-            updateStatus("Generated SML copied to clipboard.");
-            done(true);
-          }, function () { done(false); });
-        } else {
-          done(false);
-        }
-      };
-
-      window.convertSmlToBlocks = function () {
-        if (!window.tarsius || !window.tarsius.applySmlEditorNow) {
-          if (smlConvertStatus) smlConvertStatus.textContent = "ViSML converter is not ready yet.";
-          updateStatus("ViSML converter is not ready yet.");
-          return;
-        }
-        if (window.tarsius.applySmlEditorNow()) {
-          requestLayoutUpdate("SML converted to ViSML blocks.");
-        }
-      };
-
-      window.showAbout = function () {
-        if (window.assets && window.assets.Modal) {
-          new window.assets.Modal(document.getElementById("aboutModal")).show();
-        }
-      };
-
-      window.showUsage = function () {
-        if (window.assets && window.assets.usage) {
-          window.assets.usage();
-        }
-      };
-
-      menuToggle && menuToggle.addEventListener("click", function () {
-        app.classList.toggle("menu-open");
-        var isOpen = app.classList.contains("menu-open");
-        menuToggle.setAttribute("aria-expanded", String(isOpen));
-        menuToggle.innerHTML = isOpen
-          ? '<span aria-hidden="true">×</span><span class="visually-hidden">Close application menu</span>'
-          : '<span aria-hidden="true">☰</span><span class="visually-hidden">Open application menu</span>';
-        requestLayoutUpdate();
-      });
-
-      rendererButton && rendererButton.addEventListener("click", refreshRendererMenuSelection);
-
-      rendererSubMenu && rendererSubMenu.addEventListener("click", function (event) {
-        var item = closestFromEvent(event, "[data-renderer-id]");
-        if (!item || !window.tarsius || !window.tarsius.setRenderer) return;
-        closeRendererMenu();
-        closeTopbarMenu();
-        updateStatus("Switching " + item.textContent.trim() + "...");
-        window.tarsius.setRenderer(item.getAttribute("data-renderer-id"));
-      });
-
-      examplesSubMenu && examplesSubMenu.addEventListener("click", function (event) {
-        var item = closestFromEvent(event, "[data-sample-id]");
-        if (!item || !window.tarsius || !window.tarsius.sampleLoader) return;
-        window.tarsius.sampleLoader(item.getAttribute("data-sample-id"));
-        closeExamplesMenu();
-        closeTopbarMenu();
-        window.setTimeout(function () {
-          window.refreshCode();
-          updateStatus("Loaded example: " + item.querySelector(".example-menu-title").textContent + ".");
-        }, 0);
-      });
-
-      document.addEventListener("click", function (event) {
-        var wrapper = closestFromEvent(event, ".example-menu-wrapper");
-        if (!wrapper || !wrapper.contains(examplesSubMenu)) closeExamplesMenu();
-        if (!wrapper || !wrapper.contains(rendererSubMenu)) closeRendererMenu();
-      });
-
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-          closeExamplesMenu();
-          closeRendererMenu();
-          closeTopbarMenu();
-        }
-      });
-
-      autosaveInterval && autosaveInterval.addEventListener("input", function (event) {
-        var value = Number(event.target.value);
-        if (window.tarsius && window.tarsius.setAutosaveIntervalMinutes) {
-          value = window.tarsius.setAutosaveIntervalMinutes(value);
-        }
-        updateAutosaveIntervalControl(value);
-      });
-      document.getElementById("copyCode").addEventListener("click", window.copyCode);
-      document.getElementById("convertSmlToBlocks").addEventListener("click", window.convertSmlToBlocks);
-      document.getElementById("toggleToolboxPanel").addEventListener("click", window.toggleToolbox);
-      document.getElementById("showToolboxFromWorkspace").addEventListener("click", window.toggleToolbox);
-      document.getElementById("toggleCodePanel").addEventListener("click", window.toggleCode);
-      document.getElementById("showCodeFromWorkspace").addEventListener("click", window.toggleCode);
-
-      themeToggle && themeToggle.addEventListener("change", function () {
-        if (themeToggle.checked) window.setDarkTheme();
-        else window.setLightTheme();
-      });
-
-      document.getElementById("toolboxSearch").addEventListener("input", function (event) {
-        var query = event.target.value.trim().toLowerCase();
-        document.querySelectorAll("#htmlToolbox .toolbox-block").forEach(function (block) {
-          var text = block.textContent.toLowerCase();
-          block.hidden = query.length > 0 && text.indexOf(query) === -1;
-        });
-        document.querySelectorAll("#htmlToolbox .toolbox-category").forEach(function (category) {
-          var visibleBlocks = category.querySelectorAll(".toolbox-block:not([hidden])");
-          category.hidden = query.length > 0 && visibleBlocks.length === 0;
-          if (query.length > 0 && visibleBlocks.length > 0) category.open = true;
-        });
-      });
-
-      if (resizeHandle && codePanel) {
-        var dragging = false;
-        resizeHandle.addEventListener("pointerdown", function (event) {
-          dragging = true;
-          resizeHandle.setPointerCapture(event.pointerId);
-          document.body.classList.add("resizing-code-panel");
-          event.preventDefault();
-        });
-        window.addEventListener("pointermove", function (event) {
-          if (!dragging) return;
-          var nextWidth = Math.min(Math.max(window.innerWidth - event.clientX, 320), 720);
-          root.style.setProperty("--ide-code-panel-width", nextWidth + "px");
-          root.style.setProperty("--code-panel-width", nextWidth + "px");
-          requestLayoutUpdate();
-        });
-        window.addEventListener("pointerup", function () {
-          if (!dragging) return;
-          dragging = false;
-          document.body.classList.remove("resizing-code-panel");
-          requestLayoutUpdate();
-        });
-      }
-
-      window.visualSmlUpdateStatus = updateStatus;
-      window.visualSmlRequestLayout = requestLayoutUpdate;
-
-      var savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-      setShellTheme(savedTheme === "light" ? "light" : "dark");
-      renderToolboxToggleState();
-      renderCodeToggleState();
-      updateViewportHeight();
-
-      window.addEventListener("load", function () {
-        applyBlocklyTheme(root.dataset.theme);
-        if (window.tarsius && window.tarsius.getAutosaveIntervalMinutes) {
-          updateAutosaveIntervalControl(window.tarsius.getAutosaveIntervalMinutes());
-        }
-        requestLayoutUpdate("Visual SML workspace ready.");
-      });
-    })();
-  </script>
 
   <script src="./assets.js"></script>
   <script src="./tarsius.js"></script>

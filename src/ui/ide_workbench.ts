@@ -1,22 +1,48 @@
+/**
+ * @fileoverview Owner of all Visual SML workbench UI state.
+ *
+ * Panel visibility, sizes, the active sidebar view, theme, the command
+ * palette, the block outline and the SML diagnostics pane all live here.
+ * `index.html` contributes markup and a pre-paint theme bootstrap only; it
+ * deliberately holds no UI state, so there is exactly one writer per concern.
+ */
+
 import * as Blockly from "blockly";
 import {
   ActivitySection,
-  BottomToolTab,
+  BOTTOM_HEIGHT_RANGE,
+  CODE_WIDTH_RANGE,
   IdeLayoutState,
-  IdePerspective,
+  SIDEBAR_WIDTH_RANGE,
   loadIdeLayoutState,
   saveIdeLayoutState,
 } from "./layout_state";
+import { SmlDiagnostic, SmlEditorStatusDetail, revealEditorPosition } from "./sml_code_editor";
 
 type RightTab = "code" | "outline";
+export type ThemeMode = "dark" | "light";
+
+const THEME_STORAGE_KEY = "visual-sml-theme-mode";
+const ACTIVITY_BAR_WIDTH = 50;
 
 interface WorkbenchOptions {
   workspace: Blockly.WorkspaceSvg;
   requestLayoutUpdate: (message?: string) => void;
   refreshGeneratedCode: () => string;
+  applySmlEditorNow: () => boolean;
   exportWorkspaceImage: () => void;
   getRendererName: () => string;
   setRenderer: (rendererName: string) => void;
+  setBlocklyTheme: (mode: ThemeMode) => void;
+  loadSample: (sampleId: string) => void;
+  newWorkspace: () => void;
+  openWorkspace: () => void;
+  saveWorkspace: () => void;
+  loadAutosave: () => void;
+  getAutosaveMinutes: () => number;
+  setAutosaveMinutes: (minutes: number) => number;
+  showAbout: () => void;
+  showUsage: () => void;
 }
 
 interface IdeCommand {
@@ -24,7 +50,6 @@ interface IdeCommand {
   label: string;
   category: string;
   shortcut?: string;
-  enabled?: boolean;
   run: () => void;
 }
 
@@ -41,47 +66,67 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
 
   const state: IdeLayoutState = loadIdeLayoutState();
   const compactLayout = window.matchMedia("(max-width: 1200px)");
-  const outputEntries: Array<{ time: string; message: string; count: number }> = [];
-  let outlineFrame = 0;
+
   let activeRightTab: RightTab = "code";
-  let bottomMaximized = false;
-  let rightPanelMaximized = false;
-  let preMaximizeBottomHeight = state.bottomHeight;
+  let outlineFrame = 0;
+  let outlineStale = true;
+  let diagnostic: SmlDiagnostic | null = null;
 
   const persist = () => saveIdeLayoutState(state);
 
-  const setResizeToken = (name: string, value: number) => {
+  const setToken = (name: string, value: number) => {
     root.style.setProperty(name, `${Math.round(value)}px`);
   };
 
-  const updateHandleValues = () => {
-    const sidebarHandle = asElement<HTMLElement>("sidebarResizeHandle");
-    const codeHandle = asElement<HTMLElement>("resizeHandle");
-    const bottomHandle = asElement<HTMLElement>("bottomResizeHandle");
-    sidebarHandle?.setAttribute("aria-valuenow", String(state.sidebarWidth));
-    codeHandle?.setAttribute("aria-valuenow", String(state.codeWidth));
-    bottomHandle?.setAttribute("aria-valuenow", String(state.bottomHeight));
+  /* ---------------------------------------------------------------- theme */
+
+  const applyTheme = (mode: ThemeMode, announce = true) => {
+    root.dataset.theme = mode;
+    app.dataset.theme = mode;
+
+    const toggle = asElement<HTMLInputElement>("themeToggle");
+    if (toggle) {
+      toggle.checked = mode === "dark";
+      toggle.setAttribute(
+        "aria-label",
+        mode === "dark" ? "Switch to light theme" : "Switch to dark theme",
+      );
+    }
+    document.querySelectorAll<HTMLElement>("[data-theme-choice]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.themeChoice === mode));
+    });
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (meta) meta.content = mode === "dark" ? "#111318" : "#f2f4f7";
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch (error) {
+      console.warn("Theme preference could not be saved.", error);
+    }
+
+    options.setBlocklyTheme(mode);
+    options.requestLayoutUpdate(announce
+      ? `${mode === "dark" ? "Dark" : "Light"} theme enabled.`
+      : undefined);
   };
 
+  const currentTheme = (): ThemeMode => (root.dataset.theme === "light" ? "light" : "dark");
+
+  /* --------------------------------------------------------------- panels */
+
   const syncPanelControls = () => {
-    const sidebarVisible = !app.classList.contains("toolbox-hidden");
-    const codeVisible = !app.classList.contains("code-hidden");
+    const sidebarVisible = state.sidebarVisible;
+    const codeVisible = state.codeVisible;
+
     const toolboxHide = asElement<HTMLButtonElement>("toggleToolboxPanel");
     const toolboxRestore = asElement<HTMLButtonElement>("showToolboxFromWorkspace");
     const codeHide = asElement<HTMLButtonElement>("toggleCodePanel");
     const codeRestore = asElement<HTMLButtonElement>("showCodeFromWorkspace");
 
-    if (toolboxHide) toolboxHide.setAttribute("aria-expanded", String(sidebarVisible));
-    if (toolboxRestore) {
-      toolboxRestore.hidden = sidebarVisible;
-      toolboxRestore.setAttribute("aria-expanded", String(sidebarVisible));
-    }
-    if (codeHide) codeHide.setAttribute("aria-expanded", String(codeVisible));
-    if (codeRestore) {
-      codeRestore.hidden = codeVisible;
-      codeRestore.disabled = codeVisible;
-      codeRestore.setAttribute("aria-expanded", String(codeVisible));
-    }
+    toolboxHide?.setAttribute("aria-expanded", String(sidebarVisible));
+    if (toolboxRestore) toolboxRestore.hidden = sidebarVisible;
+    codeHide?.setAttribute("aria-expanded", String(codeVisible));
+    if (codeRestore) codeRestore.hidden = codeVisible;
 
     document.querySelectorAll<HTMLElement>("[data-panel-state]").forEach((item) => {
       const panel = item.dataset.panelState;
@@ -94,114 +139,83 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     });
   };
 
-  const setSidebarVisible = (visible: boolean, message = true) => {
+  const setSidebarVisible = (visible: boolean, announce = true) => {
     state.sidebarVisible = visible;
     app.classList.toggle("toolbox-hidden", !visible);
     if (!visible) app.classList.remove("compact-sidebar-open");
     syncPanelControls();
     persist();
-    options.requestLayoutUpdate(message
-      ? visible ? "Primary sidebar shown." : "Primary sidebar hidden."
+    options.requestLayoutUpdate(announce
+      ? visible ? "Blocks sidebar shown." : "Blocks sidebar hidden."
       : undefined);
   };
 
-  const setCodeVisible = (visible: boolean, message = true) => {
+  const setCodeVisible = (visible: boolean, announce = true) => {
     state.codeVisible = visible;
     app.classList.toggle("code-hidden", !visible);
-    if (!visible) {
-      app.classList.remove("compact-code-open", "right-panel-maximized");
-      rightPanelMaximized = false;
-      const maximizeButton = asElement<HTMLButtonElement>("maximizeRightPanel");
-      if (maximizeButton) {
-        maximizeButton.textContent = "□";
-        maximizeButton.title = "Maximize code and outline region";
-        maximizeButton.setAttribute("aria-label", "Maximize code and outline region");
-        maximizeButton.setAttribute("aria-pressed", "false");
-      }
-    }
+    if (!visible) app.classList.remove("compact-code-open");
     syncPanelControls();
     persist();
-    options.requestLayoutUpdate(message
-      ? visible ? "Code and outline region shown." : "Code and outline region hidden."
+    if (visible && activeRightTab === "outline") scheduleOutlineRender();
+    options.requestLayoutUpdate(announce
+      ? visible ? "Code panel shown." : "Code panel hidden."
       : undefined);
   };
 
-  const setBottomVisible = (visible: boolean, message = true) => {
-    const panel = asElement<HTMLElement>("bottomTools");
+  const setBottomVisible = (visible: boolean, announce = true) => {
     state.bottomVisible = visible;
+    const panel = asElement<HTMLElement>("bottomTools");
+    if (panel) panel.hidden = !visible;
+    app.classList.toggle("bottom-panel-open", visible);
     if (visible && compactLayout.matches) {
       app.classList.remove("compact-sidebar-open", "compact-code-open");
     }
-    if (panel) panel.hidden = !visible;
-    app.classList.toggle("bottom-panel-open", visible);
-    if (!visible) {
-      bottomMaximized = false;
-      app.classList.remove("bottom-panel-maximized");
-    }
     syncPanelControls();
     persist();
-    options.requestLayoutUpdate(message
-      ? visible ? "Bottom tools opened." : "Bottom tools closed."
+    options.requestLayoutUpdate(announce
+      ? visible ? "Diagnostics panel opened." : "Diagnostics panel closed."
       : undefined);
   };
+
+  /* ------------------------------------------------------------- activity */
 
   const renderActivity = () => {
     document.querySelectorAll<HTMLElement>("[data-activity]").forEach((button) => {
       const active = button.dataset.activity === state.activeActivity;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
-      button.setAttribute("aria-current", active ? "page" : "false");
     });
-
     document.querySelectorAll<HTMLElement>("[data-sidebar-view]").forEach((view) => {
       view.hidden = view.dataset.sidebarView !== state.activeActivity;
     });
     const sidebar = asElement<HTMLElement>("toolboxPanel");
-    if (sidebar) sidebar.setAttribute("aria-label", state.activeActivity === "blocks"
-      ? "Block toolbox"
-      : state.activeActivity === "files" ? "Project files" : "Settings");
+    sidebar?.setAttribute(
+      "aria-label",
+      state.activeActivity === "blocks" ? "Block toolbox" : "Settings",
+    );
   };
 
   const setActivity = (activity: ActivitySection, toggleWhenActive = false) => {
-    const isActive = state.activeActivity === activity;
+    const wasActive = state.activeActivity === activity && state.sidebarVisible;
     state.activeActivity = activity;
     renderActivity();
 
     if (compactLayout.matches) {
       if (state.bottomVisible) setBottomVisible(false, false);
-      const shouldOpen = !isActive || !app.classList.contains("compact-sidebar-open");
-      app.classList.toggle("compact-sidebar-open", shouldOpen);
+      app.classList.toggle("compact-sidebar-open", !wasActive);
       app.classList.remove("compact-code-open");
       if (!state.sidebarVisible) setSidebarVisible(true, false);
-    } else if (toggleWhenActive && isActive && state.sidebarVisible) {
-      setSidebarVisible(false);
+    } else if (toggleWhenActive && wasActive) {
+      setSidebarVisible(false, false);
     } else if (!state.sidebarVisible) {
       setSidebarVisible(true, false);
     }
 
     persist();
-    options.requestLayoutUpdate(`${activity[0].toUpperCase()}${activity.slice(1)} view selected.`);
+    options.requestLayoutUpdate();
   };
 
-  const renderBottomTab = () => {
-    document.querySelectorAll<HTMLElement>("[data-bottom-tab]").forEach((tab) => {
-      const active = tab.dataset.bottomTab === state.activeBottomTab;
-      tab.classList.toggle("active", active);
-      tab.setAttribute("aria-selected", String(active));
-      tab.tabIndex = active ? 0 : -1;
-    });
-    document.querySelectorAll<HTMLElement>("[data-bottom-pane]").forEach((pane) => {
-      pane.hidden = pane.dataset.bottomPane !== state.activeBottomTab;
-    });
-  };
-
-  const setBottomTab = (tab: BottomToolTab, open = true) => {
-    state.activeBottomTab = tab;
-    renderBottomTab();
-    if (open && !state.bottomVisible) setBottomVisible(true, false);
-    persist();
-    options.requestLayoutUpdate(`${tab === "problems" ? "Problems" : "Output"} view selected.`);
-  };
+  /* ----------------------------------------------------------- right tabs */
 
   const setRightTab = (tab: RightTab) => {
     activeRightTab = tab;
@@ -213,188 +227,123 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     });
     document.querySelectorAll<HTMLElement>("[data-right-pane]").forEach((pane) => {
       pane.hidden = pane.dataset.rightPane !== tab;
-      pane.classList.toggle("active", pane.dataset.rightPane === tab);
     });
     asElement<HTMLElement>("codeHeaderActions")?.toggleAttribute("hidden", tab !== "code");
     if (tab === "outline") scheduleOutlineRender();
-    options.requestLayoutUpdate(`${tab === "code" ? "Code" : "Outline"} view selected.`);
+    options.requestLayoutUpdate();
   };
 
-  const appendOutput = (message: string) => {
-    if (!message) return;
-    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    const previous = outputEntries[outputEntries.length - 1];
-    if (previous?.message === message) {
-      previous.count += 1;
-      previous.time = time;
-    } else {
-      outputEntries.push({ time, message, count: 1 });
-    }
-    if (outputEntries.length > 80) outputEntries.splice(0, outputEntries.length - 80);
-    const container = asElement<HTMLElement>("outputLog");
-    if (!container) return;
-    container.replaceChildren(...outputEntries.map((entry) => {
-      const row = document.createElement("div");
-      row.className = "output-entry";
-      const time = document.createElement("time");
-      time.textContent = entry.time;
-      const text = document.createElement("span");
-      text.textContent = entry.count > 1 ? `${entry.message} ×${entry.count}` : entry.message;
-      row.append(time, text);
-      return row;
-    }));
-    container.scrollTop = container.scrollHeight;
-  };
+  /* -------------------------------------------------------------- outline */
 
-  const renderProblems = (message = "", level = "idle") => {
-    const list = asElement<HTMLElement>("problemsList");
-    const badge = asElement<HTMLElement>("problemsCount");
-    const statusBadge = asElement<HTMLElement>("statusProblemsCount");
-    if (!list) return;
-    list.replaceChildren();
-    const hasProblem = level === "error" && Boolean(message);
-    if (badge) badge.textContent = hasProblem ? "1" : "0";
-    if (statusBadge) statusBadge.textContent = hasProblem ? "1" : "0";
-    if (!hasProblem) {
-      const empty = document.createElement("div");
-      empty.className = "tool-empty-state";
-      empty.innerHTML = '<span class="empty-state-icon" aria-hidden="true">✓</span><strong>No problems detected</strong><span>Parser feedback will appear here while editing SML.</span>';
-      list.append(empty);
-      return;
-    }
-    const item = document.createElement("div");
-    item.className = "problem-entry error";
-    item.innerHTML = '<span class="problem-severity" aria-hidden="true">×</span>';
-    const body = document.createElement("div");
-    const title = document.createElement("strong");
-    title.textContent = "SML parse error";
-    const description = document.createElement("span");
-    description.textContent = message;
-    body.append(title, description);
-    item.append(body);
-    list.append(item);
-  };
+  /** True when the outline is actually on screen and worth rebuilding. */
+  const outlineVisible = () => state.codeVisible && activeRightTab === "outline";
 
+  /**
+   * Rebuild the outline if it is both out of date and actually on screen.
+   * Rebuilding a hidden tree on every workspace change is pure waste, so a
+   * hidden outline is only marked stale and rebuilt when it next appears.
+   */
   function scheduleOutlineRender() {
-    if (outlineFrame) window.cancelAnimationFrame(outlineFrame);
+    if (!outlineStale || !outlineVisible() || outlineFrame) return;
     outlineFrame = window.requestAnimationFrame(() => {
       outlineFrame = 0;
       renderOutline();
     });
   }
 
+  function markOutlineStale() {
+    outlineStale = true;
+    scheduleOutlineRender();
+  }
+
   function renderOutline() {
     const container = asElement<HTMLElement>("programOutline");
-    if (!container) return;
-    container.replaceChildren();
+    if (!container || !outlineVisible()) return;
+    outlineStale = false;
+
     const topBlocks = options.workspace.getTopBlocks(true);
     if (!topBlocks.length) {
       const empty = document.createElement("div");
       empty.className = "side-empty-state";
       empty.textContent = "The workspace has no blocks.";
-      container.append(empty);
+      container.replaceChildren(empty);
       return;
     }
 
+    const rows: HTMLElement[] = [];
     const addBlock = (block: Blockly.Block, depth: number) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "outline-item";
       button.style.setProperty("--outline-depth", String(depth));
       button.dataset.blockId = block.id;
-      const disclosure = document.createElement("span");
-      disclosure.className = "outline-disclosure";
-      const children = block.getChildren(true);
-      disclosure.textContent = children.length ? "⌄" : "·";
+
       const label = document.createElement("span");
       label.className = "outline-label";
       const blockText = (block as any).toString?.(54, "…") || block.type;
       label.textContent = String(blockText).replace(/\s+/g, " ").trim() || block.type;
+
       const type = document.createElement("span");
       type.className = "outline-type";
       type.textContent = block.type.replace(/_/g, " ");
-      button.append(disclosure, label, type);
-      container.append(button);
-      children.forEach((child) => addBlock(child, depth + 1));
+
+      button.append(label, type);
+      rows.push(button);
+      block.getChildren(true).forEach((child) => addBlock(child, depth + 1));
     };
     topBlocks.forEach((block) => addBlock(block, 0));
+    container.replaceChildren(...rows);
   }
 
-  const setPerspective = (perspective: IdePerspective, announce = true) => {
-    state.perspective = perspective;
-    app.dataset.perspective = perspective;
-    app.classList.toggle("perspective-presentation", perspective === "presentation");
-    if (perspective === "presentation") {
-      rightPanelMaximized = false;
-      app.classList.remove("compact-sidebar-open", "compact-code-open", "right-panel-maximized");
-      const maximizeButton = asElement<HTMLButtonElement>("maximizeRightPanel");
-      if (maximizeButton) {
-        maximizeButton.textContent = "□";
-        maximizeButton.title = "Maximize code and outline region";
-        maximizeButton.setAttribute("aria-label", "Maximize code and outline region");
-        maximizeButton.setAttribute("aria-pressed", "false");
-      }
+  /* ---------------------------------------------------------- diagnostics */
+
+  const renderDiagnostics = () => {
+    const list = asElement<HTMLElement>("diagnosticsList");
+    const statusCount = asElement<HTMLElement>("statusDiagnostics");
+    const statusButton = statusCount?.closest("button");
+
+    if (statusCount) statusCount.textContent = diagnostic ? "1" : "0";
+    statusButton?.classList.toggle("has-error", Boolean(diagnostic));
+    if (!list) return;
+
+    if (!diagnostic) {
+      const empty = document.createElement("div");
+      empty.className = "tool-empty-state";
+      empty.textContent = "No parse errors. Diagnostics appear here while you edit SML.";
+      list.replaceChildren(empty);
+      return;
     }
-    const select = asElement<HTMLSelectElement>("perspectiveSelect");
-    if (select) select.value = perspective;
-    document.querySelectorAll<HTMLElement>("[data-perspective]").forEach((item) => {
-      item.setAttribute("aria-checked", String(item.dataset.perspective === perspective));
-    });
-    persist();
-    options.requestLayoutUpdate(announce
-      ? `${perspective === "edit" ? "Edit" : "Presentation"} perspective activated.`
-      : undefined);
+
+    const entry = document.createElement("button");
+    entry.type = "button";
+    entry.className = "diagnostic-entry";
+    entry.dataset.diagnosticPosition = String(diagnostic.position);
+
+    const location = document.createElement("span");
+    location.className = "diagnostic-location";
+    location.textContent = diagnostic.line
+      ? `Ln ${diagnostic.line}, Col ${diagnostic.column}`
+      : "SML";
+
+    const message = document.createElement("span");
+    message.className = "diagnostic-message";
+    message.textContent = diagnostic.message;
+
+    entry.append(location, message);
+    list.replaceChildren(entry);
   };
 
-  const toggleBottomMaximize = () => {
-    if (!state.bottomVisible) setBottomVisible(true, false);
-    bottomMaximized = !bottomMaximized;
-    app.classList.toggle("bottom-panel-maximized", bottomMaximized);
-    const button = asElement<HTMLButtonElement>("maximizeBottomPanel");
-    if (bottomMaximized) {
-      preMaximizeBottomHeight = state.bottomHeight;
-      if (button) {
-        button.title = "Restore bottom panel";
-        button.setAttribute("aria-label", "Restore bottom panel");
-      }
+  /* ------------------------------------------------------------- commands */
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(console.error);
     } else {
-      state.bottomHeight = preMaximizeBottomHeight;
-      setResizeToken("--ide-bottom-panel-height", state.bottomHeight);
-      if (button) {
-        button.title = "Maximize bottom panel";
-        button.setAttribute("aria-label", "Maximize bottom panel");
-      }
+      app.requestFullscreen().catch((error) => {
+        console.error(error);
+        options.requestLayoutUpdate("Full screen is unavailable.");
+      });
     }
-    options.requestLayoutUpdate(bottomMaximized ? "Bottom tools maximized." : "Bottom tools restored.");
-  };
-
-  const toggleRightPanelMaximize = () => {
-    if (!state.codeVisible) setCodeVisible(true, false);
-    rightPanelMaximized = !rightPanelMaximized;
-    app.classList.toggle("right-panel-maximized", rightPanelMaximized);
-    if (rightPanelMaximized) {
-      app.classList.remove("compact-sidebar-open", "compact-code-open");
-    } else if (compactLayout.matches) {
-      app.classList.add("compact-code-open");
-    }
-    const button = asElement<HTMLButtonElement>("maximizeRightPanel");
-    if (button) {
-      button.textContent = rightPanelMaximized ? "▣" : "□";
-      button.title = rightPanelMaximized ? "Restore code and outline region" : "Maximize code and outline region";
-      button.setAttribute("aria-label", button.title);
-      button.setAttribute("aria-pressed", String(rightPanelMaximized));
-    }
-    options.requestLayoutUpdate(rightPanelMaximized
-      ? `${activeRightTab === "code" ? "Code" : "Outline"} view maximized.`
-      : `${activeRightTab === "code" ? "Code" : "Outline"} view restored.`);
-  };
-
-  const openCompactCode = () => {
-    if (state.bottomVisible) setBottomVisible(false, false);
-    if (!state.codeVisible) setCodeVisible(true, false);
-    app.classList.toggle("compact-code-open");
-    app.classList.remove("compact-sidebar-open");
-    options.requestLayoutUpdate();
   };
 
   const toggleSidebarCommand = () => {
@@ -407,61 +356,58 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
 
   const toggleCodeCommand = () => {
     if (compactLayout.matches) {
-      openCompactCode();
+      if (state.bottomVisible) setBottomVisible(false, false);
+      if (!state.codeVisible) setCodeVisible(true, false);
+      app.classList.toggle("compact-code-open");
+      app.classList.remove("compact-sidebar-open");
+      options.requestLayoutUpdate();
       return;
     }
     setCodeVisible(!state.codeVisible);
   };
 
+  const focusBlockSearch = () => {
+    setActivity("blocks");
+    window.requestAnimationFrame(() => {
+      const search = asElement<HTMLInputElement>("toolboxSearch");
+      search?.focus();
+      search?.select();
+    });
+  };
+
   const commands: IdeCommand[] = [
-    { id: "file.new", label: "New Workspace", category: "File", run: () => (window as any).clearWorkspace?.() },
-    { id: "file.open", label: "Open Workspace…", category: "File", shortcut: "Ctrl+O", run: () => (window as any).tarsius?.menuLoadFile?.() },
-    { id: "file.save", label: "Save Workspace…", category: "File", shortcut: "Ctrl+S", run: () => (window as any).tarsius?.menuSaveFile?.() },
-    { id: "file.autosave", label: "Load Autosave", category: "File", run: () => (window as any).tarsius?.menuLoadAutosave?.() },
+    { id: "file.new", label: "New Workspace", category: "File", run: options.newWorkspace },
+    { id: "file.open", label: "Open Workspace…", category: "File", shortcut: "Ctrl+O", run: options.openWorkspace },
+    { id: "file.save", label: "Save Workspace…", category: "File", shortcut: "Ctrl+S", run: options.saveWorkspace },
+    { id: "file.autosave", label: "Load Autosave", category: "File", run: options.loadAutosave },
+
     { id: "edit.undo", label: "Undo", category: "Edit", shortcut: "Ctrl+Z", run: () => options.workspace.undo(false) },
     { id: "edit.redo", label: "Redo", category: "Edit", shortcut: "Ctrl+Shift+Z", run: () => options.workspace.undo(true) },
+    { id: "edit.findBlock", label: "Search Blocks", category: "Edit", shortcut: "Ctrl+F", run: focusBlockSearch },
+
     { id: "view.blocks", label: "Show Blocks", category: "View", run: () => setActivity("blocks") },
-    { id: "view.files", label: "Show Project Files", category: "View", run: () => setActivity("files") },
     { id: "view.settings", label: "Show Settings", category: "View", run: () => setActivity("settings") },
-    { id: "view.sidebar", label: "Toggle Primary Sidebar", category: "View", shortcut: "Ctrl+B", run: toggleSidebarCommand },
-    { id: "view.code", label: "Toggle Code / Outline", category: "View", run: toggleCodeCommand },
-    { id: "view.bottom", label: "Toggle Bottom Tools", category: "View", shortcut: "Ctrl+J", run: () => setBottomVisible(!state.bottomVisible) },
-    { id: "view.problems", label: "Show Problems", category: "View", run: () => setBottomTab("problems") },
-    { id: "view.output", label: "Show Output", category: "View", run: () => setBottomTab("output") },
-    { id: "view.fullscreen", label: "Toggle Full Screen", category: "View", shortcut: "F11", run: () => toggleFullscreen() },
+    { id: "view.sidebar", label: "Toggle Blocks Sidebar", category: "View", shortcut: "Ctrl+B", run: toggleSidebarCommand },
+    { id: "view.code", label: "Toggle Code Panel", category: "View", run: toggleCodeCommand },
+    { id: "view.codeTab", label: "Show Generated Code", category: "View", run: () => { if (!state.codeVisible) setCodeVisible(true, false); setRightTab("code"); } },
+    { id: "view.outline", label: "Show Program Outline", category: "View", run: () => { if (!state.codeVisible) setCodeVisible(true, false); setRightTab("outline"); } },
+    { id: "view.diagnostics", label: "Toggle Diagnostics", category: "View", shortcut: "Ctrl+J", run: () => setBottomVisible(!state.bottomVisible) },
+    { id: "view.fullscreen", label: "Toggle Full Screen", category: "View", shortcut: "F11", run: toggleFullscreen },
+    { id: "view.theme", label: "Toggle Light / Dark Theme", category: "View", run: () => applyTheme(currentTheme() === "dark" ? "light" : "dark") },
+
     { id: "workspace.zoomIn", label: "Zoom In", category: "Workspace", run: () => { (options.workspace as any).zoomCenter(1); options.requestLayoutUpdate(); } },
     { id: "workspace.zoomOut", label: "Zoom Out", category: "Workspace", run: () => { (options.workspace as any).zoomCenter(-1); options.requestLayoutUpdate(); } },
     { id: "workspace.fit", label: "Fit Blocks in View", category: "Workspace", run: () => { (options.workspace as any).zoomToFit(); options.requestLayoutUpdate(); } },
     { id: "workspace.center", label: "Center Workspace", category: "Workspace", run: () => { (options.workspace as any).scrollCenter(); options.requestLayoutUpdate(); } },
-    { id: "build.generate", label: "Synchronize Generated SML", category: "Build", run: () => { options.refreshGeneratedCode(); options.requestLayoutUpdate("Generated SML synchronized."); } },
-    { id: "build.export", label: "Export Workspace as PNG", category: "Build", run: options.exportWorkspaceImage },
-    { id: "run.unavailable", label: "Execution runtime is not configured", category: "Run", enabled: false, run: () => undefined },
-    { id: "perspective.edit", label: "Activate Edit Perspective", category: "Perspective", run: () => setPerspective("edit") },
-    { id: "perspective.presentation", label: "Activate Presentation Perspective", category: "Perspective", run: () => setPerspective("presentation") },
-    { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => (window as any).showUsage?.() },
-    { id: "help.about", label: "About Visual SML", category: "Help", run: () => (window as any).showAbout?.() },
+
+    { id: "build.generate", label: "Regenerate SML from Blocks", category: "SML", run: () => { options.refreshGeneratedCode(); options.requestLayoutUpdate("SML regenerated from blocks."); } },
+    { id: "build.apply", label: "Apply Edited SML to Blocks", category: "SML", run: () => options.applySmlEditorNow() },
+    { id: "build.export", label: "Export Workspace as PNG", category: "SML", run: options.exportWorkspaceImage },
+
+    { id: "help.usage", label: "Usage Guide", category: "Help", run: options.showUsage },
+    { id: "help.about", label: "About Visual SML", category: "Help", run: options.showAbout },
   ];
   const commandMap = new Map(commands.map((command) => [command.id, command]));
-
-  const runCommand = (id: string) => {
-    const command = commandMap.get(id);
-    if (!command || command.enabled === false) return;
-    closeMenus();
-    closeCommandPalette();
-    command.run();
-    options.requestLayoutUpdate();
-  };
-
-  function toggleFullscreen() {
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(console.error);
-    } else {
-      app.requestFullscreen().catch((error) => {
-        console.error(error);
-        options.requestLayoutUpdate("Full screen could not be opened.");
-      });
-    }
-  }
 
   const closeMenus = () => {
     document.querySelectorAll<HTMLElement>(".app-menu").forEach((menu) => { menu.hidden = true; });
@@ -469,6 +415,17 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       button.setAttribute("aria-expanded", "false");
     });
   };
+
+  const runCommand = (id: string) => {
+    const command = commandMap.get(id);
+    if (!command) return;
+    closeMenus();
+    closeTopbarMenu();
+    closeCommandPalette();
+    command.run();
+  };
+
+  /* ------------------------------------------------------- command palette */
 
   const palette = asElement<HTMLElement>("commandPalette");
   const paletteInput = asElement<HTMLInputElement>("commandPaletteInput");
@@ -483,6 +440,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     filteredCommands = commands.filter((command) =>
       `${command.category} ${command.label}`.toLowerCase().includes(query));
     paletteSelection = clamp(paletteSelection, 0, Math.max(0, filteredCommands.length - 1));
+
     paletteResults.replaceChildren(...filteredCommands.map((command, index) => {
       const item = document.createElement("button");
       item.type = "button";
@@ -491,8 +449,8 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       item.dataset.command = command.id;
       item.setAttribute("role", "option");
       item.setAttribute("aria-selected", String(index === paletteSelection));
-      item.disabled = command.enabled === false;
-      if (index === paletteSelection) item.classList.add("selected");
+      item.classList.toggle("selected", index === paletteSelection);
+
       const category = document.createElement("span");
       category.className = "command-category";
       category.textContent = command.category;
@@ -500,6 +458,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       label.className = "command-label";
       label.textContent = command.label;
       item.append(category, label);
+
       if (command.shortcut) {
         const shortcut = document.createElement("kbd");
         shortcut.textContent = command.shortcut;
@@ -507,6 +466,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       }
       return item;
     }));
+
     if (!filteredCommands.length) {
       const empty = document.createElement("div");
       empty.className = "command-empty";
@@ -515,6 +475,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       paletteInput?.removeAttribute("aria-activedescendant");
     } else {
       paletteInput?.setAttribute("aria-activedescendant", `command-result-${paletteSelection}`);
+      paletteResults.querySelector(".selected")?.scrollIntoView({ block: "nearest" });
     }
   };
 
@@ -538,16 +499,20 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     paletteReturnFocus = null;
   }
 
+  /* --------------------------------------------------------------- resize */
+
   const setupPointerResize = (
     handleId: string,
     bodyClass: string,
-    readValue: () => number,
-    writeValue: (value: number) => void,
-    valueFromPointer: (event: PointerEvent) => number,
+    read: () => number,
+    write: (value: number) => void,
+    fromPointer: (event: PointerEvent) => number,
+    step = 16,
   ) => {
     const handle = asElement<HTMLElement>(handleId);
     if (!handle) return;
     let dragging = false;
+
     handle.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       dragging = true;
@@ -557,7 +522,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     });
     handle.addEventListener("pointermove", (event) => {
       if (!dragging) return;
-      writeValue(valueFromPointer(event));
+      write(fromPointer(event));
       updateHandleValues();
       options.requestLayoutUpdate();
     });
@@ -570,63 +535,71 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     };
     handle.addEventListener("pointerup", finish);
     handle.addEventListener("pointercancel", finish);
+    handle.addEventListener("dblclick", () => {
+      // Double-click a divider to collapse the panel it borders.
+      if (handleId === "sidebarResizeHandle") setSidebarVisible(false);
+      if (handleId === "resizeHandle") setCodeVisible(false);
+      if (handleId === "bottomResizeHandle") setBottomVisible(false);
+    });
     handle.addEventListener("keydown", (event) => {
-      const horizontal = handle.getAttribute("aria-orientation") === "vertical";
-      const decrease = horizontal ? event.key === "ArrowLeft" : event.key === "ArrowDown";
-      const increase = horizontal ? event.key === "ArrowRight" : event.key === "ArrowUp";
+      const vertical = handle.getAttribute("aria-orientation") === "vertical";
+      const decrease = vertical ? event.key === "ArrowLeft" : event.key === "ArrowDown";
+      const increase = vertical ? event.key === "ArrowRight" : event.key === "ArrowUp";
       if (!decrease && !increase) return;
       event.preventDefault();
-      writeValue(readValue() + (increase ? 16 : -16));
+      write(read() + (increase ? step : -step));
       updateHandleValues();
       persist();
       options.requestLayoutUpdate();
     });
   };
 
-  setupPointerResize(
-    "sidebarResizeHandle",
-    "resizing-sidebar",
-    () => state.sidebarWidth,
-    (value) => {
-      state.sidebarWidth = clamp(value, 220, 380);
-      setResizeToken("--ide-primary-sidebar-width", state.sidebarWidth);
-    },
-    (event) => event.clientX - (compactLayout.matches ? 0 : 50),
-  );
+  const writeSidebarWidth = (value: number) => {
+    state.sidebarWidth = clamp(value, SIDEBAR_WIDTH_RANGE.min, SIDEBAR_WIDTH_RANGE.max);
+    setToken("--ide-primary-sidebar-width", state.sidebarWidth);
+  };
+  const writeCodeWidth = (value: number) => {
+    state.codeWidth = clamp(value, CODE_WIDTH_RANGE.min, CODE_WIDTH_RANGE.max);
+    setToken("--ide-code-panel-width", state.codeWidth);
+    setToken("--code-panel-width", state.codeWidth);
+  };
+  const writeBottomHeight = (value: number) => {
+    state.bottomHeight = clamp(
+      value,
+      BOTTOM_HEIGHT_RANGE.min,
+      Math.min(BOTTOM_HEIGHT_RANGE.max, window.innerHeight - 200),
+    );
+    setToken("--ide-bottom-panel-height", state.bottomHeight);
+  };
+
+  function updateHandleValues() {
+    asElement<HTMLElement>("sidebarResizeHandle")?.setAttribute("aria-valuenow", String(state.sidebarWidth));
+    asElement<HTMLElement>("resizeHandle")?.setAttribute("aria-valuenow", String(state.codeWidth));
+    asElement<HTMLElement>("bottomResizeHandle")?.setAttribute("aria-valuenow", String(state.bottomHeight));
+  }
 
   setupPointerResize(
-    "bottomResizeHandle",
-    "resizing-bottom-panel",
-    () => state.bottomHeight,
-    (value) => {
-      state.bottomHeight = clamp(value, 160, Math.min(520, window.innerHeight - 180));
-      setResizeToken("--ide-bottom-panel-height", state.bottomHeight);
-    },
+    "sidebarResizeHandle", "resizing-sidebar",
+    () => state.sidebarWidth, writeSidebarWidth,
+    (event) => event.clientX - (compactLayout.matches ? 0 : ACTIVITY_BAR_WIDTH),
+  );
+  // The code panel is resized here too; index.html no longer duplicates this.
+  setupPointerResize(
+    "resizeHandle", "resizing-code-panel",
+    () => state.codeWidth, writeCodeWidth,
+    (event) => window.innerWidth - event.clientX,
+  );
+  setupPointerResize(
+    "bottomResizeHandle", "resizing-bottom-panel",
+    () => state.bottomHeight, writeBottomHeight,
     (event) => window.innerHeight - event.clientY - 24,
   );
 
-  const codeHandle = asElement<HTMLElement>("resizeHandle");
-  codeHandle?.addEventListener("keydown", (event) => {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    event.preventDefault();
-    state.codeWidth = clamp(state.codeWidth + (event.key === "ArrowLeft" ? 16 : -16), 320, 720);
-    setResizeToken("--ide-code-panel-width", state.codeWidth);
-    root.style.setProperty("--code-panel-width", `${state.codeWidth}px`);
-    updateHandleValues();
-    persist();
-    options.requestLayoutUpdate();
-  });
-  window.addEventListener("pointerup", () => {
-    const value = Number.parseFloat(getComputedStyle(root).getPropertyValue("--ide-code-panel-width"));
-    if (Number.isFinite(value)) {
-      state.codeWidth = clamp(value, 320, 720);
-      persist();
-      updateHandleValues();
-    }
-  });
+  /* --------------------------------------------------------------- events */
 
   document.addEventListener("click", (event) => {
     const target = event.target as Element | null;
+
     const menuButton = target?.closest<HTMLElement>("[data-menu-target]");
     if (menuButton) {
       const menu = asElement<HTMLElement>(menuButton.dataset.menuTarget || "");
@@ -646,19 +619,15 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       return;
     }
 
-    const activity = target?.closest<HTMLElement>("[data-activity]")?.dataset.activity as ActivitySection | undefined;
+    const activity = target?.closest<HTMLElement>("[data-activity]")?.dataset.activity as
+      ActivitySection | undefined;
     if (activity) {
       setActivity(activity, true);
       return;
     }
 
-    const bottomTab = target?.closest<HTMLElement>("[data-bottom-tab]")?.dataset.bottomTab as BottomToolTab | undefined;
-    if (bottomTab) {
-      setBottomTab(bottomTab);
-      return;
-    }
-
-    const rightTab = target?.closest<HTMLElement>("[data-right-tab]")?.dataset.rightTab as RightTab | undefined;
+    const rightTab = target?.closest<HTMLElement>("[data-right-tab]")?.dataset.rightTab as
+      RightTab | undefined;
     if (rightTab) {
       setRightTab(rightTab);
       return;
@@ -674,55 +643,151 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       return;
     }
 
-    const renderer = target?.closest<HTMLElement>("[data-renderer-choice]")?.dataset.rendererChoice;
+    const diagnosticEntry = target?.closest<HTMLElement>("[data-diagnostic-position]");
+    if (diagnosticEntry) {
+      if (!state.codeVisible) setCodeVisible(true, false);
+      setRightTab("code");
+      revealEditorPosition(Number(diagnosticEntry.dataset.diagnosticPosition) || 0);
+      return;
+    }
+
+    const sample = target?.closest<HTMLElement>("[data-sample-id]")?.dataset.sampleId;
+    if (sample) {
+      closeMenus();
+      options.loadSample(sample);
+      window.setTimeout(() => {
+        options.refreshGeneratedCode();
+        options.requestLayoutUpdate(`Loaded example: ${sample}.`);
+      }, 0);
+      return;
+    }
+
+    const renderer = target?.closest<HTMLElement>("[data-renderer-id],[data-renderer-choice]");
     if (renderer) {
-      options.setRenderer(renderer);
+      const name = renderer.dataset.rendererId || renderer.dataset.rendererChoice || "";
+      closeMenus();
+      options.setRenderer(name);
       return;
     }
 
     const theme = target?.closest<HTMLElement>("[data-theme-choice]")?.dataset.themeChoice;
-    if (theme === "dark") (window as any).setDarkTheme?.();
-    if (theme === "light") (window as any).setLightTheme?.();
-    if (theme) {
-      document.querySelectorAll<HTMLElement>("[data-theme-choice]").forEach((button) => {
-        button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme));
-      });
+    if (theme === "dark" || theme === "light") {
+      applyTheme(theme);
+      return;
     }
 
     if (!target?.closest(".menu-system")) closeMenus();
   });
 
-  ["toggleToolboxPanel", "showToolboxFromWorkspace", "toggleCodePanel", "showCodeFromWorkspace"].forEach((id) => {
-    asElement<HTMLElement>(id)?.addEventListener("click", () => window.setTimeout(() => {
-      state.sidebarVisible = !app.classList.contains("toolbox-hidden");
-      state.codeVisible = !app.classList.contains("code-hidden");
-      if (id.includes("Toolbox")) app.classList.remove("compact-sidebar-open");
-      if (id.includes("Code")) app.classList.remove("compact-code-open");
-      syncPanelControls();
-      persist();
-    }, 0));
-  });
-
-  asElement<HTMLElement>("commandPaletteTrigger")?.addEventListener("click", openCommandPalette);
+  // Panel chrome buttons.
+  asElement<HTMLElement>("toggleToolboxPanel")?.addEventListener("click", () => setSidebarVisible(false));
+  asElement<HTMLElement>("showToolboxFromWorkspace")?.addEventListener("click", () => setSidebarVisible(true));
+  asElement<HTMLElement>("toggleCodePanel")?.addEventListener("click", () => setCodeVisible(false));
+  asElement<HTMLElement>("showCodeFromWorkspace")?.addEventListener("click", () => setCodeVisible(true));
   asElement<HTMLElement>("closeBottomPanel")?.addEventListener("click", () => setBottomVisible(false));
-  asElement<HTMLElement>("maximizeBottomPanel")?.addEventListener("click", toggleBottomMaximize);
-  asElement<HTMLElement>("maximizeRightPanel")?.addEventListener("click", toggleRightPanelMaximize);
-  asElement<HTMLElement>("workspaceToggleBottom")?.addEventListener("click", () => setBottomVisible(!state.bottomVisible));
-  asElement<HTMLElement>("workspaceUndo")?.addEventListener("click", () => options.workspace.undo(false));
-  asElement<HTMLElement>("workspaceRedo")?.addEventListener("click", () => options.workspace.undo(true));
+  asElement<HTMLElement>("commandPaletteTrigger")?.addEventListener("click", openCommandPalette);
+
+  // Compact layouts collapse the menu bar behind a hamburger.
+  const menuToggle = asElement<HTMLButtonElement>("menuToggle");
+  const renderMenuToggle = () => {
+    const open = app.classList.contains("menu-open");
+    menuToggle?.setAttribute("aria-expanded", String(open));
+    if (menuToggle) {
+      menuToggle.innerHTML = open
+        ? '<span aria-hidden="true">×</span><span class="visually-hidden">Close application menu</span>'
+        : '<span aria-hidden="true">☰</span><span class="visually-hidden">Open application menu</span>';
+    }
+  };
+  menuToggle?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    app.classList.toggle("menu-open");
+    renderMenuToggle();
+    options.requestLayoutUpdate();
+  });
+  const closeTopbarMenu = () => {
+    if (!app.classList.contains("menu-open")) return;
+    app.classList.remove("menu-open");
+    renderMenuToggle();
+  };
+
+  asElement<HTMLElement>("workspaceUndo")?.addEventListener("click", () => runCommand("edit.undo"));
+  asElement<HTMLElement>("workspaceRedo")?.addEventListener("click", () => runCommand("edit.redo"));
   asElement<HTMLElement>("workspaceZoomOut")?.addEventListener("click", () => runCommand("workspace.zoomOut"));
   asElement<HTMLElement>("workspaceZoomIn")?.addEventListener("click", () => runCommand("workspace.zoomIn"));
   asElement<HTMLElement>("workspaceFit")?.addEventListener("click", () => runCommand("workspace.fit"));
   asElement<HTMLElement>("workspaceFullscreen")?.addEventListener("click", toggleFullscreen);
-  asElement<HTMLSelectElement>("perspectiveSelect")?.addEventListener("change", (event) => {
-    setPerspective((event.target as HTMLSelectElement).value as IdePerspective);
-  });
-  asElement<HTMLInputElement>("themeToggle")?.addEventListener("change", () => window.setTimeout(() => {
-    document.querySelectorAll<HTMLElement>("[data-theme-choice]").forEach((button) => {
-      button.setAttribute("aria-pressed", String(button.dataset.themeChoice === root.dataset.theme));
-    });
-  }, 0));
 
+  asElement<HTMLInputElement>("themeToggle")?.addEventListener("change", (event) => {
+    applyTheme((event.target as HTMLInputElement).checked ? "dark" : "light");
+  });
+
+  asElement<HTMLElement>("copyCode")?.addEventListener("click", () => {
+    const source = asElement<HTMLTextAreaElement>("smlSourceArea");
+    const button = asElement<HTMLButtonElement>("copyCode");
+    if (!source || !navigator.clipboard?.writeText) return;
+    navigator.clipboard.writeText(source.value).then(
+      () => {
+        if (button) {
+          button.textContent = "✓";
+          window.setTimeout(() => { button.textContent = "⧉"; }, 1200);
+        }
+        options.requestLayoutUpdate("SML copied to clipboard.");
+      },
+      () => options.requestLayoutUpdate("SML could not be copied."),
+    );
+  });
+
+  asElement<HTMLElement>("convertSmlToBlocks")?.addEventListener("click", () => {
+    options.applySmlEditorNow();
+  });
+
+  const autosaveSlider = asElement<HTMLInputElement>("autosaveInterval");
+  const autosaveLabel = asElement<HTMLElement>("autosaveIntervalLabel");
+  const renderAutosave = (minutes: number) => {
+    if (autosaveSlider) autosaveSlider.value = String(minutes);
+    if (autosaveLabel) autosaveLabel.textContent = `${minutes} min`;
+  };
+  autosaveSlider?.addEventListener("input", (event) => {
+    renderAutosave(options.setAutosaveMinutes(Number((event.target as HTMLInputElement).value)));
+  });
+
+  // Searching force-opens the categories that still have hits; clearing the box
+  // puts every category back the way the user left it rather than leaving the
+  // whole tree expanded.
+  const openBeforeSearch = new WeakMap<HTMLDetailsElement, boolean>();
+  asElement<HTMLInputElement>("toolboxSearch")?.addEventListener("input", (event) => {
+    const query = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    let matches = 0;
+    document.querySelectorAll<HTMLElement>("#htmlToolbox .toolbox-block-card").forEach((card) => {
+      const hit = !query || card.textContent!.toLowerCase().includes(query);
+      card.hidden = !hit;
+      if (hit) matches++;
+    });
+    document.querySelectorAll<HTMLDetailsElement>("#htmlToolbox .toolbox-category").forEach((category) => {
+      const visible = category.querySelectorAll(".toolbox-block-card:not([hidden])").length;
+      category.hidden = Boolean(query) && visible === 0;
+      if (query) {
+        if (!openBeforeSearch.has(category)) openBeforeSearch.set(category, category.open);
+        if (visible) category.open = true;
+      } else if (openBeforeSearch.has(category)) {
+        category.open = openBeforeSearch.get(category)!;
+        openBeforeSearch.delete(category);
+      }
+    });
+    const empty = asElement<HTMLElement>("toolboxSearchEmpty");
+    if (empty) empty.hidden = !query || matches > 0;
+  });
+
+  asElement<HTMLInputElement>("toolboxSearch")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const input = event.target as HTMLInputElement;
+    if (!input.value) return;
+    event.stopPropagation();
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+
+  // Menu bar keyboard navigation.
   document.querySelector<HTMLElement>(".menu-system")?.addEventListener("keydown", (event) => {
     const target = event.target as HTMLElement;
     const trigger = target.closest<HTMLElement>("[data-menu-target]");
@@ -744,23 +809,16 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
   });
 
-  asElement<HTMLElement>("programOutline")?.addEventListener("keydown", (event) => {
-    const target = event.target as HTMLElement;
-    if (event.key === "Enter" || event.key === " ") target.click();
-  });
-
-  const handleTabKeys = (event: KeyboardEvent, selector: string) => {
+  asElement<HTMLElement>("rightPanelTabs")?.addEventListener("keydown", (event) => {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    const tabs = [...document.querySelectorAll<HTMLButtonElement>(selector)].filter((tab) => !tab.disabled);
+    const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-right-tab]")];
     const current = tabs.indexOf(event.target as HTMLButtonElement);
     if (current < 0) return;
     event.preventDefault();
     const next = tabs[(current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
     next.focus();
     next.click();
-  };
-  asElement<HTMLElement>("rightPanelTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-right-tab]"));
-  asElement<HTMLElement>("bottomToolTabs")?.addEventListener("keydown", (event) => handleTabKeys(event, "[data-bottom-tab]"));
+  });
 
   paletteInput?.addEventListener("input", () => {
     paletteSelection = 0;
@@ -782,9 +840,15 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
       runCommand(filteredCommands[paletteSelection].id);
     }
   });
+  palette?.addEventListener("mousedown", (event) => {
+    if (event.target === palette) closeCommandPalette();
+  });
 
   document.addEventListener("keydown", (event) => {
     const modifier = event.ctrlKey || event.metaKey;
+    const inTextField = document.activeElement instanceof HTMLTextAreaElement
+      || document.activeElement instanceof HTMLInputElement;
+
     if ((modifier && event.shiftKey && event.key.toLowerCase() === "p") || event.key === "F1") {
       event.preventDefault();
       openCommandPalette();
@@ -793,99 +857,98 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     if (event.key === "Escape") {
       closeCommandPalette();
       closeMenus();
+      closeTopbarMenu();
       app.classList.remove("compact-sidebar-open", "compact-code-open");
-      options.requestLayoutUpdate();
       return;
     }
-    if (!modifier) return;
-    if (event.key.toLowerCase() === "s") {
-      event.preventDefault();
-      runCommand("file.save");
-    } else if (event.key.toLowerCase() === "o") {
-      event.preventDefault();
-      runCommand("file.open");
-    } else if (event.key.toLowerCase() === "b") {
-      event.preventDefault();
-      runCommand("view.sidebar");
-    } else if (event.key.toLowerCase() === "j") {
-      event.preventDefault();
-      runCommand("view.bottom");
-    } else if (event.key.toLowerCase() === "f" && document.activeElement?.id !== "smlSourceArea") {
-      event.preventDefault();
-      setActivity("blocks");
-      window.requestAnimationFrame(() => {
-        const search = asElement<HTMLInputElement>("toolboxSearch");
-        search?.focus();
-        search?.select();
-      });
+    if (!modifier || event.shiftKey || event.altKey) return;
+
+    switch (event.key.toLowerCase()) {
+      case "s":
+        event.preventDefault();
+        runCommand("file.save");
+        break;
+      case "o":
+        event.preventDefault();
+        runCommand("file.open");
+        break;
+      case "b":
+        event.preventDefault();
+        runCommand("view.sidebar");
+        break;
+      case "j":
+        event.preventDefault();
+        runCommand("view.diagnostics");
+        break;
+      case "f":
+        // Ctrl+F is the IDE-conventional block search, but never steal it
+        // from the SML editor or the search field itself.
+        if (inTextField) return;
+        event.preventDefault();
+        focusBlockSearch();
+        break;
+      default:
+        break;
     }
   });
 
-  palette?.addEventListener("mousedown", (event) => {
-    if (event.target === palette) closeCommandPalette();
-  });
-  document.addEventListener("fullscreenchange", () => options.requestLayoutUpdate());
   document.addEventListener("visual-sml:editor-status", (event) => {
-    const detail = (event as CustomEvent<{ message?: string; state?: string }>).detail;
-    renderProblems(detail?.message || "", detail?.state || "idle");
+    const detail = (event as CustomEvent<SmlEditorStatusDetail>).detail;
+    const next = detail?.state === "error" ? detail.diagnostic ?? null : null;
+    const changed = (next?.position ?? -1) !== (diagnostic?.position ?? -1)
+      || (next?.message ?? "") !== (diagnostic?.message ?? "");
+    diagnostic = next;
+    if (changed) renderDiagnostics();
   });
 
+  document.addEventListener("fullscreenchange", () => options.requestLayoutUpdate());
   compactLayout.addEventListener("change", () => {
     app.classList.remove("compact-sidebar-open", "compact-code-open");
     options.requestLayoutUpdate();
   });
+  window.addEventListener("resize", () => {
+    // Keep the bottom panel inside the viewport when the window shrinks.
+    if (state.bottomVisible) writeBottomHeight(state.bottomHeight);
+  });
 
-  options.workspace.addChangeListener(() => scheduleOutlineRender());
+  options.workspace.addChangeListener(markOutlineStale);
 
-  const currentFile = asElement<HTMLElement>("workspaceFileLabel");
-  const syncFileLabels = () => {
-    const name = currentFile?.textContent?.trim() || "untitled.vsml";
-    const titleFile = asElement<HTMLElement>("titleFileLabel");
-    const projectFile = asElement<HTMLElement>("projectFileName");
-    if (titleFile) titleFile.textContent = name;
-    if (projectFile) projectFile.textContent = name;
-  };
-  if (currentFile) new MutationObserver(syncFileLabels).observe(currentFile, { childList: true, characterData: true, subtree: true });
+  /* --------------------------------------------------------------- startup */
 
-  const editorStatus = asElement<HTMLElement>("smlConvertStatus");
-  renderProblems(editorStatus?.textContent || "", editorStatus?.dataset.state || "idle");
-
-  const windowAny = window as any;
-  const previousStatusUpdate = windowAny.visualSmlUpdateStatus;
-  windowAny.visualSmlUpdateStatus = (message?: string) => {
-    previousStatusUpdate?.(message);
-    if (!message) return;
-    appendOutput(message);
-    const saveState = asElement<HTMLElement>("saveStateLabel");
-    if (saveState) {
-      if (/autosaved|saved|loaded|ready/i.test(message)) saveState.textContent = "Saved";
-      else if (/updated|converted|inserted|cleared/i.test(message)) saveState.textContent = "Modified";
+  const savedTheme = (() => {
+    try {
+      return window.localStorage.getItem(THEME_STORAGE_KEY);
+    } catch {
+      return null;
     }
-  };
+  })();
 
-  setResizeToken("--ide-primary-sidebar-width", state.sidebarWidth);
-  setResizeToken("--ide-code-panel-width", state.codeWidth);
-  setResizeToken("--ide-bottom-panel-height", state.bottomHeight);
+  writeSidebarWidth(state.sidebarWidth);
+  writeCodeWidth(state.codeWidth);
+  writeBottomHeight(state.bottomHeight);
+
   app.classList.toggle("toolbox-hidden", !state.sidebarVisible);
   app.classList.toggle("code-hidden", !state.codeVisible);
+
   renderActivity();
-  renderBottomTab();
   setBottomVisible(state.bottomVisible, false);
-  setPerspective(state.perspective, false);
   setRightTab(activeRightTab);
   syncPanelControls();
-  syncFileLabels();
   updateHandleValues();
-  scheduleOutlineRender();
-  appendOutput("Visual SML workbench initialized.");
+  renderDiagnostics();
+  renderAutosave(options.getAutosaveMinutes());
+  applyTheme(savedTheme === "light" ? "light" : "dark", false);
 
-  document.querySelectorAll<HTMLElement>("[data-renderer-choice]").forEach((button) => {
-    button.setAttribute("aria-checked", String(button.dataset.rendererChoice === options.getRendererName()));
-  });
-  document.querySelectorAll<HTMLElement>("[data-theme-choice]").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.themeChoice === root.dataset.theme));
+  document.querySelectorAll<HTMLElement>("[data-renderer-id],[data-renderer-choice]").forEach((button) => {
+    const name = button.dataset.rendererId || button.dataset.rendererChoice;
+    button.setAttribute("aria-checked", String(name === options.getRendererName()));
   });
   const rendererStatus = asElement<HTMLElement>("statusRenderer");
-  if (rendererStatus) rendererStatus.textContent = options.getRendererName() === "GoropaRenderer" ? "Goropa" : "Macaca Nigra";
-  options.requestLayoutUpdate("Visual SML workbench ready.");
+  if (rendererStatus) {
+    rendererStatus.textContent = options.getRendererName() === "GoropaRenderer"
+      ? "Goropa"
+      : "Macaca Nigra";
+  }
+
+  options.requestLayoutUpdate("Visual SML ready.");
 }

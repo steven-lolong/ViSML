@@ -3,46 +3,79 @@ import { toolbox } from "./toolbox";
 import { getGrammarTooltip } from "../core/blocks/grammar_tooltips";
 
 /**
- * Renders a custom HTML toolbox (matching the web-ide-template look) into the
- * left column from the existing Blockly toolbox definition.
+ * Renders the custom HTML toolbox into the left sidebar from the shared Blockly
+ * toolbox definition, so the category tree has a single source of truth.
  *
- * Each toolbox item shows the REAL rendered Blockly block (an SVG snapshot of
- * the actual block model, like the native flyout) plus a text description.
- * Items can be clicked (inserted at a cascading position) or dragged onto the
- * workspace canvas (inserted at the drop location).
+ * Presentation follows the Block-Lambda-Calculus toolbox:
+ *   - every category (and sub-category) is a <details> disclosure whose summary
+ *     is `icon | title | count | chevron`, with the chevron rotating when open;
+ *   - every block is a bordered card carrying a label and a grammar description;
+ *   - blocks are inserted by click, or dragged onto the workspace with a pointer
+ *     drag that shows a ghost of the card and highlights the drop target.
  *
- * Using the shared `toolbox` definition keeps a single source of truth.
+ * ViSML keeps one thing the reference does not have: the card's visual is an SVG
+ * snapshot of the REAL rendered Blockly block, not a stand-in icon. Category
+ * accent colours come from the toolbox definition's `colour` (the same value the
+ * blocks are painted with), so the sidebar cannot drift from the workspace.
+ *
+ * The category/sub-category structure itself is defined in ./toolbox.ts and is
+ * rendered verbatim — this module only decides how it looks and behaves.
  */
 
 /** SVG namespace for building standalone preview svgs. */
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+/** Distance (px) the pointer must travel before a click becomes a drag. */
+const DRAG_THRESHOLD = 7;
+
 /** Cascading offset (in workspace units) for click-inserted blocks. */
 let insertOffset = 0;
 
-/** The block type currently being dragged from the toolbox (drag-and-drop). */
-let draggingType: string | null = null;
-
+/** Sprite icon id (minus the `icon-` prefix) used for each category name. */
 const CATEGORY_ICONS: Record<string, string> = {
-  Program: "P",
-  Constant: "C",
-  Identitfiers: "I",
-  Identifiers: "I",
-  Expression: "E",
-  Pattern: "M",
-  Type: "T",
-  Structure: "S",
-  Signature: "G",
-  Declaration: "D",
-  Operator: "O",
-  "Lambda & Case": "λ",
-  List: "[]",
-  Tuple: "()",
-  Record: "{}",
+  Program: "program",
+  Constant: "constant",
+  Identitfiers: "identifier",
+  Identifiers: "identifier",
+  Expression: "expression",
+  Pattern: "pattern",
+  Type: "type",
+  Structure: "structure",
+  Signature: "signature",
+  Declaration: "declaration",
+  Operator: "operator",
+  "Lambda & Case": "lambda",
+  List: "list",
+  Tuple: "tuple",
+  Record: "record",
+  Specification: "spec",
+  Value: "value",
+  "Value (Variable)": "value",
+  Function: "function",
+  "Data type": "datatype",
+  Exception: "exception",
 };
 
 /**
- * Turn a block type id into a human-readable description label,
+ * Build a sprite-backed icon element.
+ * @param name The sprite symbol name, without the `icon-` prefix.
+ * @param className An extra class for sizing/colouring in context.
+ * @returns An <svg> referencing the shared sprite.
+ */
+function createIcon(name: string, className?: string): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
+  svg.classList.add("app-icon");
+  if (className) svg.classList.add(className);
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const use = document.createElementNS(SVG_NS, "use");
+  use.setAttribute("href", `#icon-${name}`);
+  svg.appendChild(use);
+  return svg;
+}
+
+/**
+ * Turn a block type id into a human-readable label,
  * e.g. "exp_let_in_end" -> "Exp Let In End".
  * @param type The Blockly block type id.
  * @returns A title-cased, space-separated label.
@@ -53,6 +86,19 @@ function humanize(type: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * The one-line description shown under a card's label: the block's grammar
+ * production with the "Grammar: " prefix dropped, falling back to the raw type
+ * id when no production is registered for the block.
+ * @param type The Blockly block type id.
+ * @returns The description text.
+ */
+function describeBlock(type: string): string {
+  const tooltip = getGrammarTooltip(type);
+  if (!tooltip) return type;
+  return tooltip.replace(/^Grammar:\s*/, "");
 }
 
 /**
@@ -167,29 +213,177 @@ function countBlocks(contents: any[]): number {
   return n;
 }
 
+/** State for the card currently being pointer-dragged out of the toolbox. */
+type ActiveDrag = {
+  type: string;
+  pointerId: number;
+  originX: number;
+  originY: number;
+  source: HTMLElement;
+  ghost: HTMLElement | null;
+  didDrag: boolean;
+};
+
+let activeDrag: ActiveDrag | null = null;
+
 /**
- * Build a single, draggable block button that shows the real rendered block.
+ * Set after a drag finishes so the browser's synthetic click on the source card
+ * does not insert a second block at the cascading position.
+ */
+let suppressNextClick = false;
+
+/**
+ * The element the toolbox drops onto: the workspace panel, falling back to the
+ * Blockly injection div when the panel wrapper is not present.
+ * @param workspace The target workspace.
+ * @returns The drop surface element, or null.
+ */
+function getDropSurface(workspace: any): HTMLElement | null {
+  return (
+    document.querySelector<HTMLElement>(".workspace-panel") ||
+    (workspace.getInjectionDiv && workspace.getInjectionDiv()) ||
+    document.getElementById("tarsiusWorkspaceDiv")
+  );
+}
+
+/**
+ * Whether the pointer is currently over the workspace, so a release there should
+ * insert the block. The ghost is ignored during the hit test because it follows
+ * the cursor and would otherwise always be the topmost element.
+ * @param clientX The pointer X.
+ * @param clientY The pointer Y.
+ * @param surface The drop surface.
+ * @returns True when the pointer is over the workspace.
+ */
+function isOverWorkspace(clientX: number, clientY: number, surface: HTMLElement): boolean {
+  const ghost = activeDrag?.ghost;
+  const previous = ghost?.style.pointerEvents;
+  if (ghost) ghost.style.pointerEvents = "none";
+  const element = document.elementFromPoint(clientX, clientY);
+  if (ghost && previous !== undefined) ghost.style.pointerEvents = previous;
+
+  if (element?.closest(".blocklySvg, .workspace-panel")) return true;
+  const rect = surface.getBoundingClientRect();
+  return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+}
+
+/**
+ * Begin a pointer drag from a toolbox card. Movement under the drag threshold is
+ * still treated as a click, so the card keeps its click-to-insert behaviour.
+ * @param event The originating pointerdown.
+ * @param card The source card.
+ * @param type The block type id.
+ * @param workspace The target workspace.
+ */
+function startDrag(event: PointerEvent, card: HTMLElement, type: string, workspace: any): void {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  const surface = getDropSurface(workspace);
+  if (!surface) return;
+
+  activeDrag = {
+    type,
+    pointerId: event.pointerId,
+    originX: event.clientX,
+    originY: event.clientY,
+    source: card,
+    ghost: null,
+    didDrag: false,
+  };
+  card.classList.add("is-pointer-ready");
+
+  const cleanup = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+  };
+
+  const endDrag = () => {
+    if (!activeDrag) return null;
+    const drag = activeDrag;
+    activeDrag = null;
+    drag.source.classList.remove("is-pointer-ready", "is-dragging");
+    drag.ghost?.remove();
+    surface.classList.remove("is-drag-over");
+    return drag;
+  };
+
+  const onMove = (moveEvent: PointerEvent) => {
+    if (!activeDrag || activeDrag.pointerId !== moveEvent.pointerId) return;
+    const distance = Math.hypot(moveEvent.clientX - activeDrag.originX, moveEvent.clientY - activeDrag.originY);
+    if (!activeDrag.didDrag && distance < DRAG_THRESHOLD) return;
+
+    if (!activeDrag.ghost) {
+      const ghost = card.cloneNode(true) as HTMLElement;
+      ghost.classList.add("toolbox-drag-ghost");
+      ghost.removeAttribute("id");
+      ghost.setAttribute("aria-hidden", "true");
+      document.body.appendChild(ghost);
+      activeDrag.ghost = ghost;
+      activeDrag.didDrag = true;
+      card.classList.add("is-dragging");
+    }
+
+    activeDrag.ghost.style.transform = `translate3d(${moveEvent.clientX + 14}px, ${moveEvent.clientY + 14}px, 0)`;
+    surface.classList.toggle("is-drag-over", isOverWorkspace(moveEvent.clientX, moveEvent.clientY, surface));
+    moveEvent.preventDefault();
+  };
+
+  const onUp = (upEvent: PointerEvent) => {
+    if (!activeDrag || activeDrag.pointerId !== upEvent.pointerId) return;
+    const overWorkspace = activeDrag.didDrag && isOverWorkspace(upEvent.clientX, upEvent.clientY, surface);
+    const drag = endDrag();
+    cleanup();
+    if (!drag?.didDrag) return;
+
+    // The click that follows this release belongs to the drag, not to an insert.
+    suppressNextClick = true;
+    window.setTimeout(() => {
+      suppressNextClick = false;
+    }, 0);
+
+    if (!overWorkspace) return;
+    createBlock(workspace, drag.type, screenToWorkspace(workspace, upEvent.clientX, upEvent.clientY));
+  };
+
+  const onCancel = () => {
+    endDrag();
+    cleanup();
+  };
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onCancel);
+}
+
+/**
+ * Build a single block card: label, grammar description, and a preview of the
+ * real rendered block. Clicking inserts at a cascading position; dragging
+ * inserts wherever the card is dropped on the workspace.
  * @param workspace The workspace used both to render the preview and to insert.
  * @param type The block type id.
- * @param colour The accent colour from the owning category.
- * @returns The button element.
+ * @returns The card element.
  */
-function makeBlockButton(workspace: any, type: string, colour: string): HTMLElement {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "toolbox-block";
-  btn.setAttribute("data-type", type);
-  btn.setAttribute("draggable", "true");
-  btn.setAttribute("aria-label", "Add " + humanize(type) + " block");
-  const tooltip = getGrammarTooltip(type);
-  if (tooltip) btn.title = tooltip;
+function makeBlockCard(workspace: any, type: string): HTMLElement {
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "toolbox-block-card";
+  card.dataset.blockType = type;
+  card.setAttribute("aria-label", `Add ${humanize(type)} block`);
 
-  // Description text (kept as requested).
+  const text = document.createElement("span");
+  text.className = "toolbox-block-text";
+
   const label = document.createElement("span");
-  label.className = "toolbox-label";
+  label.className = "toolbox-block-label";
   label.textContent = humanize(type);
 
-  // Real block model preview (falls back to the type text if rendering fails).
+  const description = document.createElement("span");
+  description.className = "toolbox-block-description";
+  description.textContent = describeBlock(type);
+
+  text.appendChild(label);
+  text.appendChild(description);
+
   const preview = document.createElement("span");
   preview.className = "toolbox-preview";
   const svg = renderBlockPreview(workspace, type);
@@ -198,66 +392,58 @@ function makeBlockButton(workspace: any, type: string, colour: string): HTMLElem
   } else {
     preview.classList.add("is-text");
     preview.textContent = type;
-    if (colour) preview.style.borderColor = colour;
   }
 
-  btn.appendChild(label);
-  btn.appendChild(preview);
+  card.appendChild(preview);
+  card.appendChild(text);
 
-  // Click to insert (cascading position).
-  btn.addEventListener("click", () => createBlock(workspace, type));
-
-  // Drag to insert (dropped at the cursor position).
-  btn.addEventListener("dragstart", (ev: DragEvent) => {
-    draggingType = type;
-    if (ev.dataTransfer) {
-      ev.dataTransfer.setData("text/plain", type);
-      ev.dataTransfer.effectAllowed = "copy";
-    }
-  });
-  btn.addEventListener("dragend", () => {
-    draggingType = null;
+  card.addEventListener("pointerdown", (event) => startDrag(event, card, type, workspace));
+  card.addEventListener("click", () => {
+    if (suppressNextClick) return;
+    createBlock(workspace, type);
   });
 
-  return btn;
+  return card;
 }
 
 /**
- * Recursively render a category (and its nested categories/blocks).
+ * Recursively render a category (and its nested categories/blocks) as a
+ * disclosure. Sub-categories use the same summary layout as top-level ones and
+ * inherit the parent's accent colour unless they declare their own.
  * @param workspace The workspace to render previews into / insert from.
  * @param category The category node from the toolbox definition.
- * @param depth Nesting depth (top-level categories start expanded).
+ * @param depth Nesting depth (0 for top-level categories).
  * @returns A <details> accordion element.
  */
 function renderCategory(workspace: any, category: any, depth: number): HTMLElement {
+  const name = category.name || "Category";
   const details = document.createElement("details");
   details.className = "toolbox-category";
-  details.setAttribute("data-category", category.name || "Category");
-  details.setAttribute("data-depth", String(depth));
+  details.dataset.category = name;
+  details.dataset.depth = String(depth);
+  if (category.colour) details.style.setProperty("--category-accent", category.colour);
   // Categories are collapsed by default (click a category to expand it).
 
   const summary = document.createElement("summary");
-  const icon = document.createElement("span");
-  icon.className = "category-icon";
-  icon.setAttribute("aria-hidden", "true");
-  icon.textContent = CATEGORY_ICONS[category.name] || "•";
-  const name = document.createElement("span");
-  name.className = "category-title";
-  name.textContent = category.name || "Category";
-  const count = document.createElement("span");
-  count.className = "category-count";
-  count.textContent = String(countBlocks(category.contents));
-  if (category.colour) count.style.borderColor = category.colour;
-  summary.appendChild(icon);
-  summary.appendChild(name);
-  summary.appendChild(count);
+  summary.append(
+    createIcon(CATEGORY_ICONS[name] || "blocks", "category-icon"),
+    Object.assign(document.createElement("span"), {
+      className: "category-title",
+      textContent: name,
+    }),
+    Object.assign(document.createElement("span"), {
+      className: "category-count",
+      textContent: String(countBlocks(category.contents)),
+    }),
+    createIcon("chevron-right", "toolbox-disclosure-icon")
+  );
   details.appendChild(summary);
 
   const body = document.createElement("div");
   body.className = "toolbox-blocks";
   for (const item of category.contents || []) {
     if (item.kind === "block") {
-      body.appendChild(makeBlockButton(workspace, item.type, category.colour));
+      body.appendChild(makeBlockCard(workspace, item.type));
     } else if (item.kind === "category") {
       body.appendChild(renderCategory(workspace, item, depth + 1));
     }
@@ -267,38 +453,8 @@ function renderCategory(workspace: any, category: any, depth: number): HTMLEleme
 }
 
 /**
- * Wire the workspace canvas as a drop target so toolbox blocks can be dragged
- * onto it. The dropped block is created at the cursor's workspace coordinates.
- * @param workspace The target workspace.
- */
-function enableWorkspaceDrop(workspace: any): void {
-  const dropZone: HTMLElement | null =
-    (workspace.getInjectionDiv && workspace.getInjectionDiv()) ||
-    document.getElementById("tarsiusWorkspaceDiv");
-  if (!dropZone) return;
-
-  dropZone.addEventListener("dragover", (ev: DragEvent) => {
-    if (draggingType) {
-      ev.preventDefault();
-      if (ev.dataTransfer) ev.dataTransfer.dropEffect = "copy";
-    }
-  });
-
-  dropZone.addEventListener("drop", (ev: DragEvent) => {
-    const type =
-      draggingType ||
-      (ev.dataTransfer ? ev.dataTransfer.getData("text/plain") : "");
-    if (!type) return;
-    ev.preventDefault();
-    const at = screenToWorkspace(workspace, ev.clientX, ev.clientY);
-    createBlock(workspace, type, at);
-    draggingType = null;
-  });
-}
-
-/**
- * Build the full HTML toolbox into the `#htmlToolbox` container (rendering real
- * block previews) and enable drag-and-drop onto the workspace.
+ * Build the full HTML toolbox into the `#htmlToolbox` container, rendering real
+ * block previews for every card.
  * @param workspace The Blockly workspace used for previews and insertion.
  */
 export function buildHtmlToolbox(workspace: any): void {
@@ -318,6 +474,4 @@ export function buildHtmlToolbox(workspace: any): void {
   } finally {
     Blockly.Events.enable();
   }
-
-  enableWorkspaceDrop(workspace);
 }

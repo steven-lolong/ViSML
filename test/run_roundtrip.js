@@ -248,7 +248,7 @@ const layoutCases = [
   [
     "dimensions are clamped",
     { sidebarWidth: -20, codeWidth: 5000, bottomHeight: 12 },
-    { ...DEFAULT_IDE_LAYOUT_STATE, sidebarWidth: 220, codeWidth: 720, bottomHeight: 160 },
+    { ...DEFAULT_IDE_LAYOUT_STATE, sidebarWidth: 220, codeWidth: 720, bottomHeight: 120 },
   ],
   [
     "valid settings survive normalization",
@@ -260,8 +260,6 @@ const layoutCases = [
       codeWidth: 512,
       bottomVisible: true,
       bottomHeight: 318,
-      activeBottomTab: "output",
-      perspective: "presentation",
     },
     {
       activeActivity: "settings",
@@ -271,9 +269,12 @@ const layoutCases = [
       codeWidth: 512,
       bottomVisible: true,
       bottomHeight: 318,
-      activeBottomTab: "output",
-      perspective: "presentation",
     },
+  ],
+  [
+    "removed sections fall back to defaults",
+    { activeActivity: "files", perspective: "presentation", activeBottomTab: "output" },
+    DEFAULT_IDE_LAYOUT_STATE,
   ],
 ];
 let layoutPassed = 0;

@@ -28,11 +28,72 @@ export class MacacaNigraConstantProvider extends Blockly.blockRendering
     this.TAB_HEIGHT = 20;
     this.TAB_WIDTH = 15;
     this.ADD_START_HATS = true;
+    this.START_HAT_HEIGHT = 5;
+    this.START_HAT_WIDTH = 82;
     this.FIELD_TEXT_BASELINE_CENTER = true;
     this.DARK_PATH_OFFSET = 1;
     this.DARK_PATH_OFFSET = 0;
 
     // geras only
+  }
+
+  /**
+   * The hat standing above every block with no previous connection (chiefly
+   * the main "Program" block) — same technique as Block-MNL-Dev's Kolintang
+   * renderer, which stands "MNL" above its main-file block, applied here to
+   * spell "ViSML" above ViSML's program root.
+   *
+   * Unlike Kolintang, this glyph needs no self-intersecting path trickery:
+   * every letter (and the "i"'s dot) is a simple (non-crossing) closed loop
+   * entered and left at the same point, so the outline can detour into it,
+   * walk all the way around, and rejoin the baseline (or, for the dot, the
+   * stem) before moving on — it never doubles back through ink already
+   * drawn, so `fill-rule: evenodd` is not required for correctness here.
+   * @override
+   */
+  makeStartHat() {
+    const height = this.START_HAT_HEIGHT;
+    const width = this.START_HAT_WIDTH;
+    const p = Blockly.utils.svgPaths.point;
+
+    const path = Blockly.utils.svgPaths.line([
+      // hat start -> V
+      p(4, 0),
+      // V, entered/left at the point where its outer strokes meet
+      p(7, -18), p(-4, 0), p(-3, 10), p(-3, -10), p(-4, 0), p(7, 18),
+      // V -> i (stem)
+      p(11, 0),
+      // i's stem, entered/left at its bottom-left corner
+      p(0, -12), p(4, 0), p(0, 12), p(-4, 0),
+      // stem -> i's dot
+      p(0, -14),
+      // i's dot, entered/left at its bottom-left corner
+      p(0, -4), p(4, 0), p(0, 4), p(-4, 0),
+      // dot -> baseline (retraces the stem->dot bridge back down, then runs
+      // along the baseline like every other inter-letter bridge — a diagonal
+      // straight to S's entry looked correct on paper but, unlike a bridge
+      // that retraces an existing edge or runs flush with the baseline,
+      // it doesn't coincide with anything already drawn, so it enclosed and
+      // filled a visible wedge instead of staying invisible)
+      p(0, 14),
+      // baseline -> S
+      p(8, 0),
+      // S, entered/left at its bottom-left corner
+      p(0, -2), p(8, 0), p(0, -6), p(-8, 0), p(0, -10), p(10, 0), p(0, 2),
+      p(-8, 0), p(0, 6), p(8, 0), p(0, 10), p(-10, 0),
+      // S -> M
+      p(14, 0),
+      // M, entered/left at its bottom-left corner
+      p(0, -18), p(4, 0), p(5, 10), p(5, -10), p(4, 0), p(0, 18), p(-18, 0),
+      // M -> L
+      p(22, 0),
+      // L, entered/left at its bottom-left corner
+      p(0, -18), p(4, 0), p(0, 14), p(8, 0), p(0, 4), p(-12, 0),
+      // L -> hat end
+      p(16, 0),
+    ]);
+
+    return { height, width, path };
   }
 
   /**
