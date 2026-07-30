@@ -35,15 +35,74 @@ function registWorspaceScopeMenu() {
   Blockly.ContextMenuRegistry.registry.register(aboutMenu as any);
 }
 
-/** Expose the unavailable type inspector honestly without invoking legacy UI. */
+/**
+ * Returns the SML grammar categories a block's output can satisfy (e.g.
+ * `["exp"]` or `["con", "exp", "pat"]`), taken directly from the output
+ * connection's type check. Blocks without an output connection (bare
+ * statements) don't produce a grammar-typed value, so this returns null.
+ */
+function getBlockGrammarTypes(block: Blockly.Block): string[] | null {
+  const check = block.outputConnection?.getCheck();
+  return check && check.length > 0 ? check : null;
+}
+
+/** Anchor point (top-right corner) for a block's type bubble, in workspace coordinates. */
+function getTypeBubbleAnchor(block: Blockly.BlockSvg): InstanceType<typeof Blockly.utils.Coordinate> {
+  const rect = block.getBoundingRectangle();
+  return new Blockly.utils.Coordinate(rect.right, rect.top);
+}
+
+/** Toggles a non-editable text bubble showing a block's SML grammar type(s). */
+function toggleTypeBubble(block: Blockly.BlockSvg) {
+  if (block.typeBubble_) {
+    block.typeBubble_.dispose();
+    block.typeBubble_ = null;
+    if (block.typeBubbleChangeListener_) {
+      block.workspace.removeChangeListener(block.typeBubbleChangeListener_);
+      block.typeBubbleChangeListener_ = null;
+    }
+    return;
+  }
+
+  const types = getBlockGrammarTypes(block);
+  if (!types) return;
+
+  const workspace = block.workspace as Blockly.WorkspaceSvg;
+  const bubble = new Blockly.bubbles.TextBubble(
+    `Type: ${types.join(" | ")}`,
+    workspace,
+    getTypeBubbleAnchor(block),
+    block.getBoundingRectangle()
+  );
+  bubble.setColour(block.getColour());
+  block.typeBubble_ = bubble;
+
+  const changeListener = (event: Blockly.Events.Abstract) => {
+    const blockEvent = event as any;
+    if (blockEvent.blockId !== block.id) return;
+    if (event.type === Blockly.Events.BLOCK_MOVE) {
+      block.typeBubble_?.setAnchorLocation(getTypeBubbleAnchor(block));
+    } else if (event.type === Blockly.Events.BLOCK_DELETE) {
+      block.typeBubble_?.dispose();
+      block.typeBubble_ = null;
+      workspace.removeChangeListener(changeListener);
+      block.typeBubbleChangeListener_ = null;
+    }
+  };
+  block.typeBubbleChangeListener_ = changeListener;
+  workspace.addChangeListener(changeListener);
+}
+
+/** Register the block-scoped "Type" context-menu item. */
 function registBlockScopeMenu() {
   const blockItem = {
-    displayText: "Type information unavailable",
+    displayText: "Type",
     preconditionFn: function (scope: any) {
-      if (scope.block.hasType) return "disabled";
-      return "hidden";
+      return getBlockGrammarTypes(scope.block) ? "enabled" : "hidden";
     },
-    callback: function () { /* Disabled until a real type-information provider exists. */ },
+    callback: function (scope: any) {
+      toggleTypeBubble(scope.block as Blockly.BlockSvg);
+    },
     scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
     id: "blockType",
     weight: 10,
