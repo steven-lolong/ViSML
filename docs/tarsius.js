@@ -15454,6 +15454,7 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.blockRendering.register("GoropaRenderer", G
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   configureNotchSize: () => (/* binding */ configureNotchSize),
 /* harmony export */   makeHalfCircle: () => (/* binding */ makeHalfCircle),
 /* harmony export */   makeHorzArrow: () => (/* binding */ makeHorzArrow),
 /* harmony export */   makeHorzArrowDiamond: () => (/* binding */ makeHorzArrowDiamond),
@@ -15487,11 +15488,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
 
-const nWidth = 10;
-const nHeight = 10;
+let nWidth = 10;
+let nHeight = 10;
 const cornerRadius = 10;
 const tHeight = 10;
 const tWidth = 10;
+/**
+ * Sizes every make*() shape below off of the constant provider's own
+ * HORZ_NOTCH_WIDTH/HORZ_NOTCH_HEIGHT, instead of the hardcoded defaults
+ * above. Call once, before building any shapes, so the provider's declared
+ * constants are the actual source of truth for these connector sizes.
+ */
+function configureNotchSize(width, height) {
+    nWidth = width;
+    nHeight = height;
+}
 /** halfCircle */
 function makeHalfCircle() {
     function makeMainPath(direction) { }
@@ -15654,8 +15665,6 @@ function makeHorzPentagon() {
 }
 /** horzTrapeze */
 function makeHorzTrapeze() {
-    const width = this.NOTCH_WIDTH;
-    const height = this.NOTCH_HEIGHT;
     function makeMainPath(direction) {
         return blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgPaths.line([
             blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgPaths.point(-(nWidth + 2), direction * -3),
@@ -15674,8 +15683,6 @@ function makeHorzTrapeze() {
 }
 /** horzTriangle */
 function makeHorzTriangle() {
-    const width = this.NOTCH_WIDTH;
-    const height = this.NOTCH_HEIGHT;
     function makeMainPath(direction) {
         return blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgPaths.line([
             blockly__WEBPACK_IMPORTED_MODULE_0__.utils.svgPaths.point(-(nWidth + 2), direction * -(nHeight / 2)),
@@ -16438,6 +16445,11 @@ class MacacaNigraConstantProvider extends blockly__WEBPACK_IMPORTED_MODULE_0__.b
         this.CORNER_RADIUS = 8;
         this.TAB_HEIGHT = 20;
         this.TAB_WIDTH = 15;
+        // Size for the custom Horz* value-connector shapes below (con/exp/pat,
+        // id, var, dec, etc.) — a separate field from TAB_WIDTH/TAB_HEIGHT since
+        // those size the base PUZZLE_TAB shape (used for valbind) instead.
+        this.HORZ_NOTCH_WIDTH = 10;
+        this.HORZ_NOTCH_HEIGHT = 10;
         this.ADD_START_HATS = true;
         this.FIELD_TEXT_BASELINE_CENTER = true;
         this.DARK_PATH_OFFSET = 1;
@@ -16449,6 +16461,7 @@ class MacacaNigraConstantProvider extends blockly__WEBPACK_IMPORTED_MODULE_0__.b
      */
     init() {
         super.init();
+        _horizontal_notchs_standard__WEBPACK_IMPORTED_MODULE_1__.configureNotchSize(this.HORZ_NOTCH_WIDTH, this.HORZ_NOTCH_HEIGHT);
         // horizontal notch
         this.HorzSquare = _horizontal_notchs_standard__WEBPACK_IMPORTED_MODULE_1__.makeHorzSquare(); // id
         this.HorzRectangle = _horizontal_notchs_standard__WEBPACK_IMPORTED_MODULE_1__.makeHorzRectangle(); // longid
@@ -19215,7 +19228,7 @@ const tarsiusWorkspace = blockly__WEBPACK_IMPORTED_MODULE_0__.inject(blockArea, 
             vertical: true,
         },
         drag: true,
-        wheel: false,
+        wheel: true,
     },
     zoom: {
         controls: true,
@@ -19427,16 +19440,66 @@ function registWorspaceScopeMenu() {
     blockly__WEBPACK_IMPORTED_MODULE_0__.ContextMenuRegistry.registry.register(screenshotDownloadMenu);
     blockly__WEBPACK_IMPORTED_MODULE_0__.ContextMenuRegistry.registry.register(aboutMenu);
 }
-/** Expose the unavailable type inspector honestly without invoking legacy UI. */
+/**
+ * Returns the SML grammar categories a block's output can satisfy (e.g.
+ * `["exp"]` or `["con", "exp", "pat"]`), taken directly from the output
+ * connection's type check. Blocks without an output connection (bare
+ * statements) don't produce a grammar-typed value, so this returns null.
+ */
+function getBlockGrammarTypes(block) {
+    const check = block.outputConnection?.getCheck();
+    return check && check.length > 0 ? check : null;
+}
+/** Anchor point (top-right corner) for a block's type bubble, in workspace coordinates. */
+function getTypeBubbleAnchor(block) {
+    const rect = block.getBoundingRectangle();
+    return new blockly__WEBPACK_IMPORTED_MODULE_0__.utils.Coordinate(rect.right, rect.top);
+}
+/** Toggles a non-editable text bubble showing a block's SML grammar type(s). */
+function toggleTypeBubble(block) {
+    if (block.typeBubble_) {
+        block.typeBubble_.dispose();
+        block.typeBubble_ = null;
+        if (block.typeBubbleChangeListener_) {
+            block.workspace.removeChangeListener(block.typeBubbleChangeListener_);
+            block.typeBubbleChangeListener_ = null;
+        }
+        return;
+    }
+    const types = getBlockGrammarTypes(block);
+    if (!types)
+        return;
+    const workspace = block.workspace;
+    const bubble = new blockly__WEBPACK_IMPORTED_MODULE_0__.bubbles.TextBubble(`Type: ${types.join(" | ")}`, workspace, getTypeBubbleAnchor(block), block.getBoundingRectangle());
+    bubble.setColour(block.getColour());
+    block.typeBubble_ = bubble;
+    const changeListener = (event) => {
+        const blockEvent = event;
+        if (blockEvent.blockId !== block.id)
+            return;
+        if (event.type === blockly__WEBPACK_IMPORTED_MODULE_0__.Events.BLOCK_MOVE) {
+            block.typeBubble_?.setAnchorLocation(getTypeBubbleAnchor(block));
+        }
+        else if (event.type === blockly__WEBPACK_IMPORTED_MODULE_0__.Events.BLOCK_DELETE) {
+            block.typeBubble_?.dispose();
+            block.typeBubble_ = null;
+            workspace.removeChangeListener(changeListener);
+            block.typeBubbleChangeListener_ = null;
+        }
+    };
+    block.typeBubbleChangeListener_ = changeListener;
+    workspace.addChangeListener(changeListener);
+}
+/** Register the block-scoped "Type" context-menu item. */
 function registBlockScopeMenu() {
     const blockItem = {
-        displayText: "Type information unavailable",
+        displayText: "Type",
         preconditionFn: function (scope) {
-            if (scope.block.hasType)
-                return "disabled";
-            return "hidden";
+            return getBlockGrammarTypes(scope.block) ? "enabled" : "hidden";
         },
-        callback: function () { },
+        callback: function (scope) {
+            toggleTypeBubble(scope.block);
+        },
         scopeType: blockly__WEBPACK_IMPORTED_MODULE_0__.ContextMenuRegistry.ScopeType.BLOCK,
         id: "blockType",
         weight: 10,

@@ -1,10 +1,21 @@
 import * as Blockly from "blockly";
 
-const nWidth = 10;
-const nHeight = 10;
+let nWidth = 10;
+let nHeight = 10;
 const cornerRadius = 10;
 const tHeight = 10;
 const tWidth = 10;
+
+/**
+ * Sizes every make*() shape below off of the constant provider's own
+ * HORZ_NOTCH_WIDTH/HORZ_NOTCH_HEIGHT, instead of the hardcoded defaults
+ * above. Call once, before building any shapes, so the provider's declared
+ * constants are the actual source of truth for these connector sizes.
+ */
+export function configureNotchSize(width: number, height: number) {
+  nWidth = width;
+  nHeight = height;
+}
 
 /** halfCircle */
 export function makeHalfCircle() {
@@ -181,9 +192,6 @@ export function makeHorzPentagon() {
 
 /** horzTrapeze */
 export function makeHorzTrapeze() {
-  const width = this.NOTCH_WIDTH;
-  const height = this.NOTCH_HEIGHT;
-
   function makeMainPath(direction) {
     return Blockly.utils.svgPaths.line([
       Blockly.utils.svgPaths.point(-(nWidth + 2), direction * -3),
@@ -205,9 +213,6 @@ export function makeHorzTrapeze() {
 
 /** horzTriangle */
 export function makeHorzTriangle() {
-  const width = this.NOTCH_WIDTH;
-  const height = this.NOTCH_HEIGHT;
-
   function makeMainPath(direction) {
     return Blockly.utils.svgPaths.line([
       Blockly.utils.svgPaths.point(-(nWidth + 2), direction * -(nHeight / 2)),

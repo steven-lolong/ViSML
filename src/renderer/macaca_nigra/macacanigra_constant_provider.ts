@@ -27,6 +27,11 @@ export class MacacaNigraConstantProvider extends Blockly.blockRendering
     this.CORNER_RADIUS = 8;
     this.TAB_HEIGHT = 20;
     this.TAB_WIDTH = 15;
+    // Size for the custom Horz* value-connector shapes below (con/exp/pat,
+    // id, var, dec, etc.) — a separate field from TAB_WIDTH/TAB_HEIGHT since
+    // those size the base PUZZLE_TAB shape (used for valbind) instead.
+    this.HORZ_NOTCH_WIDTH = 10;
+    this.HORZ_NOTCH_HEIGHT = 10;
     this.ADD_START_HATS = true;
     this.FIELD_TEXT_BASELINE_CENTER = true;
     this.DARK_PATH_OFFSET = 1;
@@ -41,6 +46,7 @@ export class MacacaNigraConstantProvider extends Blockly.blockRendering
 
   init() {
     super.init();
+    vNotch.configureNotchSize(this.HORZ_NOTCH_WIDTH, this.HORZ_NOTCH_HEIGHT);
     // horizontal notch
     this.HorzSquare = vNotch.makeHorzSquare(); // id
     this.HorzRectangle = vNotch.makeHorzRectangle(); // longid

@@ -17,6 +17,8 @@ declare module "blockly/core" {
     plus?: (...args: any[]) => void;
     minus?: (...args: any[]) => void;
     initSvg?: () => void;
+    typeBubble_?: any;
+    typeBubbleChangeListener_?: any;
   }
 
   interface FieldImage {
@@ -32,6 +34,8 @@ declare module "blockly" {
     plus?: (...args: any[]) => void;
     minus?: (...args: any[]) => void;
     initSvg?: () => void;
+    typeBubble_?: any;
+    typeBubbleChangeListener_?: any;
   }
 
   interface FieldImage {
