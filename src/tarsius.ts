@@ -217,7 +217,7 @@ const tarsiusWorkspace = Blockly.inject(blockArea, {
       vertical: true,
     },
     drag: true,
-    wheel: false,
+    wheel: true,
   },
   zoom: {
     controls: true,

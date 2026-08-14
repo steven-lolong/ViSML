@@ -12,8 +12,3 @@ import "./images/logo.png";
 import "./images/logo_small.png";
 import "./images/logo_with_tagline.png";
 export { Tooltip, Toast, Popover, Modal, show_hide_block, show_hide_source_block };
-
-export function usage() {
-  const usageModal = new Modal(document.getElementById('usageModal'));
-  usageModal.show();
-}
