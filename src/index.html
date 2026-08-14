@@ -27,7 +27,7 @@
 
         <nav id="appMenu" class="menu-system" aria-label="Application menu">
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="fileMenu" aria-haspopup="menu" aria-expanded="false">File</button>
+            <button class="menu-button" type="button" data-menu-target="fileMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">▤</span>File</button>
             <div id="fileMenu" class="app-menu" role="menu" hidden>
               <button id="newWorkspace" type="button" role="menuitem" data-command="file.new"><span>New Workspace</span></button>
               <button id="loadWorkspace" type="button" role="menuitem" data-command="file.open"><span>Open Workspace…</span><kbd>Ctrl+O</kbd></button>
@@ -37,14 +37,14 @@
             </div>
           </div>
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="editMenu" aria-haspopup="menu" aria-expanded="false">Edit</button>
+            <button class="menu-button" type="button" data-menu-target="editMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✎&#xFE0E;</span>Edit</button>
             <div id="editMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="edit.undo"><span>Undo</span><kbd>Ctrl+Z</kbd></button>
               <button type="button" role="menuitem" data-command="edit.redo"><span>Redo</span><kbd>Ctrl+Shift+Z</kbd></button>
             </div>
           </div>
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="viewMenu" aria-haspopup="menu" aria-expanded="false">View</button>
+            <button class="menu-button" type="button" data-menu-target="viewMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">◫</span>View</button>
             <div id="viewMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitemcheckbox" data-command="view.sidebar" data-panel-state="sidebar" aria-checked="true"><span>Primary Sidebar</span><kbd>Ctrl+B</kbd></button>
               <button type="button" role="menuitemcheckbox" data-command="view.code" data-panel-state="code" aria-checked="true"><span>Code / Outline</span></button>
@@ -56,14 +56,14 @@
             </div>
           </div>
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="buildMenu" aria-haspopup="menu" aria-expanded="false">Build</button>
+            <button class="menu-button" type="button" data-menu-target="buildMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚙&#xFE0E;</span>Build</button>
             <div id="buildMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="build.generate"><span>Synchronize Generated SML</span></button>
               <button type="button" role="menuitem" data-command="build.export"><span>Export Workspace as PNG</span></button>
             </div>
           </div>
           <div class="menu-root">
-            <button id="rendererMenuButton" class="menu-button" type="button" data-menu-target="toolsMenu" aria-haspopup="menu" aria-expanded="false">Tools</button>
+            <button id="rendererMenuButton" class="menu-button" type="button" data-menu-target="toolsMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">⚒&#xFE0E;</span>Tools</button>
             <div id="toolsMenu" class="app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-command="view.settings"><span>Settings</span></button>
               <div class="menu-separator" role="separator"></div>
@@ -75,7 +75,7 @@
             </div>
           </div>
           <div class="menu-root">
-            <button id="examplesMenuButton" class="menu-button" type="button" data-menu-target="examplesSubMenu" aria-haspopup="menu" aria-expanded="false">Examples</button>
+            <button id="examplesMenuButton" class="menu-button" type="button" data-menu-target="examplesSubMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">✦</span>Examples</button>
             <div id="examplesSubMenu" class="app-menu examples-app-menu" role="menu" hidden>
               <button type="button" role="menuitem" data-sample-id="factorial"><span class="example-menu-title">Factorial</span></button>
               <button type="button" role="menuitem" data-sample-id="caseMatch"><span class="example-menu-title">Case Match</span></button>
@@ -87,7 +87,7 @@
             </div>
           </div>
           <div class="menu-root">
-            <button class="menu-button" type="button" data-menu-target="helpMenu" aria-haspopup="menu" aria-expanded="false">Help</button>
+            <button class="menu-button" type="button" data-menu-target="helpMenu" aria-haspopup="menu" aria-expanded="false"><span class="menu-icon" aria-hidden="true">ⓘ</span>Help</button>
             <div id="helpMenu" class="app-menu" role="menu" hidden>
               <button id="usageApp" type="button" role="menuitem" data-command="help.usage"><span>Usage Guide</span></button>
               <button id="aboutApp" type="button" role="menuitem" data-command="help.about"><span>About Visual SML</span></button>
@@ -346,29 +346,9 @@
           <dl class="mb-0">
             <dt>Version</dt>
             <dd>5.0.0</dd>
-            <dt>Technology</dt>
-            <dd>TypeScript, webpack, Blockly 12</dd>
             <dt>Copyright</dt>
-            <dd>&copy;2022-2026</dd>
+            <dd>&copy;2022-2026 by L-Workshop</dd>
           </dl>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade app-modal" id="usageModal" tabindex="-1" aria-labelledby="usageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="usageModalLabel">Usage</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <ol>
-            <li>Click or drag a block from the left toolbox into the workspace.</li>
-            <li>Connect blocks with matching connector shapes to build SML declarations and expressions.</li>
-            <li>Use the generated code panel to inspect or copy the Standard ML output.</li>
-          </ol>
         </div>
       </div>
     </div>
@@ -596,12 +576,6 @@
       window.showAbout = function () {
         if (window.assets && window.assets.Modal) {
           new window.assets.Modal(document.getElementById("aboutModal")).show();
-        }
-      };
-
-      window.showUsage = function () {
-        if (window.assets && window.assets.usage) {
-          window.assets.usage();
         }
       };
 

@@ -290,6 +290,14 @@ textarea:focus-visible,
   background: var(--button-bg-hover);
 }
 
+.menu-icon {
+  display: inline-block;
+  margin-right: 5px;
+  font-size: 12px;
+  opacity: 0.75;
+  vertical-align: -1px;
+}
+
 .app-menu {
   position: absolute;
   top: calc(100% - 1px);
@@ -2011,6 +2019,110 @@ button.status-item:hover {
 
 html:not([data-theme="light"]) .app-modal .btn-close {
   filter: invert(1);
+}
+
+/* Fancy About dialog */
+#aboutModal .modal-content {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--ide-panel-bg), var(--ide-panel-bg)) padding-box,
+    linear-gradient(135deg, var(--ide-accent), var(--ide-border-strong) 45%, var(--ide-accent-hover)) border-box;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 0 32px color-mix(in srgb, var(--ide-accent) 22%, transparent);
+}
+
+#aboutModal .modal-header {
+  position: relative;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--ide-accent) 20%, transparent), transparent 60%),
+    var(--ide-panel-bg);
+  border-bottom: 1px solid var(--ide-border);
+}
+
+#aboutModal .modal-header::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ide-accent), var(--ide-accent-hover), var(--ide-accent));
+  background-size: 200% 100%;
+  animation: about-header-sheen 5s ease-in-out infinite;
+}
+
+#aboutModal .modal-header img {
+  border-radius: 12px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--ide-accent) 14%, var(--ide-panel-bg));
+  box-shadow: 0 0 0 1px var(--ide-border), 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+#aboutModal .modal-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: linear-gradient(90deg, var(--ide-text), var(--ide-accent-hover));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+#aboutModal .modal-header p {
+  color: var(--ide-text-muted);
+  font-size: 12.5px;
+}
+
+#aboutModal .modal-body dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 16px;
+  row-gap: 10px;
+  margin: 4px 0 0;
+}
+
+#aboutModal .modal-body dt {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ide-text-disabled);
+  align-self: center;
+}
+
+#aboutModal .modal-body dd {
+  margin: 0;
+  padding: 4px 10px;
+  color: var(--ide-text);
+  font-weight: 500;
+  text-align: right;
+  justify-self: end;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--ide-accent) 8%, transparent);
+}
+
+#aboutModal.show .modal-dialog {
+  animation: about-pop-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+@keyframes about-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes about-header-sheen {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 /* Perspective overrides */
