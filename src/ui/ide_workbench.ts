@@ -438,7 +438,7 @@ export function initializeIdeWorkbench(options: WorkbenchOptions): void {
     { id: "run.unavailable", label: "Execution runtime is not configured", category: "Run", enabled: false, run: () => undefined },
     { id: "perspective.edit", label: "Activate Edit Perspective", category: "Perspective", run: () => setPerspective("edit") },
     { id: "perspective.presentation", label: "Activate Presentation Perspective", category: "Perspective", run: () => setPerspective("presentation") },
-    { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => window.open("https://l-workshop/help-visml", "_blank", "noopener,noreferrer") },
+    { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => window.open("https://l-workshop.my.id/help-visml/", "_blank", "noopener,noreferrer") },
     { id: "help.about", label: "About Visual SML", category: "Help", run: () => (window as any).showAbout?.() },
   ];
   const commandMap = new Map(commands.map((command) => [command.id, command]));
