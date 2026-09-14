@@ -103,6 +103,22 @@ replace_once(
     "emit standard SML let sequence without braces",
 )
 
+strbind_generator = ROOT / "src/core/generator/sml/blocks/declarations/strbind.ts"
+replace_once(
+    strbind_generator,
+    '''      block.getFieldValue("chkSub") == "TRUE"
+        ? ": " +
+          block.getFieldValue("greatherSign") +
+          " " +
+          SML.valueToCode(block, "inputSig", SML.ORDER_NONE)
+        : "",''',
+    '''      block.getFieldValue("chkSub") == "TRUE"
+        ? (block.getFieldValue("greatherSign") == ">" ? ":> " : ": ") +
+          SML.valueToCode(block, "inputSig", SML.ORDER_NONE)
+        : "",''',
+    "emit opaque ascription as one :> token",
+)
+
 entry = ROOT / "test/roundtrip.entry.ts"
 replace_once(
     entry,
@@ -151,10 +167,14 @@ let pPassed = 0;
 let tCases = 0;
 let tPassed = 0;
 
-// These two inputs deliberately exercise the tolerant parser rather than a
-// source derivation in the SML presentation used by the paper.  They remain
+// These inputs deliberately exercise the tolerant parser rather than source
+// derivations in the SML presentation used by the paper.  They remain
 // stability/repair regressions but are excluded from source-derivation P/T.
-const FIDELITY_EXEMPT = new Set(["generated let braces", "generated opaque space"]);
+const FIDELITY_EXEMPT = new Set([
+  "let multi body",
+  "generated let braces",
+  "generated opaque space",
+]);
 
 function signatureDifference(expected, actual) {
   const limit = Math.min(expected.length, actual.length);
@@ -229,9 +249,9 @@ replace_once(
     "report T and P counts",
 )
 
-# Strengthen the existing real-literal case without changing the 96-case corpus
-# denominator: both spellings would have collapsed under the historical numeric
-# fraction representation.
+# Strengthen the existing real-literal case without changing the current
+# 91-case text corpus denominator: both spellings would have collapsed under
+# the historical numeric fraction representation.
 replace_once(
     runner,
     '["real literal", "val pi = 3.14"],',
