@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '20'
           cache: npm
-      - name: Apply provenance test patch
+      - name: Apply literal and S/T/P round-trip repairs
         run: python3 tools/add_provenance_roundtrip.py
       - name: Install dependencies
         run: npm ci
@@ -29,14 +29,19 @@ jobs:
         run: npm run typecheck
       - name: Run round-trip suite
         run: npm run test:roundtrip
-      - name: Commit validated test change
+      - name: Commit validated source and test changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add test/run_roundtrip.js
+          git add \
+            src/core/generator/sml/blocks/constants.ts \
+            src/core/blocks/constants.ts \
+            src/core/parser/sml_to_visml.ts \
+            test/roundtrip.entry.ts \
+            test/run_roundtrip.js
           if git diff --cached --quiet; then
             echo "No source change to commit"
           else
-            git commit -m "test: add production provenance round-trip criterion [provenance-patched]"
+            git commit -m "fix: preserve literal and production provenance in round trips [provenance-patched]"
             git push
           fi
