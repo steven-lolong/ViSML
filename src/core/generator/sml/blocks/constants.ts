@@ -25,10 +25,11 @@ SML.forBlock["con_char"] = function (block) {
   return [code, SML.ORDER_NONE];
 };
 SML.forBlock["con_word"] = function (block) {
-  let code = block.getFieldValue("inputValue").toString().replace("-", "~");
+  let code = "0w" + block.getFieldValue("inputValue").toString();
   return [code, SML.ORDER_NONE];
 };
 SML.forBlock["con_float"] = function (block) {
-  let code = "()";
-  return [code, SML.ORDER_NONE];
+  const whole = block.getFieldValue("NAME").toString().replace("-", "~");
+  const fraction = block.getFieldValue("inputValue").toString();
+  return [`${whole}.${fraction}`, SML.ORDER_NONE];
 };

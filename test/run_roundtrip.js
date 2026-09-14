@@ -20,6 +20,8 @@ const {
   sampleWorkspaces,
   DEFAULT_IDE_LAYOUT_STATE,
   normalizeIdeLayoutState,
+  smlParserDerivationOracle,
+  lexicalFidelity,
 } = require("./dist/roundtrip.bundle.js");
 
 /** SML programs covering every construct the generator can emit. */
@@ -40,7 +42,7 @@ const CASES = [
   ["op prefix", "val plus = op +\nval prod = op * (2, 3)"],
   ["record", 'val r = {name = "a", age = 30}\nval n = #name r\nval sel = #age'],
   ["numeric labels", "val pair = {1 = true, 2 = false}\nval fst = #1 pair"],
-  ["real literal", "val pi = 3.14"],
+  ["real literal", "val a = 3.05\nval b = 3.5"],
   ["word literal", "val w = 0w255"],
   ["long identifiers", "val v = Real.Math.cos 0"],
 
@@ -149,6 +151,31 @@ const CASES = [
 
 let failures = 0;
 let passed = 0;
+let pCases = 0;
+let pPassed = 0;
+let tCases = 0;
+let tPassed = 0;
+
+// These inputs deliberately exercise the tolerant parser rather than source
+// derivations in the SML presentation used by the paper.  They remain
+// stability/repair regressions but are excluded from source-derivation P/T.
+const FIDELITY_EXEMPT = new Set([
+  "let multi body",
+  "generated let braces",
+  "generated opaque space",
+]);
+
+function signatureDifference(expected, actual) {
+  const limit = Math.min(expected.length, actual.length);
+  let index = 0;
+  while (index < limit && expected[index] === actual[index]) index++;
+  const from = Math.max(0, index - 80);
+  return [
+    `first difference at character ${index}`,
+    `source oracle:    ${expected.slice(from, index + 160)}`,
+    `generated oracle: ${actual.slice(from, index + 160)}`,
+  ].join("\n");
+}
 
 function fail(name, message, detail) {
   failures++;
@@ -165,6 +192,13 @@ for (const [name, source] of CASES) {
   console.error = (...args) => warnings.push(args.join(" "));
 
   try {
+    const fidelityApplicable = !FIDELITY_EXEMPT.has(name);
+    const sourceOracle = fidelityApplicable ? smlParserDerivationOracle(source) : undefined;
+    if (fidelityApplicable) {
+      pCases++;
+      tCases++;
+    }
+
     // 1. text -> blocks
     const state1 = smlToVismlWorkspaceState(source);
     const unregistered = findUnregisteredType(state1);
@@ -175,6 +209,29 @@ for (const [name, source] of CASES) {
 
     // 2. blocks -> text
     const first = stateToCode(state1);
+
+    if (fidelityApplicable) {
+      const fidelityErrors = [];
+      const terminalCheck = lexicalFidelity(source, first.code);
+      if (terminalCheck.ok) {
+        tPassed++;
+      } else {
+        fidelityErrors.push(`T lexical fidelity: ${terminalCheck.reason}`);
+      }
+
+      const generatedOracle = smlParserDerivationOracle(first.code);
+      if (generatedOracle === sourceOracle) {
+        pPassed++;
+      } else {
+        fidelityErrors.push(`P parser derivation oracle:
+${signatureDifference(sourceOracle, generatedOracle)}`);
+      }
+
+      if (fidelityErrors.length > 0) {
+        fail(name, "source-derivation fidelity failed", fidelityErrors.join("\n"));
+        continue;
+      }
+    }
 
     // 3. text -> blocks -> text again: generation must be a fixed point.
     const state2 = smlToVismlWorkspaceState(first.code);
@@ -289,6 +346,8 @@ for (const [name, candidate, expected] of layoutCases) {
 
 console.log(
   `\n${passed}/${CASES.length} text round-trips passed, ` +
+  `T ${tPassed}/${tCases} lexical-fidelity cases passed, ` +
+  `P ${pPassed}/${pCases} parser-oracle cases passed, ` +
   `${samplesPassed}/${sampleNames.length} sample round-trips passed, ` +
   `${layoutPassed}/${layoutCases.length} layout-state cases passed` +
   (failures ? `, ${failures} FAILED` : "")

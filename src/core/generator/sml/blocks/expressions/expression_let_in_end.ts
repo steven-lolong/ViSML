@@ -29,9 +29,8 @@ SML.forBlock["exp_let_in_end"] = function (block) {
   code =
     "let \n" +
     decLet +
-    (number_of_exp > 1 ? " in {\n" : " in ") +
+    " in " +
     codeExp +
-    (number_of_exp > 1 ? " }\n" : "") +
     " end\n";
   return [code, SML.ORDER_NONE];
 };
