@@ -15,6 +15,16 @@ type CanonicalNode = {
 
 const IGNORED_PUNCT = new Set(["(", ")", ";"]);
 const STRUCTURAL_SYMBOLS = new Set([":", ":>", "=", "=>", "->", "|", "#"]);
+const LEFT_FOLD_METHODS = new Set([
+  "parseHandleExpression",
+  "parseOrelseExpression",
+  "parseAndalsoExpression",
+  "parseTypedExpression",
+  "parseInfix3Expression",
+  "parseInfix4Expression",
+  "parseInfix6Expression",
+  "parseInfix7Expression",
+]);
 
 function projectedToken(token: any): string | undefined {
   if (!token || token.type === "eof") return undefined;
@@ -42,6 +52,22 @@ function canonicalize(node: TraceNode, tokens: any[], root = false): CanonicalNo
     if (projected !== undefined) localTokens.push(projected);
   }
   const children = node.children.map((child) => canonicalize(child, tokens, false));
+
+  // Several recursive-descent precedence methods implement a left-associative
+  // chain as one loop.  A printer-inserted parenthesis can cause the same chain
+  // to be observed as nested invocations of that method.  Convert both forms to
+  // the same explicit left fold before comparing derivations.
+  if (
+    LEFT_FOLD_METHODS.has(node.method) &&
+    localTokens.length > 0 &&
+    children.length === localTokens.length + 1
+  ) {
+    let folded = children[0];
+    for (let i = 0; i < localTokens.length; i++) {
+      folded = { m: `${node.method}#step`, t: [localTokens[i]], c: [folded, children[i + 1]] };
+    }
+    return folded;
+  }
 
   // Parser precedence plumbing and source-only parentheses frequently form a
   // transparent one-child layer.  Collapsing only such layers quotients the
