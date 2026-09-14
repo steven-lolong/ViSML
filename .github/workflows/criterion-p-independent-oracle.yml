@@ -44,6 +44,7 @@ jobs:
             src/core/blocks/constants.ts \
             src/core/generator/sml/blocks/constants.ts \
             src/core/generator/sml/blocks/expressions/expression_let_in_end.ts \
+            src/core/generator/sml/blocks/declarations/strbind.ts \
             test/roundtrip.entry.ts \
             test/run_roundtrip.js
           if git diff --cached --quiet; then
