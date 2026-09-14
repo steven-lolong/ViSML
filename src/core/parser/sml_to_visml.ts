@@ -1618,7 +1618,9 @@ class Parser {
         this.advance();
         const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
         return block("con_float", this.ids, {
-          fields: { NAME: Number(whole), inputValue: Number(fraction) },
+          // Keep the fractional lexeme as text: Number("05") would make
+          // 3.05 observationally indistinguishable from 3.5.
+          fields: { NAME: Number(whole), inputValue: fraction },
         });
       }
       case "word": {
@@ -1929,7 +1931,9 @@ class Parser {
         this.advance();
         const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
         return block("con_float", this.ids, {
-          fields: { NAME: Number(whole), inputValue: Number(fraction) },
+          // Keep the fractional lexeme as text: Number("05") would make
+          // 3.05 observationally indistinguishable from 3.5.
+          fields: { NAME: Number(whole), inputValue: fraction },
         });
       }
       case "word": {
@@ -2158,6 +2162,13 @@ class Parser {
  * @param source The SML source text (comments are ignored).
  * @returns A state object accepted by Blockly.serialization.workspaces.load.
  */
+/** Return lexical token identities used by round-trip Criterion T. */
+export function terminalTokenSignature(source: string): string[] {
+  return tokenize(source)
+    .filter((token) => token.type !== "eof")
+    .map((token) => `${token.type}:${token.value}`);
+}
+
 export function smlToVismlWorkspaceState(source: string) {
   const tokens = tokenize(source);
   const parser = new Parser(tokens);
