@@ -165,13 +165,24 @@ let provenancePassed = 0;
  * any generated token not consumed from the source must be a parenthesis.
  */
 function terminalRecoveryHolds(source, generated) {
-  // The pretty-printer is allowed to normalize grouping/layout punctuation:
-  // expression/type-variable parentheses and declaration semicolons.  All
-  // remaining lexical token identities must be exactly equal and in order.
-  const ignoredLayout = new Set(["punct:(", "punct:)", "punct:;"]);
-  const expected = terminalTokenSignature(source).filter((t) => !ignoredLayout.has(t));
-  const actual = terminalTokenSignature(generated).filter((t) => !ignoredLayout.has(t));
-  return JSON.stringify(actual) === JSON.stringify(expected);
+  // Parentheses are presentation normalization and may be inserted or removed.
+  // Every other source token, including source semicolons, must still occur in
+  // order.  The printer may add semicolons as declaration-layout separators;
+  // those are the only unmatched generated tokens permitted.
+  const withoutParens = (tokens) =>
+    tokens.filter((t) => t !== "punct:(" && t !== "punct:)");
+  const expected = withoutParens(terminalTokenSignature(source));
+  const actual = withoutParens(terminalTokenSignature(generated));
+  let index = 0;
+  for (const token of actual) {
+    if (index < expected.length && token === expected[index]) {
+      index++;
+      continue;
+    }
+    if (token === "punct:;") continue;
+    return false;
+  }
+  return index === expected.length;
 }
 
 /**
