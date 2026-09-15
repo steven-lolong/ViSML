@@ -15,6 +15,7 @@
 const {
   Blockly,
   smlToVismlWorkspaceState,
+  terminalTokenSignature,
   stateToCode,
   findUnregisteredType,
   sampleWorkspaces,
@@ -145,10 +146,91 @@ const CASES = [
   ["generated let braces", "val lb = let val a = 1 in { a; a + 1 } end"],
   ["generated opaque space", "structure OS : > SIG2 = struct val x = 1 end"],
   ["nested comments", "(* outer (* inner *) still comment *) val cm = 1"],
+
+  // -- preservation regressions --------------------------------------------------
+  ["real leading-zero fraction", "val r05 = 3.05"],
+  ["real negative fraction", "val rn = ~2.50"],
+  ["word zero", "val wz = 0w0"],
+  ["word multi digit", "val w4096 = 0w4096"],
+  ["literal patterns", "fun lit 3.05 = 1 | lit 0w7 = 2 | lit _ = 0"],
 ];
 
 let failures = 0;
 let passed = 0;
+let terminalPassed = 0;
+let provenancePassed = 0;
+
+/**
+ * Criterion T: source lexical tokens must occur in order in regenerated text;
+ * any generated token not consumed from the source must be a parenthesis.
+ */
+function terminalRecoveryHolds(source, generated) {
+  // Parentheses are presentation normalization and may be inserted or removed.
+  // Every other source token, including source semicolons, must still occur in
+  // order.  The printer may add semicolons as declaration-layout separators;
+  // those are the only unmatched generated tokens permitted.
+  const withoutParens = (tokens) =>
+    tokens.filter((t) => t !== "punct:(" && t !== "punct:)");
+  const expected = withoutParens(terminalTokenSignature(source));
+  const actual = withoutParens(terminalTokenSignature(generated));
+  let index = 0;
+  for (const token of actual) {
+    if (index < expected.length && token === expected[index]) {
+      index++;
+      continue;
+    }
+    if (token === "punct:;") continue;
+    return false;
+  }
+  return index === expected.length;
+}
+
+/**
+ * Criterion P: an implementation-level production/provenance signature.
+ *
+ * The text generator is allowed to insert explicit expression parentheses,
+ * so exp_parentheses is treated as an administrative presentation node and
+ * erased before comparison.  IDs, coordinates and other serializer-only
+ * fields are deliberately ignored.  Block types, grammar-selecting fields,
+ * ordered inputs and next-links are retained.
+ */
+function productionProvenanceSignature(state) {
+  const fieldValue = (value) => {
+    if (value && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "value")) {
+      return value.value;
+    }
+    return value;
+  };
+
+  const visit = (block) => {
+    if (!block || typeof block !== "object") return null;
+
+    // Parentheses may be inserted by the printer solely to make associativity
+    // explicit.  They do not count as a provenance change for Criterion P.
+    if (block.type === "exp_parentheses") {
+      return visit(block.inputs && block.inputs.exp && block.inputs.exp.block);
+    }
+
+    const fields = {};
+    for (const key of Object.keys(block.fields || {}).sort()) {
+      fields[key] = fieldValue(block.fields[key]);
+    }
+
+    const inputs = {};
+    for (const key of Object.keys(block.inputs || {}).sort()) {
+      inputs[key] = visit(block.inputs[key] && block.inputs[key].block);
+    }
+
+    return {
+      type: block.type || null,
+      fields,
+      inputs,
+      next: visit(block.next && block.next.block),
+    };
+  };
+
+  return JSON.stringify((state && state.blocks && state.blocks.blocks || []).map(visit));
+}
 
 function fail(name, message, detail) {
   failures++;
@@ -179,6 +261,35 @@ for (const [name, source] of CASES) {
     // 3. text -> blocks -> text again: generation must be a fixed point.
     const state2 = smlToVismlWorkspaceState(first.code);
     const second = stateToCode(state2);
+
+    // Criterion T has one deliberate exception: this malformed historical
+    // spelling is a repair input, so preserving it would be the wrong result.
+    if (name !== "generated opaque space") {
+      if (!terminalRecoveryHolds(source, first.code)) {
+        fail(
+          name,
+          "source terminal sequence was not recovered",
+          `--- source ---\n${source}\n--- generated ---\n${first.code}`
+        );
+        continue;
+      }
+      terminalPassed++;
+    }
+
+    // Criterion P: production-bearing visual structure must survive the
+    // text -> blocks -> text -> blocks round trip, modulo administrative
+    // parentheses inserted by the generator.
+    const provenance1 = productionProvenanceSignature(state1);
+    const provenance2 = productionProvenanceSignature(state2);
+    if (provenance1 !== provenance2) {
+      fail(
+        name,
+        "production/provenance signature changed",
+        `--- source-derived ---\n${provenance1}\n--- regenerated ---\n${provenance2}`
+      );
+      continue;
+    }
+    provenancePassed++;
 
     if (warnings.length > 0) {
       fail(name, "Blockly reported problems while loading", warnings.join("\n"));
@@ -289,6 +400,8 @@ for (const [name, candidate, expected] of layoutCases) {
 
 console.log(
   `\n${passed}/${CASES.length} text round-trips passed, ` +
+  `${terminalPassed}/${CASES.length - 1} terminal-recovery checks passed, ` +
+  `${provenancePassed}/${CASES.length} provenance checks passed, ` +
   `${samplesPassed}/${sampleNames.length} sample round-trips passed, ` +
   `${layoutPassed}/${layoutCases.length} layout-state cases passed` +
   (failures ? `, ${failures} FAILED` : "")

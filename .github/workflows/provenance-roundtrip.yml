@@ -1,0 +1,48 @@
+name: provenance-roundtrip
+
+on:
+  push:
+    branches:
+      - production-provenance-roundtrip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    if: ${{ !contains(github.event.head_commit.message || '', '[provenance-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: production-provenance-roundtrip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Apply or refine S/T/P round-trip repairs
+        run: |
+          if grep -q 'Criterion P: an implementation-level production/provenance signature' test/run_roundtrip.js; then
+            python3 tools/refine_terminal_criterion.py
+          else
+            python3 tools/add_provenance_roundtrip.py
+            python3 tools/refine_terminal_criterion.py
+          fi
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Run round-trip suite
+        run: npm run test:roundtrip
+      - name: Commit validated source and test changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/run_roundtrip.js
+          if git diff --cached --quiet; then
+            echo "No source change to commit"
+          else
+            git commit -m "test: refine lexical terminal fidelity criterion [provenance-patched]"
+            git push
+          fi

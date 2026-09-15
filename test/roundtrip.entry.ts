@@ -125,7 +125,11 @@ import "../src/core/generator/sml/blocks/expressions/expression_primtv_operators
 import "../src/core/generator/sml/blocks/declarations/strbind";
 
 import { SML } from "../src/core/generator/sml/sml";
-import { smlToVismlWorkspaceState, SmlParseError } from "../src/core/parser/sml_to_visml";
+import {
+  smlToVismlWorkspaceState,
+  terminalTokenSignature,
+  SmlParseError,
+} from "../src/core/parser/sml_to_visml";
 import { sampleWorkspaces } from "../src/sample/sample_loader";
 import {
   DEFAULT_IDE_LAYOUT_STATE,
@@ -136,6 +140,7 @@ export {
   Blockly,
   SML,
   smlToVismlWorkspaceState,
+  terminalTokenSignature,
   SmlParseError,
   sampleWorkspaces,
   DEFAULT_IDE_LAYOUT_STATE,

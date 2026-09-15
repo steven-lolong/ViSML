@@ -56,7 +56,8 @@ Blockly.Blocks["con_float"] = {
       .appendField("Real")
       .appendField(new Blockly.FieldNumber(0, -Infinity, Infinity, 1), "NAME")
       .appendField("\u2022")
-      .appendField(new Blockly.FieldNumber(0, 0), "inputValue");
+      // Text, rather than FieldNumber, preserves leading zeroes in fractions.
+      .appendField(new Blockly.FieldTextInput("0"), "inputValue");
     this.setOutput(true, ["con", "exp", "pat"]);
     this.setColour(getColorByType('constant'));
     this.setTooltip("");
