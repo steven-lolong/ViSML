@@ -7,6 +7,7 @@
   "scripts": {
     "test": "npm run test:roundtrip",
     "test:roundtrip": "webpack --config webpack.test.config.js && node test/run_roundtrip.js",
+    "test:contextual": "webpack --config webpack.test.config.js && node test/run_contextual_distinctions.js",
     "cp_index": "cp ./src/index.html ./docs/",
     "typecheck": "tsc --noEmit",
     "build": "cp ./src/assets/images/favicon.ico ./docs/ && cp ./src/index.html ./docs/ && webpack",
