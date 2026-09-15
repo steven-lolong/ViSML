@@ -4,14 +4,32 @@
  *
  * Runs the existing round-trip suite unchanged while wrapping the parser/state
  * helpers at module-load time so every block type instantiated by the corpus is
- * recorded.  Webpack exposes the bundle through getter-backed exports, so the
+ * recorded. Webpack exposes the bundle through getter-backed exports, so the
  * wrappers are supplied to run_roundtrip.js through Node's module loader rather
  * than by mutating the bundle object.
+ *
+ * The final assertions intentionally lock the evidence snapshot reported by the
+ * paper. Any future registry/corpus change must update both this inventory and
+ * the manuscript rather than silently drifting the denominator.
  */
 
 const Module = require("module");
 const bundle = require("./dist/roundtrip.bundle.js");
 const bundlePath = require.resolve("./dist/roundtrip.bundle.js");
+
+const EXPECTED_REGISTERED = 132;
+const EXPECTED_EXERCISED = 123;
+const EXPECTED_UNCOVERED = [
+  "datdesc_nested",
+  "exndesc_nested",
+  "exp_primtv_optr_list_hd",
+  "exp_primtv_optr_list_tail",
+  "exp_primtv_optr_record",
+  "str_opaque_annotation",
+  "str_transparent_annotation",
+  "strdesc_nested",
+  "typrefin_nested",
+];
 
 const exercised = new Set();
 
@@ -38,7 +56,7 @@ const wrappedBundle = {
   stateToCode: instrumentedStateToCode,
 };
 
-// run_roundtrip.js destructures the bundle on load.  Intercept exactly that
+// run_roundtrip.js destructures the bundle on load. Intercept exactly that
 // require so it receives the instrumented functions without changing the
 // production bundle or duplicating the test corpus.
 const originalLoad = Module._load;
@@ -79,6 +97,18 @@ process.exit = function inventoryExit(code) {
           exercisedWithoutGenerator,
         })
     );
+
+    const mismatch =
+      generatorTypes.length !== EXPECTED_REGISTERED ||
+      exercisedGeneratorTypes.length !== EXPECTED_EXERCISED ||
+      JSON.stringify(uncovered) !== JSON.stringify(EXPECTED_UNCOVERED) ||
+      exercisedWithoutGenerator.length !== 0;
+    if (mismatch) {
+      console.error("Step 5 evidence inventory drifted from the locked paper snapshot.");
+      code = 1;
+    } else {
+      console.log("Step 5 evidence inventory matches the locked paper snapshot.");
+    }
   }
   realExit(code);
 };
