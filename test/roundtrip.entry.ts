@@ -125,26 +125,27 @@ import "../src/core/generator/sml/blocks/expressions/expression_primtv_operators
 import "../src/core/generator/sml/blocks/declarations/strbind";
 
 import { SML } from "../src/core/generator/sml/sml";
-import {
-  smlToVismlWorkspaceState,
-  terminalTokenSignature,
-  SmlParseError,
-} from "../src/core/parser/sml_to_visml";
+import { smlToVismlWorkspaceState, SmlParseError } from "../src/core/parser/sml_to_visml";
 import { sampleWorkspaces } from "../src/sample/sample_loader";
 import {
   DEFAULT_IDE_LAYOUT_STATE,
   normalizeIdeLayoutState,
 } from "../src/ui/layout_state";
+import {
+  smlParserDerivationOracle,
+  lexicalFidelity,
+} from "./parser_derivation_oracle";
 
 export {
   Blockly,
   SML,
   smlToVismlWorkspaceState,
-  terminalTokenSignature,
   SmlParseError,
   sampleWorkspaces,
   DEFAULT_IDE_LAYOUT_STATE,
   normalizeIdeLayoutState,
+  smlParserDerivationOracle,
+  lexicalFidelity,
 };
 
 /** Walk a workspace state and collect every referenced block type. */

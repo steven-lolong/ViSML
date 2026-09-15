@@ -2,10 +2,10 @@ import * as Blockly from "blockly";
 import { SML } from "../../sml";
 
 SML.forBlock["strbind_single"] = function (block) {
-  const constraint = block.getFieldValue("greatherSign") === ">" ? ":> " : ": ";
   let typeVar =
       block.getFieldValue("chkSub") == "TRUE"
-        ? constraint + SML.valueToCode(block, "inputSig", SML.ORDER_NONE)
+        ? (block.getFieldValue("greatherSign") == ">" ? ":> " : ": ") +
+          SML.valueToCode(block, "inputSig", SML.ORDER_NONE)
         : "",
     idVal = SML.valueToCode(block, "id", SML.ORDER_NONE),
     inputStr = SML.valueToCode(

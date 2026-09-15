@@ -102,7 +102,7 @@ class IdFactory {
 // Tokenizer
 // ---------------------------------------------------------------------------
 
-function tokenize(source: string): Token[] {
+export function tokenize(source: string): Token[] {
   const tokens: Token[] = [];
   let index = 0;
   const length = source.length;
@@ -274,7 +274,7 @@ function splitTypeVar(name: string) {
 // Parser
 // ---------------------------------------------------------------------------
 
-class Parser {
+export class Parser {
   private index = 0;
   private ids = new IdFactory();
   /** Identifiers declared infix by the user (infix / infixr declarations). */
@@ -1618,8 +1618,6 @@ class Parser {
         this.advance();
         const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
         return block("con_float", this.ids, {
-          // Keep the fractional lexeme as text: Number("05") would make
-          // 3.05 observationally indistinguishable from 3.5.
           fields: { NAME: Number(whole), inputValue: fraction },
         });
       }
@@ -1931,8 +1929,6 @@ class Parser {
         this.advance();
         const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
         return block("con_float", this.ids, {
-          // Keep the fractional lexeme as text: Number("05") would make
-          // 3.05 observationally indistinguishable from 3.5.
           fields: { NAME: Number(whole), inputValue: fraction },
         });
       }
@@ -2162,13 +2158,6 @@ class Parser {
  * @param source The SML source text (comments are ignored).
  * @returns A state object accepted by Blockly.serialization.workspaces.load.
  */
-/** Return lexical token identities used by round-trip Criterion T. */
-export function terminalTokenSignature(source: string): string[] {
-  return tokenize(source)
-    .filter((token) => token.type !== "eof")
-    .map((token) => `${token.type}:${token.value}`);
-}
-
 export function smlToVismlWorkspaceState(source: string) {
   const tokens = tokenize(source);
   const parser = new Parser(tokens);

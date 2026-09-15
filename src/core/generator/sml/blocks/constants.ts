@@ -25,16 +25,10 @@ SML.forBlock["con_char"] = function (block) {
   return [code, SML.ORDER_NONE];
 };
 SML.forBlock["con_word"] = function (block) {
-  const raw = block.getFieldValue("inputValue").toString();
-  // Older serialized workspaces store only the decimal payload; newer parser
-  // states still round-trip through the same field.  Emit the SML word prefix
-  // exactly once.
-  const code = raw.startsWith("0w") ? raw : `0w${raw}`;
+  let code = "0w" + block.getFieldValue("inputValue").toString();
   return [code, SML.ORDER_NONE];
 };
 SML.forBlock["con_float"] = function (block) {
-  // Preserve the fractional spelling instead of collapsing the literal to ().
-  // inputValue is text so leading zeroes (3.05) survive the round trip.
   const whole = block.getFieldValue("NAME").toString().replace("-", "~");
   const fraction = block.getFieldValue("inputValue").toString();
   return [`${whole}.${fraction}`, SML.ORDER_NONE];
