@@ -133,9 +133,68 @@ export function smlParserDerivationOracle(source: string): string {
   return JSON.stringify(canonicalize(root, tokens, true));
 }
 
+function parenthesisPairs(tokens: any[]): Array<[number, number]> {
+  const stack: number[] = [];
+  const pairs: Array<[number, number]> = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type !== "punct") continue;
+    if (token.value === "(") {
+      stack.push(i);
+    } else if (token.value === ")") {
+      const open = stack.pop();
+      if (open !== undefined) pairs.push([open, i]);
+    }
+  }
+  return pairs;
+}
+
+function removeCharacters(source: string, positions: number[]): string {
+  const chars = source.split("");
+  for (const position of [...positions].sort((a, b) => b - a)) chars.splice(position, 1);
+  return chars.join("");
+}
+
+/**
+ * Return exactly those parenthesis token positions that are demonstrably
+ * presentation-only for this parser derivation.  A pair is erasable only when:
+ *  - it encloses at least one token (so unit `()` can never be erased), and
+ *  - deleting exactly that matched pair still parses to the same canonical
+ *    derivation.
+ *
+ * Tuple, sequence, module-application, and other grammar-owned parentheses are
+ * therefore retained unless the parser can prove the pair is structure-neutral.
+ */
+function presentationParenthesisPositions(source: string): Set<number> {
+  const tokens: any[] = (tokenize as any)(source).filter((token: any) => token.type !== "eof");
+  const baseline = smlParserDerivationOracle(source);
+  const erasable = new Set<number>();
+
+  for (const [openIndex, closeIndex] of parenthesisPairs(tokens)) {
+    if (closeIndex <= openIndex + 1) continue;
+    const open = tokens[openIndex];
+    const close = tokens[closeIndex];
+    const candidate = removeCharacters(source, [open.position, close.position]);
+    try {
+      if (smlParserDerivationOracle(candidate) === baseline) {
+        erasable.add(open.position);
+        erasable.add(close.position);
+      }
+    } catch {
+      // If removing the pair makes the program unparsable, the parentheses are
+      // grammar-owned for this occurrence and must remain concrete fidelity tokens.
+    }
+  }
+  return erasable;
+}
+
 function lexicalTokens(source: string): any[] {
+  const presentationParens = presentationParenthesisPositions(source);
   return (tokenize as any)(source).filter((token: any) =>
-    token.type !== "eof" && !(token.type === "punct" && (token.value === "(" || token.value === ")"))
+    token.type !== "eof" &&
+    !(token.type === "punct" &&
+      (token.value === "(" || token.value === ")") &&
+      presentationParens.has(token.position))
   );
 }
 
@@ -143,7 +202,12 @@ function sameConcreteToken(a: any, b: any): boolean {
   return a.type === b.type && a.value === b.value;
 }
 
-/** Executable form of the paper's directional lexical-fidelity relation. */
+/**
+ * Executable conservative check of the paper's directional lexical-fidelity
+ * relation.  Unlike the former strip-all-parentheses implementation, this keeps
+ * grammar-owned parentheses in the concrete token stream and normalizes only
+ * matched pairs proven structure-neutral by the parser derivation oracle.
+ */
 export function lexicalFidelity(source: string, generated: string): { ok: boolean; reason?: string } {
   const expected = lexicalTokens(source);
   const actual = lexicalTokens(generated);
@@ -156,9 +220,9 @@ export function lexicalFidelity(source: string, generated: string): { ok: boolea
       j++;
       continue;
     }
-    // The only unmatched generated token admitted by the formal relation is a
-    // declaration/layout semicolon.  Source semicolons are consumed normally by
-    // the equality branch above.
+    // The only unmatched generated token admitted after structure-sensitive
+    // parenthesis normalization is a declaration/layout semicolon.  Source
+    // semicolons are consumed normally by the equality branch above.
     if (actual[j].type === "punct" && actual[j].value === ";") {
       j++;
       continue;
