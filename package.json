@@ -17,7 +17,8 @@
     "clean": "rm -rf ./docs/*",
     "test:targeted-coverage": "webpack --config webpack.test.config.js && node test/run_targeted_generator_coverage.js",
     "test:systematic": "webpack --config webpack.test.config.js && node test/run_systematic_preservation.js",
-    "test:evidence": "webpack --config webpack.test.config.js && node test/run_evidence_inventory.js && node test/run_contextual_distinctions.js && node test/run_targeted_generator_coverage.js && node test/run_systematic_preservation.js"
+    "test:evidence": "webpack --config webpack.test.config.js && node test/run_evidence_inventory.js && node test/run_contextual_distinctions.js && node test/run_simplification_evidence.js && node test/run_targeted_generator_coverage.js && node test/run_systematic_preservation.js",
+    "test:simplifications": "webpack --config webpack.test.config.js && node test/run_simplification_evidence.js"
   },
   "keywords": [],
   "author": "",
