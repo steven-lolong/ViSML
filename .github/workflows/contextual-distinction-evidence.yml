@@ -1,4 +1,4 @@
-name: Contextual distinction evidence
+name: ViSML preservation evidence
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  contextual-distinction-evidence:
+  preservation-evidence:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,4 +15,4 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run test:contextual
+      - run: npm run test:evidence
