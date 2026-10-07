@@ -55,7 +55,7 @@ const CASES = [
   ["fun annotated", "fun add2 (x : int) (y : int) : int = x + y"],
   ["fun and chain", "fun even 0 = true | even n = odd (n - 1) and odd 0 = false | odd n = even (n - 1)"],
   ["fun infix clause", "infix 6 ++\nfun x ++ y = x + y\nval z = 1 ++ 2"],
-  ["fun infix extra args", "fun (x ** y) z = x + y + z"],
+  ["fun infix extra args", "infix 7 **\nfun (x ** y) z = x + y + z"],
   ["fun op name", "fun op --- (x, y) = x - y"],
   ["fun tyvarseq", "fun 'a self (x : 'a) : 'a = x"],
 

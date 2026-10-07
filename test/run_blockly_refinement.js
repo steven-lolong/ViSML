@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /** Expected derivations are supplied by a separate Python fixture constructor. */
-const fs = require('fs'), assert = require('assert/strict');
+const fs = require('fs'), assert = require('assert/strict'), path = require('path');
 const m = require('./dist/roundtrip.bundle.js');
-const input = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-const output = process.argv[3];
+const input = JSON.parse(fs.readFileSync(process.argv[2] || path.join(__dirname, 'fixtures/blockly_refinement.json'), 'utf8'));
+const output = process.argv[3] || path.join(__dirname, 'dist/blockly-refinement-states.json');
 const backend = m.createBlocklyBackend(input.grammar, 'formal_refinement');
 const cases = input.fixtures || input.programs;
 const results = [];

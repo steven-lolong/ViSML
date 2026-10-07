@@ -34,10 +34,10 @@ export function lexicalDerivation(kind: string, text: string): Derivation {
         return make(m[1] ? "word.1" : "word.0", m[1] ? hex(m[2]) : num(m[2]));
     }
     if (kind === "float") {
-        const m = /^(~)?([0-9]+)(?:\.([0-9]+))?(?:e(~)?([0-9]+))?$/.exec(text);
-        if (!m || (!m[3] && !m[5]))
+        const m = /^(~)?([0-9]+)(?:\.([0-9]+))?(?:([eE])(~)?([0-9]+))?$/.exec(text);
+        if (!m || (!m[3] && !m[6]))
             throw new PreservationError("Invalid real payload");
-        return m[5] ? make("float.1", m[1] ? true : null, num(m[2]), m[3] ? num(m[3]) : null, m[4] ? true : null, num(m[5])) : make("float.0", m[1] ? true : null, num(m[2]), num(m[3]));
+        return m[6] ? make("float.1", m[1] ? true : null, num(m[2]), m[3] ? num(m[3]) : null, { branch: m[4] === "e" ? 0 : 1, value: m[4] }, m[5] ? true : null, num(m[6])) : make("float.0", m[1] ? true : null, num(m[2]), num(m[3]));
     }
     if (kind === "string")
         return make("string.0", asciiUnits(text).map(ch => make("ascii.0", ch)));

@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "positive": [
+    {
+      "name": "dereference",
+      "source": "val r = ref 1\nval x = !r\nval y = !(r)"
+    },
+    {
+      "name": "symbolic-nonfix-function",
+      "source": "fun %% (x,y) = x + y\nval x = %% (1,2)"
+    },
+    {
+      "name": "shift-after-open",
+      "source": "open Word32\nval x = << (0w1,0w2)\nval y = >> (x,0w1)"
+    },
+    {
+      "name": "qualified-symbols",
+      "source": "val a = Real.== (1.0,1.0)\nval b = Word32.<< (0w1,0w1)\nval c = IntInf.< (1,2)"
+    },
+    {
+      "name": "qualified-op",
+      "source": "val x = op Word32.+ (0w1,0w2)"
+    },
+    {
+      "name": "nested-path",
+      "source": "structure Outer = struct structure W = Word32 end\nval x = Outer.W.>> (0w4,0w1)"
+    },
+    {
+      "name": "explicit-op",
+      "source": "val x = op + (1,2)"
+    },
+    {
+      "name": "nonfix-basis",
+      "source": "nonfix +\nval x = + (1,2)"
+    },
+    {
+      "name": "custom-precedence",
+      "source": "infix 8 ++\nfun x ++ y = x + y\nval x = 1 + 2 ++ 3 * 4"
+    },
+    {
+      "name": "right-associativity",
+      "source": "infixr 6 ++\nfun x ++ y = x + y\nval x = 1 ++ 2 ++ 3"
+    },
+    {
+      "name": "left-associativity",
+      "source": "infix 6 ++\nfun x ++ y = x + y\nval x = 1 ++ 2 ++ 3"
+    },
+    {
+      "name": "before-precedence",
+      "source": "val r = ref 0\nval x = 1 before r := 2"
+    },
+    {
+      "name": "let-fixity-scope",
+      "source": "infix 6 ++\nfun x ++ y = x + y\nval x = let nonfix ++ in ++ (1,2) end\nval y = 1 ++ 2"
+    },
+    {
+      "name": "struct-fixity-scope",
+      "source": "structure S = struct nonfix + val x = + (1,2) end\nval y = 1 + 2"
+    },
+    {
+      "name": "local-hidden-fixity",
+      "source": "local nonfix + val x = + (1,2) in val y = + (x,1) end\nval z = 1 + 2"
+    },
+    {
+      "name": "local-exported-fixity",
+      "source": "local val x = 1 in nonfix + val y = + (x,2) end\nval z = + (1,2)"
+    },
+    {
+      "name": "local-same-as-hidden",
+      "source": "local nonfix + in nonfix + end\nval z = + (1,2)"
+    },
+    {
+      "name": "record-let",
+      "source": "val x = let val a = 1 in {a = a, b = 2} end"
+    },
+    {
+      "name": "empty-record-let",
+      "source": "val x = let val a = 1 in {} end"
+    },
+    {
+      "name": "nested-record-let",
+      "source": "val x = let val a = 1 in {a = {b = a}, c = {}} end"
+    },
+    {
+      "name": "record-body-sequence",
+      "source": "val x = let val a = 1 in {a=a}; {b=a} end"
+    },
+    {
+      "name": "record-nested-let",
+      "source": "val x = let val a = 1 in let val b = 2 in {a=a,b=b} end end"
+    },
+    {
+      "name": "record-pattern",
+      "source": "fun f ({b = x, a = y, ...} : {a:int,b:int,c:int}) = x + y\nval x = f {a=1,b=2,c=3}"
+    },
+    {
+      "name": "record-labvar",
+      "source": "fun f {b, a} = a + b\nval x = f {a=1,b=2}"
+    },
+    {
+      "name": "pattern-fixity",
+      "source": "infixr 5 ++\ndatatype t = L of int | ++ of t * t\nfun f (L x ++ L y ++ L z) = x + y + z | f _ = 0"
+    },
+    {
+      "name": "uppercase-real-exponent",
+      "source": "val x = 1.0E6\nval y = 2E~3"
+    }
+  ],
+  "legacy": [
+    {
+      "name": "legacy-braced-sequence",
+      "source": "val x = let val a = 1 in {a; a + 1} end"
+    }
+  ],
+  "negative": [
+    {
+      "name": "missing-prefix-argument",
+      "source": "val x = !("
+    },
+    {
+      "name": "infix-prefix-without-op",
+      "source": "val x = + (1,2)"
+    },
+    {
+      "name": "delimiter-prefix",
+      "source": "val x = => 1"
+    },
+    {
+      "name": "qualified-empty",
+      "source": "val x = Word32..<< (0w1,0w1)"
+    },
+    {
+      "name": "qualified-trailing",
+      "source": "val x = Word32."
+    },
+    {
+      "name": "qualified-delimiter",
+      "source": "val x = Word32.=> 1"
+    },
+    {
+      "name": "symbolic-path-prefix",
+      "source": "val x = !.x"
+    },
+    {
+      "name": "record-missing-value",
+      "source": "val x = let val a = 1 in {a = } end"
+    },
+    {
+      "name": "record-missing-equals",
+      "source": "val x = let val a = 1 in {a 1} end"
+    },
+    {
+      "name": "record-missing-comma",
+      "source": "val x = let val a = 1 in {a=1, b 2} end"
+    },
+    {
+      "name": "record-missing-close",
+      "source": "val x = let val a = 1 in {a=1 end"
+    },
+    {
+      "name": "record-malformed-legacy-fallback",
+      "source": "val x = let val a = 1 in {a= ; a} end"
+    },
+    {
+      "name": "empty-legacy-body",
+      "source": "val x = let in {;} end"
+    },
+    {
+      "name": "mixed-associativity",
+      "source": "infix 6 ++\ninfixr 6 **\nval x = 1 ++ 2 ** 3"
+    },
+    {
+      "name": "malformed-uppercase-exponent",
+      "source": "val x = 1.0E"
+    }
+  ]
+}

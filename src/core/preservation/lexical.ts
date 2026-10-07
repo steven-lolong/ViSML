@@ -1,6 +1,6 @@
 /** Validators keep literal spellings as strings, including radix and zeros. */
 export const INT = /^(?:~|-)?(?:0x[0-9a-fA-F]+|[0-9]+)$/;
-export const REAL = /^(?:~|-)?[0-9]+(?:\.[0-9]+e(?:~|-)?[0-9]+|e(?:~|-)?[0-9]+|\.[0-9]+)$/;
+export const REAL = /^(?:~|-)?[0-9]+(?:\.[0-9]+[eE](?:~|-)?[0-9]+|[eE](?:~|-)?[0-9]+|\.[0-9]+)$/;
 export const WORD = /^0w(?:x[0-9a-fA-F]+|[0-9]+)$/;
 export function intLiteral(value: string): string | null {
     return INT.test(value) ? value.replace(/^-/, "~") : null;

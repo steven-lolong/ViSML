@@ -69,8 +69,16 @@ const RESERVED_SYMBOLS = new Set([":", "|", "=", "=>", "->", "#", ":>"]);
 const ARITH_OPERATORS = new Set(["+", "-", "*", "/"]);
 /** Operators rendered by the dedicated logic operator block. */
 const LOGIC_OPERATORS = new Set(["=", "<>", "<", "<=", ">", ">="]);
-/** Alphanumeric identifiers that are infix in the SML basis. */
-const BASIS_INFIX_WORDS = new Set(["div", "mod", "o"]);
+type Fixity = { precedence: number; right: boolean };
+/** The pervasive fixity environment, independent of lexical token class. */
+const BASIS_FIXITY: [string, Fixity][] = [
+  ...["*", "/", "div", "mod"].map(name => [name, { precedence: 7, right: false }] as [string, Fixity]),
+  ...["+", "-", "^"].map(name => [name, { precedence: 6, right: false }] as [string, Fixity]),
+  ...["::", "@"].map(name => [name, { precedence: 5, right: true }] as [string, Fixity]),
+  ...["=", "<>", ">", ">=", "<", "<="].map(name => [name, { precedence: 4, right: false }] as [string, Fixity]),
+  ...[":=", "o"].map(name => [name, { precedence: 3, right: false }] as [string, Fixity]),
+  ["before", { precedence: 0, right: false }],
+];
 /** Primitive types rendered by the typ_primtv block. */
 const PRIMITIVE_TYPES = new Set(["int", "word", "real", "char", "string", "bool"]);
 
@@ -188,7 +196,7 @@ export function tokenize(source: string): Token[] {
     const rest = source.slice(index);
     const literal = [
       ["word", /^0w(?:x[0-9a-fA-F]+|[0-9]+)/],
-      ["real", /^~?[0-9]+(?:\.[0-9]+)?e~?[0-9]+/],
+      ["real", /^~?[0-9]+(?:\.[0-9]+)?[eE]~?[0-9]+/],
       ["real", /^~?[0-9]+\.[0-9]+/],
       ["int", /^~?0x[0-9a-fA-F]+/],
       ["int", /^~?[0-9]+/],
@@ -198,7 +206,7 @@ export function tokenize(source: string): Token[] {
       const value = literal.match[0];
       if ((/^~?0x|^0wx/.test(rest) && !/^(?:~?0x|0wx)[0-9a-fA-F]+$/.test(value)) ||
           (/^0w/.test(rest) && literal.kind !== "word") ||
-          (/^~?[0-9]+(?:\.[0-9]+)?e/.test(rest) && !/^~?[0-9]+(?:\.[0-9]+)?e~?[0-9]+$/.test(value))) {
+          (/^~?[0-9]+(?:\.[0-9]+)?[eE]/.test(rest) && !/^~?[0-9]+(?:\.[0-9]+)?[eE]~?[0-9]+$/.test(value))) {
         throw new SmlParseError("Malformed numeric literal", index);
       }
       tokens.push({type: literal.kind as TokenType, value, position: index});
@@ -282,8 +290,9 @@ function splitTypeVar(name: string) {
 export class Parser {
   private index = 0;
   private ids = new IdFactory();
-  /** Identifiers declared infix by the user (infix / infixr declarations). */
-  private userInfix = new Set<string>();
+  private fixity = new Map<string, Fixity>(BASIS_FIXITY);
+  // Nested lexical scopes collect only the directives exported by that scope.
+  private fixityWrites: Map<string, Fixity | undefined>[] = [];
 
   constructor(private readonly tokens: Token[]) {}
 
@@ -348,11 +357,42 @@ export class Parser {
     return count;
   }
 
-  /** An "infix" occurrence: symbolic operator or user/basis infix word. */
+  private isValueIdentifier(token: Token): boolean {
+    return token.type === "id" || token.type === "sym" &&
+      (!RESERVED_SYMBOLS.has(token.value) || token.value === "=");
+  }
+
   private isInfixOccurrence(token: Token): boolean {
-    if (token.type === "sym") return !RESERVED_SYMBOLS.has(token.value) && token.value !== "~";
-    if (token.type === "id") return BASIS_INFIX_WORDS.has(token.value) || this.userInfix.has(token.value);
-    return false;
+    // Qualified identifiers are always nonfix, including their final symbol.
+    return this.isValueIdentifier(token) && this.fixity.has(token.value) &&
+      !(token === this.peek() && this.peek(1).value === ".");
+  }
+
+  private setFixity(name: string, value?: Fixity): void {
+    if (value) this.fixity.set(name, value); else this.fixity.delete(name);
+    this.fixityWrites[this.fixityWrites.length - 1]?.set(name, value);
+  }
+
+  private inFixityScope<T>(parse: () => T): T {
+    const outer = new Map(this.fixity);
+    this.fixityWrites.push(new Map());
+    try { return parse(); }
+    finally { this.fixity = outer; this.fixityWrites.pop(); }
+  }
+
+  /** Long value identifier: alpha structure path, value identifier at the end. */
+  private parseValuePath(): string[] {
+    if (!this.isValueIdentifier(this.peek())) throw this.error("Expected a value identifier");
+    const parts = [this.advance().value];
+    while (this.isValue(".")) {
+      if (!/^[A-Za-z][A-Za-z0-9_']*$/.test(parts[parts.length - 1])) {
+        throw this.error("Expected an alphabetic structure path component");
+      }
+      this.advance();
+      if (!this.isValueIdentifier(this.peek())) throw this.error("Expected a value identifier after '.'");
+      parts.push(this.advance().value);
+    }
+    return parts;
   }
 
   // -- shared identifier helpers -------------------------------------------
@@ -478,10 +518,18 @@ export class Parser {
       });
     }
     if (this.matchKeyword("local")) {
-      const localDec = this.parseDeclarationSequence(["in"]);
-      this.expectValue("in", "Expected 'in' inside local declaration");
-      const inDec = this.parseDeclarationSequence(["end"]);
-      this.expectValue("end", "Expected 'end' to close local declaration");
+      const outer = new Map(this.fixity);
+      const exported = new Map<string, Fixity | undefined>();
+      this.fixityWrites.push(exported);
+      let localDec: BlockState | undefined, inDec: BlockState | undefined;
+      try {
+        localDec = this.parseDeclarationSequence(["in"]);
+        this.expectValue("in", "Expected 'in' inside local declaration");
+        exported.clear(); // directives before `in` are hidden outside `local`
+        inDec = this.parseDeclarationSequence(["end"]);
+        this.expectValue("end", "Expected 'end' to close local declaration");
+      } finally { this.fixity = outer; this.fixityWrites.pop(); }
+      exported.forEach((value, name) => this.setFixity(name, value));
       const inputs: Record<string, { block: BlockState }> = {};
       if (localDec) inputs.local = input(localDec);
       if (inDec) inputs.in = input(inDec);
@@ -501,7 +549,7 @@ export class Parser {
       let digit = "";
       if (this.is("int") && /^\d$/.test(this.peek().value)) digit = this.advance().value;
       const names = this.parseFixityNames();
-      names.forEach((name) => this.userInfix.add(name));
+      names.forEach((name) => this.setFixity(name, { precedence: Number(digit || 0), right: keyword === "infixr" }));
       return block(keyword === "infix" ? "dec_infix" : "dec_infixr", this.ids, {
         fields: { digit },
         extraState: { itemCount: names.length },
@@ -510,7 +558,7 @@ export class Parser {
     }
     if (this.matchKeyword("nonfix")) {
       const names = this.parseFixityNames();
-      names.forEach((name) => this.userInfix.delete(name));
+      names.forEach((name) => this.setFixity(name));
       return block("dec_nonfix", this.ids, {
         extraState: { itemCount: names.length },
         inputs: indexedInputs(names.map((name) => this.idBlock(name))),
@@ -526,7 +574,7 @@ export class Parser {
 
   private parseFixityNames(): string[] {
     const names: string[] = [];
-    while (this.is("id") || (this.is("sym") && !RESERVED_SYMBOLS.has(this.peek().value))) {
+    while (this.isValueIdentifier(this.peek())) {
       names.push(this.advance().value);
     }
     if (names.length === 0) throw this.error("Expected at least one operator name");
@@ -611,7 +659,8 @@ export class Parser {
     // Nonfix clause: [op] name atpat+ [: typ] = exp
     const startsNonfix =
       this.is("kw", "op") ||
-      (this.is("id") && !this.isInfixOccurrence(this.peek(1)));
+      (this.isValueIdentifier(this.peek()) && !this.isInfixOccurrence(this.peek()) &&
+        !this.isInfixOccurrence(this.peek(1)));
     if (startsNonfix) return this.parseNonfixFunClause();
 
     // Parenthesised infix clause: ( pat id pat ) atpat* [: typ] = exp
@@ -632,7 +681,7 @@ export class Parser {
   private parseNonfixFunClause(): BlockState {
     const usesOp = this.matchKeyword("op");
     const nameToken = this.peek();
-    if (nameToken.type !== "id" && !(usesOp && nameToken.type === "sym")) {
+    if (!this.isValueIdentifier(nameToken) || (!usesOp && this.isInfixOccurrence(nameToken))) {
       throw this.error("Expected a function name");
     }
     this.advance();
@@ -835,7 +884,8 @@ export class Parser {
   }
 
   private parseConbind(): BlockState {
-    const name = this.expectIdentifier("Expected a constructor name").value;
+    if (!this.isValueIdentifier(this.peek()) || this.peek().value === "=") throw this.error("Expected a constructor name");
+    const name = this.advance().value;
     let ofType: BlockState | undefined;
     if (this.matchKeyword("of")) ofType = this.parseType();
     const inputs: Record<string, { block: BlockState }> = { id: input(this.idBlock(name)) };
@@ -936,17 +986,20 @@ export class Parser {
 
   private parseAtomicStructureExpression(): BlockState {
     if (this.matchKeyword("struct")) {
-      const body = this.parseDeclarationSequence(["end"]);
+      const body = this.inFixityScope(() => this.parseDeclarationSequence(["end"]));
       this.expectValue("end", "Expected 'end' to close structure");
       return block("str_structure", this.ids, {
         inputs: body ? { dec: input(body) } : {},
       });
     }
     if (this.matchKeyword("let")) {
-      const declarations = this.parseDeclarationSequence(["in"]);
-      this.expectValue("in", "Expected 'in' inside structure-level let");
-      const structure = this.parseStructureExpression();
-      this.expectValue("end", "Expected 'end' to close structure-level let");
+      const [declarations, structure] = this.inFixityScope(() => {
+        const declarations = this.parseDeclarationSequence(["in"]);
+        this.expectValue("in", "Expected 'in' inside structure-level let");
+        const structure = this.parseStructureExpression();
+        this.expectValue("end", "Expected 'end' to close structure-level let");
+        return [declarations, structure] as const;
+      });
       const inputs: Record<string, { block: BlockState }> = { str: input(structure) };
       if (declarations) inputs.dec = input(declarations);
       return block("str_local_declaration", this.ids, { inputs });
@@ -966,7 +1019,7 @@ export class Parser {
             inputs: { id: input(this.idBlock(name)), str: input(argument) },
           });
         }
-        const argument = this.parseDeclarationSequence([")"]);
+        const argument = this.inFixityScope(() => this.parseDeclarationSequence([")"]));
         this.expectValue(")", "Expected ')' after functor argument");
         return block("str_functor_application_dec", this.ids, {
           inputs: {
@@ -1258,7 +1311,8 @@ export class Parser {
   }
 
   private parseCondesc(): BlockState {
-    const name = this.expectIdentifier("Expected a constructor name").value;
+    if (!this.isValueIdentifier(this.peek()) || this.peek().value === "=") throw this.error("Expected a constructor name");
+    const name = this.advance().value;
     let ofType: BlockState | undefined;
     if (this.matchKeyword("of")) ofType = this.parseType();
     const inputs: Record<string, { block: BlockState }> = {
@@ -1475,7 +1529,7 @@ export class Parser {
   }
 
   private parseTypedExpression(): BlockState {
-    let expression = this.parseInfix3Expression();
+    let expression = this.parseInfixExpression();
     while (this.matchValue(":")) {
       expression = block("exp_with_type", this.ids, {
         inputs: { exp: input(expression), typ: input(this.parseType()) },
@@ -1501,94 +1555,30 @@ export class Parser {
     });
   }
 
-  /** Precedence 3: `o` and `:=`. */
-  private parseInfix3Expression(): BlockState {
-    let expression = this.parseInfix4Expression();
-    while (this.isValue(":=") || this.is("id", "o")) {
-      const operator = this.advance().value;
-      expression = this.infixApplication(
-        expression,
-        operator,
-        this.parseOperand(this.parseInfix4Expression)
-      );
-    }
-    return expression;
-  }
-
-  /** Precedence 4: comparisons plus any other (user-declared) infix ids. */
-  private parseInfix4Expression(): BlockState {
-    let expression = this.parseInfix5Expression();
-    for (;;) {
-      const token = this.peek();
-      if (token.type === "sym" && LOGIC_OPERATORS.has(token.value)) {
-        this.advance();
-        expression = block("exp_primtv_optr_logic", this.ids, {
-          fields: { opt: token.value },
-          inputs: {
-            exp_1: input(expression),
-            exp_2: input(this.parseOperand(this.parseInfix5Expression)),
-          },
-        });
-        continue;
-      }
-      const isOtherInfix =
-        this.isInfixOccurrence(token) &&
-        !ARITH_OPERATORS.has(token.value) &&
-        !BASIS_INFIX_WORDS.has(token.value) &&
-        token.value !== "::" && token.value !== "@" &&
-        token.value !== "^" && token.value !== ":=";
-      if (isOtherInfix) {
-        this.advance();
-        expression = this.infixApplication(
-          expression,
-          token.value,
-          this.parseOperand(this.parseInfix5Expression)
-        );
-        continue;
-      }
-      return expression;
-    }
-  }
-
-  /** Precedence 5 (right associative): `::` and `@`. */
-  private parseInfix5Expression(): BlockState {
-    const left = this.parseInfix6Expression();
-    if (this.isValue("::") || this.isValue("@")) {
-      const operator = this.advance().value;
-      return this.infixApplication(
-        left,
-        operator,
-        this.parseOperand(this.parseInfix5Expression)
-      );
-    }
-    return left;
-  }
-
-  /** Precedence 6: `+`, `-` (arith block) and `^`. */
-  private parseInfix6Expression(): BlockState {
-    let expression = this.parseInfix7Expression();
-    while (this.isValue("+") || this.isValue("-") || this.isValue("^")) {
-      const operator = this.advance().value;
-      const right = this.parseOperand(this.parseInfix7Expression);
-      expression = operator === "^"
-        ? this.infixApplication(expression, operator, right)
-        : this.arithmeticOperator(expression, operator, right);
-    }
-    return expression;
-  }
-
-  /** Precedence 7: `*`, `/` (arith block) and `div`, `mod`. */
-  private parseInfix7Expression(): BlockState {
+  /** Precedence climbing over the current scoped SML fixity environment. */
+  private parseInfixExpression(minimum = 0): BlockState {
     let expression = this.parseApplicationExpression();
-    while (
-      this.isValue("*") || this.isValue("/") ||
-      this.is("id", "div") || this.is("id", "mod")
-    ) {
-      const operator = this.advance().value;
-      const right = this.parseOperand(this.parseApplicationExpression);
-      expression = operator === "*" || operator === "/"
-        ? this.arithmeticOperator(expression, operator, right)
-        : this.infixApplication(expression, operator, right);
+    while (this.isInfixOccurrence(this.peek())) {
+      const operator = this.peek().value, fixity = this.fixity.get(operator)!;
+      if (fixity.precedence < minimum) break;
+      this.advance();
+      const right = this.parseOperand(() => this.parseInfixExpression(
+        fixity.precedence + (fixity.right ? 0 : 1)));
+      // Equal-precedence operators must have the same associativity unless grouped.
+      for (const child of [expression, right]) {
+        const name = child.type === "exp_infix_application"
+          ? child.inputs?.id.block.fields?.inputValue
+          : ["exp_primtv_optr_arith", "exp_primtv_optr_logic"].includes(child.type)
+            ? child.fields?.opt : undefined;
+        const adjacent = this.fixity.get(name);
+        if (adjacent && adjacent.precedence === fixity.precedence && adjacent.right !== fixity.right) {
+          throw this.error("Mixed associativity at the same infix precedence requires parentheses");
+        }
+      }
+      expression = ARITH_OPERATORS.has(operator) ? this.arithmeticOperator(expression, operator, right)
+        : LOGIC_OPERATORS.has(operator) ? block("exp_primtv_optr_logic", this.ids, {
+            fields: { opt: operator }, inputs: { exp_1: input(expression), exp_2: input(right) },
+          }) : this.infixApplication(expression, operator, right);
     }
     return expression;
   }
@@ -1611,9 +1601,9 @@ export class Parser {
       case "punct":
         return token.value === "(" || token.value === "[" || token.value === "{";
       case "sym":
-        return token.value === "#" || token.value === "~";
+        return token.value === "#" || this.isValueIdentifier(token) && !this.isInfixOccurrence(token);
       case "id":
-        return !BASIS_INFIX_WORDS.has(token.value) && !this.userInfix.has(token.value);
+        return !this.isInfixOccurrence(token);
       case "kw":
         return token.value === "op" || token.value === "let";
       default:
@@ -1661,28 +1651,13 @@ export class Parser {
         inputs: { lab: input(this.parseLabBlock()) },
       });
     }
-    if (token.value === "~") {
-      // Unary negation is the ~ function applied by juxtaposition.
-      this.advance();
-      return this.boundExpression(["~"], false);
-    }
     if (this.matchKeyword("op")) {
-      const operator = this.peek();
-      if (operator.type !== "id" && operator.type !== "sym") {
-        throw this.error("Expected an identifier after 'op'");
-      }
-      this.advance();
-      return this.boundExpression([operator.value], true);
+      return this.boundExpression(this.parseValuePath(), true);
     }
-    if (this.matchKeyword("let")) return this.parseLetExpression();
-
-    if (token.type === "id") {
-      const parts = [this.advance().value];
-      while (this.isValue(".") && this.peek(1).type === "id") {
-        this.advance();
-        parts.push(this.advance().value);
-      }
-      return this.boundExpression(parts, false);
+    if (this.matchKeyword("let")) return this.inFixityScope(() => this.parseLetExpression());
+    if (this.isValueIdentifier(token)) {
+      if (this.isInfixOccurrence(token)) throw this.error("Infix identifier requires 'op' in prefix position");
+      return this.boundExpression(this.parseValuePath(), false);
     }
 
     if (token.value === "(") return this.parseParenthesisedExpression();
@@ -1762,12 +1737,29 @@ export class Parser {
     return block("exp_parentheses", this.ids, { inputs: { exp: input(first) } });
   }
 
+  private isLegacyLetBody(): boolean {
+    if (!this.isValue("{")) return false;
+    const first = this.peek(1);
+    if (first.value === "}" || ((first.type === "id" || first.type === "int") && this.peek(2).value === "=")) return false;
+    let depth = 0;
+    for (let offset = 0; ; offset++) {
+      const token = this.peek(offset);
+      if (token.type === "eof") return false;
+      if (["{", "(", "["].includes(token.value)) depth++;
+      else if (["}", ")", "]"].includes(token.value)) {
+        depth--; if (depth === 0) return false;
+      } else if (token.value === ";" && depth === 1) return true;
+    }
+  }
+
   private parseLetExpression(): BlockState {
     const declarations = this.parseDeclarationSequence(["in"]);
     this.expectValue("in", "Expected 'in' inside let expression");
 
-    // The generator prints multiple body expressions inside { ... }.
-    const braced = this.matchValue("{");
+    // Only a top-level semicolon sequence without a record-row head is the
+    // legacy braced body. A source record is parsed normally, without fallback.
+    const braced = this.isLegacyLetBody();
+    if (braced) this.expectValue("{");
     const expressions = [this.parseExpression()];
     while (this.matchValue(";")) expressions.push(this.parseExpression());
     if (braced) this.expectValue("}", "Expected '}' to close let body");
@@ -1846,18 +1838,22 @@ export class Parser {
     }
   }
 
-  private parseInfixPattern(): BlockState {
-    const left = this.parseConstructedPattern();
-    const token = this.peek();
-    if (this.isInfixOccurrence(token)) {
+  private parseInfixPattern(minimum = 0): BlockState {
+    let left = this.parseConstructedPattern();
+    while (this.peek().value !== "=" && this.isInfixOccurrence(this.peek())) {
+      const token = this.peek(), fixity = this.fixity.get(token.value)!;
+      if (fixity.precedence < minimum) break;
       this.advance();
-      return block("pat_infix", this.ids, {
-        inputs: {
-          pat_lhs: input(left),
-          id: input(this.idBlock(token.value)),
-          // Right associative, matching the list constructor `::`.
-          pat_rhs: input(this.parseInfixPattern()),
-        },
+      const right = this.parseInfixPattern(fixity.precedence + (fixity.right ? 0 : 1));
+      for (const child of [left, right]) {
+        if (child.type !== "pat_infix") continue;
+        const other = this.fixity.get(child.inputs?.id.block.fields?.inputValue);
+        if (other && other.precedence === fixity.precedence && other.right !== fixity.right) {
+          throw this.error("Mixed pattern associativity requires parentheses");
+        }
+      }
+      left = block("pat_infix", this.ids, {
+        inputs: { pat_lhs: input(left), id: input(this.idBlock(token.value)), pat_rhs: input(right) },
       });
     }
     return left;
@@ -1865,28 +1861,16 @@ export class Parser {
 
   /** A possibly-applied constructor pattern: [op] longid atpat | atpat. */
   private parseConstructedPattern(): BlockState {
-    const usesOp = this.is("kw", "op") && (this.peek(1).type === "id" || this.peek(1).type === "sym");
-    if (usesOp) this.advance();
-
-    if (this.is("id")) {
-      const parts = [this.advance().value];
-      while (this.isValue(".") && this.peek(1).type === "id") {
-        this.advance();
-        parts.push(this.advance().value);
-      }
+    const usesOp = this.matchKeyword("op");
+    if (usesOp || this.isValueIdentifier(this.peek()) && !this.isInfixOccurrence(this.peek()) && this.peek().value !== "=") {
+      const parts = this.parseValuePath();
       if (this.startsAtomicPattern()) {
         return block("pat_long_id", this.ids, {
           fields: { OP: usesOp ? "operator" : "nothing", patOpt: "pattern" },
-          inputs: {
-            longId: input(this.longIdBlock(parts)),
-            PATTERN: input(this.parseAtomicPattern()),
-          },
+          inputs: { longId: input(this.longIdBlock(parts)), PATTERN: input(this.parseAtomicPattern()) },
         });
       }
       return this.identifierPattern(parts, usesOp);
-    }
-    if (usesOp && this.is("sym")) {
-      return this.identifierPattern([this.advance().value], true);
     }
     return this.parseAtomicPattern();
   }
@@ -1912,8 +1896,8 @@ export class Parser {
       case "punct":
         return token.value === "(" || token.value === "[" ||
           token.value === "{" || token.value === "_";
-      case "id":
-        return !BASIS_INFIX_WORDS.has(token.value) && !this.userInfix.has(token.value);
+      case "id": case "sym":
+        return token.value !== "=" && this.isValueIdentifier(token) && !this.isInfixOccurrence(token);
       case "kw":
         return token.value === "op";
       default:
@@ -1958,24 +1942,9 @@ export class Parser {
       }
     }
 
-    if (this.is("kw", "op")) {
-      // op inside an atomic position: [op] id without argument.
-      this.advance();
-      const nameToken = this.peek();
-      if (nameToken.type !== "id" && nameToken.type !== "sym") {
-        throw this.error("Expected an identifier after 'op'");
-      }
-      this.advance();
-      return this.identifierPattern([nameToken.value], true);
-    }
-
-    if (token.type === "id") {
-      const parts = [this.advance().value];
-      while (this.isValue(".") && this.peek(1).type === "id") {
-        this.advance();
-        parts.push(this.advance().value);
-      }
-      return this.identifierPattern(parts, false);
+    if (this.matchKeyword("op")) return this.identifierPattern(this.parseValuePath(), true);
+    if (token.value !== "=" && this.isValueIdentifier(token) && !this.isInfixOccurrence(token)) {
+      return this.identifierPattern(this.parseValuePath(), false);
     }
 
     if (token.value === "(") {

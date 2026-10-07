@@ -20,6 +20,7 @@ const LEFT_FOLD_METHODS = new Set([
   "parseOrelseExpression",
   "parseAndalsoExpression",
   "parseTypedExpression",
+  "parseInfixExpression",
   "parseInfix3Expression",
   "parseInfix4Expression",
   "parseInfix6Expression",

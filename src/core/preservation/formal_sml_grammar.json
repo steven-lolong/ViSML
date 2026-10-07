@@ -206,7 +206,7 @@
     {
       "id": "float.1",
       "lhs": "float",
-      "rhs_tex": "\\opt{${\\sim}$}\\,\\nt{num}\\,\\opt{\\kw{.}\\nt{num}}\\,\\kw{e}\\,\\opt{${\\sim}$}\\,\\nt{num}",
+      "rhs_tex": "\\opt{${\\sim}$}\\,\\nt{num}\\,\\opt{\\kw{.}\\nt{num}}\\,$(\\kw{e}\\mid\\kw{E})$\\,\\opt{${\\sim}$}\\,\\nt{num}",
       "category": "R_{Mix}",
       "name": "scientific",
       "rhs": {
@@ -240,8 +240,17 @@
             }
           },
           {
-            "kind": "t",
-            "value": "e"
+            "kind": "choice",
+            "items": [
+              {
+                "kind": "t",
+                "value": "e"
+              },
+              {
+                "kind": "t",
+                "value": "E"
+              }
+            ]
           },
           {
             "kind": "opt",
@@ -4120,7 +4129,7 @@
       {
         "id": "float.1",
         "lhs": "float",
-        "rhs_tex": "\\opt{${\\sim}$}\\,\\nt{num}\\,\\opt{\\kw{.}\\nt{num}}\\,\\kw{e}\\,\\opt{${\\sim}$}\\,\\nt{num}",
+        "rhs_tex": "\\opt{${\\sim}$}\\,\\nt{num}\\,\\opt{\\kw{.}\\nt{num}}\\,$(\\kw{e}\\mid\\kw{E})$\\,\\opt{${\\sim}$}\\,\\nt{num}",
         "category": "R_{Mix}",
         "name": "scientific",
         "rhs": {
@@ -4154,8 +4163,17 @@
               }
             },
             {
-              "kind": "t",
-              "value": "e"
+              "kind": "choice",
+              "items": [
+                {
+                  "kind": "t",
+                  "value": "e"
+                },
+                {
+                  "kind": "t",
+                  "value": "E"
+                }
+              ]
             },
             {
               "kind": "opt",
