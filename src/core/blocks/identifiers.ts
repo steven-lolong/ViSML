@@ -217,7 +217,7 @@ Blockly.Blocks["id_lab"] = {
     ];
     this.appendDummyInput("dummyNum")
       .appendField(new Blockly.FieldDropdown(options as any, this.validate), "MODE")
-      .appendField(new Blockly.FieldNumber(1, 1), "inputNum");
+      .appendField(new Blockly.FieldTextInput("1", value => /^\d+$/.test(value) ? value : null), "inputNum");
     this.setOutput(true, ["lab"]);
     this.setInputsInline(false);
     this.setColour(getColorByType('identifier'));
@@ -246,7 +246,7 @@ Blockly.Blocks["id_lab"] = {
       ];
       this.appendDummyInput("dummyNum")
         .appendField(new Blockly.FieldDropdown(options as any, this.validate), "MODE")
-        .appendField(new Blockly.FieldNumber(1, 1), "inputNum");
+        .appendField(new Blockly.FieldTextInput("1", value => /^\d+$/.test(value) ? value : null), "inputNum");
       this.setInputsInline(false);
     }
   },

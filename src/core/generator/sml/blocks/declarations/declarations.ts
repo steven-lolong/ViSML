@@ -7,14 +7,14 @@ SML.forBlock["dec_type"] = function (block) {
       "typbind",
       SML.ORDER_NONE
     ),
-    code = " type " + typbind + " ;\n";
+    code = " type " + typbind + " \n";
   return [code, SML.ORDER_NONE];
 };
 
 SML.forBlock["dec_datatype_replication"] = function (block) {
   let id = SML.valueToCode(block, "id", SML.ORDER_NONE),
     longid = SML.valueToCode(block, "longid", SML.ORDER_NONE),
-    code = " datatype " + id + " = " + " datatype " + longid + ";\n";
+    code = " datatype " + id + " = " + " datatype " + longid + "\n";
   return [code, SML.ORDER_NONE];
 };
 
@@ -29,7 +29,7 @@ SML.forBlock["dec_datatype_bind"] = function (block) {
         ? "withtype " +
           SML.valueToCode(block, "inVar", SML.ORDER_NONE)
         : "",
-    code = " datatype " + datbind + " " + inVar + ";\n";
+    code = " datatype " + datbind + " " + inVar + "\n";
   return [code, SML.ORDER_NONE];
 };
 
@@ -46,7 +46,7 @@ SML.forBlock["dec_abstype"] = function (block) {
         : "",
     withDec = SML.valueToCode(block, "withDec", SML.ORDER_NONE),
     code =
-      " abstype " + datbind + " " + inVar + " with " + withDec + " end ;\n";
+      " abstype " + datbind + " " + inVar + " with " + withDec + " end \n";
   return [code, SML.ORDER_NONE];
 };
 

@@ -9,6 +9,7 @@ Blockly.Blocks["typ_constructor"] = {
    * @this {Blockly.Block}
    */
   init: function () {
+    this.itemCount_ = 0;
     this.setInputsInline(true);
     this.appendDummyInput().appendField("Constructor", "desc");
     this.appendDummyInput("closeDumpBracket");
@@ -39,7 +40,7 @@ Blockly.Blocks["typ_constructor"] = {
    * @param state The extra state previously produced by saveExtraState.
    */
   loadExtraState: function (state: any) {
-    this.itemCount_ = state["itemCount"];
+    this.itemCount_ = state["itemCount"] ?? 0;
     this.updateShape_();
   },
   /**

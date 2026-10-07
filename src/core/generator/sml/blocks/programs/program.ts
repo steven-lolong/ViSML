@@ -1,4 +1,5 @@
 import * as Blockly from "blockly";
+import { sourceSeparator } from "../../../../preservation/source_layout";
 import { SML } from "../../sml";
 
 SML.forBlock["program"] = function (block) {
@@ -9,9 +10,10 @@ SML.forBlock["program"] = function (block) {
     value_add = "",
     code = "";
 
+  value_add += sourceSeparator(block, 0);
   for (let i = 0; i < block.itemCount_; i++) {
     value_add +=
-      SML.valueToCode(block, "ADD" + i, SML.ORDER_NONE) + "\n";
+      SML.valueToCode(block, "ADD" + i, SML.ORDER_NONE) + sourceSeparator(block, i + 1) + "\n";
   }
 
   code = comment + value_add;

@@ -2,7 +2,7 @@
 /**
  * Deterministic bounded combinatorial preservation suite.
  *
- * The main 98-case corpus remains the primary empirical denominator. This
+ * The main 96-case corpus remains the primary empirical denominator. This
  * additional suite systematically combines representative expression,
  * control-flow, pattern, and type forms and checks the same S/T/P obligations:
  *   S: generated text is a fixed point;

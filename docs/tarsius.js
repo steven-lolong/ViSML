@@ -416,19 +416,21 @@ function setThemesBnW() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
-/* harmony import */ var _seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../seeds/color_definition */ "./src/core/seeds/color_definition.ts");
-/* harmony import */ var _ui_svg_picture__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../ui/svg_picture */ "./src/ui/svg_picture.ts");
+/* harmony import */ var _preservation_lexical__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../preservation/lexical */ "./src/core/preservation/lexical.ts");
+/* harmony import */ var _seeds_color_definition__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../seeds/color_definition */ "./src/core/seeds/color_definition.ts");
+/* harmony import */ var _ui_svg_picture__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../ui/svg_picture */ "./src/ui/svg_picture.ts");
+
 
 
 
 blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_int"] = {
     init: function () {
         this.appendDummyInput()
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_2__.yellow_cyan_svg, 5, 25, "*"))
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_3__.yellow_cyan_svg, 5, 25, "*"))
             .appendField("Integer")
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldNumber(0, -Infinity, Infinity, 1), "inputValue");
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput("0", _preservation_lexical__WEBPACK_IMPORTED_MODULE_1__.intLiteral), "inputValue");
         this.setOutput(true, ["con", "exp", "pat"]);
-        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__["default"])('constant'));
+        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_2__["default"])('constant'));
         this.setTooltip("");
         this.setHelpUrl("");
     },
@@ -436,11 +438,11 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_int"] = {
 blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_string"] = {
     init: function () {
         this.appendDummyInput()
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_2__.yellow_cyan_svg, 5, 25, "*"))
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_3__.yellow_cyan_svg, 5, 25, "*"))
             .appendField("String")
             .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput(""), "inputValue");
         this.setOutput(true, ["con", "exp", "pat"]);
-        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__["default"])('constant'));
+        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_2__["default"])('constant'));
         this.setTooltip("");
         this.setHelpUrl("");
     },
@@ -448,25 +450,30 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_string"] = {
 blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_char"] = {
     init: function () {
         this.appendDummyInput()
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_2__.yellow_cyan_svg, 5, 25, "*"))
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_3__.yellow_cyan_svg, 5, 25, "*"))
             .appendField("Character")
             .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput(""), "inputValue");
         this.setOutput(true, ["con", "exp", "pat"]);
-        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__["default"])('constant'));
+        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_2__["default"])('constant'));
         this.setTooltip("");
         this.setHelpUrl("");
     },
 };
+/**
+ * The real literal is held as ONE text field carrying the literal exactly as
+ * written, not as a (whole, fraction) pair of numbers. The pair is not
+ * injective: `3.05` and `3.5` both reduce to (3, 5), so the fraction's leading
+ * zeros \u2014 and with them the original terminal \u2014 are unrecoverable. Storing the
+ * literal itself is what makes reconstruction a lookup rather than a guess.
+ */
 blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_float"] = {
     init: function () {
         this.appendDummyInput()
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_2__.yellow_cyan_svg, 5, 25, "*"))
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_3__.yellow_cyan_svg, 5, 25, "*"))
             .appendField("Real")
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldNumber(0, -Infinity, Infinity, 1), "NAME")
-            .appendField("\u2022")
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldNumber(0, 0), "inputValue");
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput("0.0", _preservation_lexical__WEBPACK_IMPORTED_MODULE_1__.realLiteral), "inputValue");
         this.setOutput(true, ["con", "exp", "pat"]);
-        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__["default"])('constant'));
+        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_2__["default"])('constant'));
         this.setTooltip("");
         this.setHelpUrl("");
     },
@@ -474,11 +481,11 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_float"] = {
 blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["con_word"] = {
     init: function () {
         this.appendDummyInput()
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_2__.yellow_cyan_svg, 5, 25, "*"))
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldImage(_ui_svg_picture__WEBPACK_IMPORTED_MODULE_3__.yellow_cyan_svg, 5, 25, "*"))
             .appendField("Word")
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldNumber(0, 0, Infinity, 1), "inputValue");
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput("0w0", _preservation_lexical__WEBPACK_IMPORTED_MODULE_1__.wordLiteral), "inputValue");
         this.setOutput(true, ["con", "exp", "pat"]);
-        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__["default"])('constant'));
+        this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_2__["default"])('constant'));
         this.setTooltip("");
         this.setHelpUrl("");
     },
@@ -5972,7 +5979,7 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["id_lab"] = {
         ];
         this.appendDummyInput("dummyNum")
             .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldDropdown(options, this.validate), "MODE")
-            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldNumber(1, 1), "inputNum");
+            .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput("1", value => /^\d+$/.test(value) ? value : null), "inputNum");
         this.setOutput(true, ["lab"]);
         this.setInputsInline(false);
         this.setColour((0,_seeds_color_definition__WEBPACK_IMPORTED_MODULE_1__["default"])('identifier'));
@@ -6002,7 +6009,7 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["id_lab"] = {
             ];
             this.appendDummyInput("dummyNum")
                 .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldDropdown(options, this.validate), "MODE")
-                .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldNumber(1, 1), "inputNum");
+                .appendField(new blockly__WEBPACK_IMPORTED_MODULE_0__.FieldTextInput("1", value => /^\d+$/.test(value) ? value : null), "inputNum");
             this.setInputsInline(false);
         }
     },
@@ -9093,6 +9100,34 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["pat_layered"] = {
 
 /***/ },
 
+/***/ "./src/core/blocks/preservation_empty.ts"
+/*!***********************************************!*\
+  !*** ./src/core/blocks/preservation_empty.ts ***!
+  \***********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+
+/** Explicit epsilon owners retain separators in otherwise empty source bodies. */
+for (const [type, role, label] of [
+    ["dec_empty", "dec", "Empty declaration"],
+    ["spec_empty", "spec", "Empty specification"],
+]) {
+    blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks[type] = {
+        init: function () {
+            this.appendDummyInput().appendField(label);
+            this.setOutput(true, role);
+            this.setColour(180);
+            this.setTooltip(`${role} ::= epsilon`);
+        },
+    };
+}
+
+
+/***/ },
+
 /***/ "./src/core/blocks/programs/fctbind.ts"
 /*!*********************************************!*\
   !*** ./src/core/blocks/programs/fctbind.ts ***!
@@ -9771,6 +9806,7 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["typ_constructor"] = {
      * @this {Blockly.Block}
      */
     init: function () {
+        this.itemCount_ = 0;
         this.setInputsInline(true);
         this.appendDummyInput().appendField("Constructor", "desc");
         this.appendDummyInput("closeDumpBracket");
@@ -9802,7 +9838,7 @@ blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks["typ_constructor"] = {
      * @param state The extra state previously produced by saveExtraState.
      */
     loadExtraState: function (state) {
-        this.itemCount_ = state["itemCount"];
+        this.itemCount_ = state["itemCount"] ?? 0;
         this.updateShape_();
     },
     /**
@@ -10406,6 +10442,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
 /* harmony import */ var _sml_sml__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sml/sml */ "./src/core/generator/sml/sml.ts");
+/* harmony import */ var _preservation_workspace_export__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../preservation/workspace_export */ "./src/core/preservation/workspace_export.ts");
 
 
 
@@ -10414,7 +10451,7 @@ function generateCode(target_code) {
     let newCode;
     switch (target_code) {
         case "sml": {
-            newCode = _sml_sml__WEBPACK_IMPORTED_MODULE_1__.SML.workspaceToCode(tarsius_workplace);
+            newCode = (0,_preservation_workspace_export__WEBPACK_IMPORTED_MODULE_2__.preservingWorkspaceToCode)(tarsius_workplace);
             break;
         }
         default: {
@@ -10455,11 +10492,15 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["con_char"] = function (block) {
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["con_word"] = function (block) {
-    let code = block.getFieldValue("inputValue").toString().replace("-", "~");
+    // Word literals are spelled with the `0w` radix prefix; without it the
+    // literal reconstructs as an int and the original terminal is lost.
+    const spelling = block.getFieldValue("inputValue").toString();
+    let code = spelling.startsWith("0w") ? spelling : "0w" + spelling;
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["con_float"] = function (block) {
-    let code = "()";
+    // The field holds the literal as written (see blocks/constants.ts).
+    let code = block.getFieldValue("inputValue").toString().replace("-", "~");
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 
@@ -10661,19 +10702,21 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_open"] = function (block) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../sml */ "./src/core/generator/sml/sml.ts");
+/* harmony import */ var _preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../preservation/source_layout */ "./src/core/preservation/source_layout.ts");
+/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../sml */ "./src/core/generator/sml/sml.ts");
 
-_sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_sequence"] = function (block) {
-    let number_of_dec = block.itemCount_, code = "", i = 0;
+
+_sml__WEBPACK_IMPORTED_MODULE_1__.SML.forBlock["dec_sequence"] = function (block) {
+    let number_of_dec = block.itemCount_, code = (0,_preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__.sourceSeparator)(block, 0), i = 0;
     if (number_of_dec > 0) {
         for (i = 0; i < number_of_dec; i++) {
             code =
                 code +
-                    _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE) +
-                    "\n";
+                    _sml__WEBPACK_IMPORTED_MODULE_1__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE) +
+                    (0,_preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__.sourceSeparator)(block, i + 1) + "\n";
         }
     }
-    return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
+    return [code, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE];
 };
 
 
@@ -10690,25 +10733,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../sml */ "./src/core/generator/sml/sml.ts");
 
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_type"] = function (block) {
-    let typbind = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "typbind", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = " type " + typbind + " ;\n";
+    let typbind = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "typbind", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = " type " + typbind + " \n";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_datatype_replication"] = function (block) {
-    let id = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "id", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), longid = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "longid", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = " datatype " + id + " = " + " datatype " + longid + ";\n";
+    let id = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "id", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), longid = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "longid", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = " datatype " + id + " = " + " datatype " + longid + "\n";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_datatype_bind"] = function (block) {
     let datbind = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "datbind", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), inVar = block.getFieldValue("chkTyp") == "TRUE"
         ? "withtype " +
             _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "inVar", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE)
-        : "", code = " datatype " + datbind + " " + inVar + ";\n";
+        : "", code = " datatype " + datbind + " " + inVar + "\n";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_abstype"] = function (block) {
     let datbind = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "datbind", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), inVar = block.getFieldValue("chkTyp") == "TRUE"
         ? " withtype " +
             _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "inVar", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE)
-        : "", withDec = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "withDec", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = " abstype " + datbind + " " + inVar + " with " + withDec + " end ;\n";
+        : "", withDec = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "withDec", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = " abstype " + datbind + " " + inVar + " with " + withDec + " end \n";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["dec_exception"] = function (block) {
@@ -10882,7 +10925,7 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["funmatch_infix_n_inhabitant"] = 
     }
     else {
         if (number_of_id > 1) {
-            for (i = 0; i <= number_of_id; i++) {
+            for (i = 0; i < number_of_id; i++) {
                 if (i + 1 < number_of_id)
                     patCode =
                         patCode +
@@ -10896,13 +10939,13 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["funmatch_infix_n_inhabitant"] = 
         }
     }
     code =
-        (number_of_id > 0 ? "( " : "") +
+        "( " +
             pat1 +
             " " +
             idVal +
             " " +
             pat2 +
-            (number_of_id > 0 ? " ) " : " ") +
+            " ) " +
             patCode +
             " " +
             typeVar +
@@ -10954,8 +10997,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../sml */ "./src/core/generator/sml/sml.ts");
 
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["strbind_single"] = function (block) {
+    // `:>` is one token. Emitting it as `: >` produces text no SML compiler
+    // accepts; the parser used to tolerate the spaced form, which is what kept
+    // the round-trip a fixed point while the printed program stayed invalid.
     let typeVar = block.getFieldValue("chkSub") == "TRUE"
-        ? ": " +
+        ? ":" +
             block.getFieldValue("greatherSign") +
             " " +
             _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "inputSig", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE)
@@ -11115,9 +11161,8 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["exp_let_in_end"] = function (blo
     code =
         "let \n" +
             decLet +
-            (number_of_exp > 1 ? " in {\n" : " in ") +
+            " in " +
             codeExp +
-            (number_of_exp > 1 ? " }\n" : "") +
             " end\n";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
@@ -11334,6 +11379,14 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["exp_infix_application"] = functi
 };
 _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["exp_parentheses"] = function (block) {
     let exp = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "exp", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE);
+    // Primitive generators add an administrative pair. An explicit source
+    // wrapper owns that pair instead; do not duplicate it on every reparse.
+    const child = block.getInputTargetBlock("exp");
+    if (child && ["exp_primtv_optr_arith", "exp_primtv_optr_logic"].includes(child.type)) {
+        const trimmed = exp.trim();
+        if (trimmed.startsWith("(") && trimmed.endsWith(")"))
+            exp = trimmed.slice(1, -1);
+    }
     let code = "(" + exp + ")";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
@@ -11479,7 +11532,11 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["id_long_var"] = function (block)
                         _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE);
         }
     }
-    code = " " + code + " ";
+    // A tyvarseq of two or more binders is parenthesised in SML — `('a, 'b) t`.
+    // Printing it as a bare comma list yields text no compiler accepts; the
+    // parser used to accept the bare form back, which hid the defect from the
+    // fixed-point check.
+    code = (number_of_exp > 1 || block.t2bbSource_?.argumentStyle === "parenthesized") ? " (" + code + ") " : " " + code + " ";
     return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
 };
 
@@ -11780,31 +11837,19 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["spec_inclusion"] = function (blo
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../sml */ "./src/core/generator/sml/sml.ts");
+/* harmony import */ var _preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../../preservation/source_layout */ "./src/core/preservation/source_layout.ts");
+/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../sml */ "./src/core/generator/sml/sml.ts");
 
-_sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["spec_sequence"] = function (block) {
-    let number_of_id = block.itemCount_;
-    let code = "";
-    let i = 0;
-    if (number_of_id == 1) {
-        code = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE);
+
+_sml__WEBPACK_IMPORTED_MODULE_1__.SML.forBlock["spec_sequence"] = function (block) {
+    let code = (0,_preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__.sourceSeparator)(block, 0);
+    for (let i = 0; i < block.itemCount_; i++) {
+        code += _sml__WEBPACK_IMPORTED_MODULE_1__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE);
+        code += block.t2bbSource_?.separators ? (0,_preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__.sourceSeparator)(block, i + 1)
+            : i + 1 < block.itemCount_ ? ";" : "";
+        code += "\n";
     }
-    else {
-        if (number_of_id > 1) {
-            for (i = 0; i <= number_of_id; i++) {
-                if (i + 1 < number_of_id)
-                    code =
-                        code +
-                            _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE) +
-                            ";\n";
-                else
-                    code =
-                        code +
-                            _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE);
-            }
-        }
-    }
-    return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
+    return [code, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE];
 };
 
 
@@ -12225,6 +12270,23 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["pat_layered"] = function (block)
 
 /***/ },
 
+/***/ "./src/core/generator/sml/blocks/preservation_empty.ts"
+/*!*************************************************************!*\
+  !*** ./src/core/generator/sml/blocks/preservation_empty.ts ***!
+  \*************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../sml */ "./src/core/generator/sml/sml.ts");
+
+for (const type of ["dec_empty", "spec_empty"]) {
+    _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock[type] = () => ["", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
+}
+
+
+/***/ },
+
 /***/ "./src/core/generator/sml/blocks/programs/fctbind.ts"
 /*!***********************************************************!*\
   !*** ./src/core/generator/sml/blocks/programs/fctbind.ts ***!
@@ -12303,26 +12365,29 @@ _sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["fctbind_nested"] = function (blo
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../sml */ "./src/core/generator/sml/sml.ts");
+/* harmony import */ var _preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../preservation/source_layout */ "./src/core/preservation/source_layout.ts");
+/* harmony import */ var _sml__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../sml */ "./src/core/generator/sml/sml.ts");
 
-_sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["program"] = function (block) {
+
+_sml__WEBPACK_IMPORTED_MODULE_1__.SML.forBlock["program"] = function (block) {
     let comment = "(* " +
         "SML code generated by \nYETI (Yet [E/A]Another Transpiler Interface)" +
         " *) \n \n", value_add = "", code = "";
+    value_add += (0,_preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__.sourceSeparator)(block, 0);
     for (let i = 0; i < block.itemCount_; i++) {
         value_add +=
-            _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE) + "\n";
+            _sml__WEBPACK_IMPORTED_MODULE_1__.SML.valueToCode(block, "ADD" + i, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE) + (0,_preservation_source_layout__WEBPACK_IMPORTED_MODULE_0__.sourceSeparator)(block, i + 1) + "\n";
     }
     code = comment + value_add;
     return code;
 };
-_sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["program_functor"] = function (block) {
-    let fctbind = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "fctbind", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = "functor " + fctbind + " \n";
-    return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
+_sml__WEBPACK_IMPORTED_MODULE_1__.SML.forBlock["program_functor"] = function (block) {
+    let fctbind = _sml__WEBPACK_IMPORTED_MODULE_1__.SML.valueToCode(block, "fctbind", _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE), code = "functor " + fctbind + " \n";
+    return [code, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE];
 };
-_sml__WEBPACK_IMPORTED_MODULE_0__.SML.forBlock["program_signature"] = function (block) {
-    let sigbind = _sml__WEBPACK_IMPORTED_MODULE_0__.SML.valueToCode(block, "sigbind", _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE), code = "signature " + sigbind + " \n";
-    return [code, _sml__WEBPACK_IMPORTED_MODULE_0__.SML.ORDER_NONE];
+_sml__WEBPACK_IMPORTED_MODULE_1__.SML.forBlock["program_signature"] = function (block) {
+    let sigbind = _sml__WEBPACK_IMPORTED_MODULE_1__.SML.valueToCode(block, "sigbind", _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE), code = "signature " + sigbind + " \n";
+    return [code, _sml__WEBPACK_IMPORTED_MODULE_1__.SML.ORDER_NONE];
 };
 
 
@@ -13037,8 +13102,10 @@ function reconnect(connectionChild, block, inputName) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Parser: () => (/* binding */ Parser),
 /* harmony export */   SmlParseError: () => (/* binding */ SmlParseError),
-/* harmony export */   smlToVismlWorkspaceState: () => (/* binding */ smlToVismlWorkspaceState)
+/* harmony export */   smlToVismlWorkspaceState: () => (/* binding */ smlToVismlWorkspaceState),
+/* harmony export */   tokenize: () => (/* binding */ tokenize)
 /* harmony export */ });
 /**
  * @fileoverview SML text -> Visual-SML (ViSML) block converter.
@@ -13184,21 +13251,26 @@ function tokenize(source) {
             }
             throw new SmlParseError("Expected a type variable after '", index);
         }
-        // Word, real and integer literals (including SML negation ~).
-        const wordMatch = source.slice(index).match(/^0w\d+/);
-        if (wordMatch) {
-            tokens.push({ type: "word", value: wordMatch[0], position: index });
-            index += wordMatch[0].length;
-            continue;
-        }
-        const numberMatch = source.slice(index).match(/^~?\d+(\.\d+)?/);
-        if (numberMatch && (char !== "~" || /\d/.test(source[index + 1] ?? ""))) {
-            tokens.push({
-                type: numberMatch[1] ? "real" : "int",
-                value: numberMatch[0],
-                position: index,
-            });
-            index += numberMatch[0].length;
+        // Preserve the complete lexeme; radix/exponent forms must be recognized
+        // before decimal integers so they cannot turn into accidental applications.
+        const rest = source.slice(index);
+        const literal = [
+            ["word", /^0w(?:x[0-9a-fA-F]+|[0-9]+)/],
+            ["real", /^~?[0-9]+(?:\.[0-9]+)?e~?[0-9]+/],
+            ["real", /^~?[0-9]+\.[0-9]+/],
+            ["int", /^~?0x[0-9a-fA-F]+/],
+            ["int", /^~?[0-9]+/],
+        ].map(([kind, pattern]) => ({ kind, match: pattern.exec(rest) }))
+            .find(({ match }) => match);
+        if (literal) {
+            const value = literal.match[0];
+            if ((/^~?0x|^0wx/.test(rest) && !/^(?:~?0x|0wx)[0-9a-fA-F]+$/.test(value)) ||
+                (/^0w/.test(rest) && literal.kind !== "word") ||
+                (/^~?[0-9]+(?:\.[0-9]+)?e/.test(rest) && !/^~?[0-9]+(?:\.[0-9]+)?e~?[0-9]+$/.test(value))) {
+                throw new SmlParseError("Malformed numeric literal", index);
+            }
+            tokens.push({ type: literal.kind, value, position: index });
+            index += value.length;
             continue;
         }
         // Alphanumeric identifiers and keywords.
@@ -13320,7 +13392,10 @@ class Parser {
         return new SmlParseError(message, this.peek().position);
     }
     skipSeparators() {
-        while (this.matchValue(";")) { /* separators between declarations */ }
+        let count = 0;
+        while (this.matchValue(";"))
+            count++;
+        return count;
     }
     /** An "infix" occurrence: symbolic operator or user/basis infix word. */
     isInfixOccurrence(token) {
@@ -13354,7 +13429,7 @@ class Parser {
         const token = this.peek();
         if (token.type === "int") {
             this.advance();
-            return block("id_lab", this.ids, { fields: { MODE: "NUM", inputNum: Number(token.value) } });
+            return block("id_lab", this.ids, { fields: { MODE: "NUM", inputNum: token.value } });
         }
         if (token.type === "id") {
             this.advance();
@@ -13371,6 +13446,7 @@ class Parser {
      */
     parseTyVarSeqOpt() {
         const names = [];
+        let argumentStyle = "bare";
         if (this.is("tyvar")) {
             names.push(this.advance().value);
             // The generator prints multiple binders as a bare comma list.
@@ -13380,6 +13456,7 @@ class Parser {
             }
         }
         else if (this.isValue("(") && this.peek(1).type === "tyvar") {
+            argumentStyle = "parenthesized";
             this.advance();
             names.push(this.advance().value);
             while (this.matchValue(",")) {
@@ -13393,7 +13470,7 @@ class Parser {
             return undefined;
         }
         return block("id_long_var", this.ids, {
-            extraState: { itemCount: names.length },
+            extraState: { itemCount: names.length, t2bbSource: { argumentStyle: names.length > 1 ? "parenthesized" : argumentStyle } },
             inputs: indexedInputs(names.map((name) => block("id_var", this.ids, { fields: splitTypeVar(name) }))),
         });
     }
@@ -13406,7 +13483,7 @@ class Parser {
     // -- program --------------------------------------------------------------
     parseProgram() {
         const items = [];
-        this.skipSeparators();
+        const separators = [this.skipSeparators()];
         while (!this.is("eof")) {
             if (this.matchKeyword("signature")) {
                 items.push(block("program_signature", this.ids, {
@@ -13421,8 +13498,9 @@ class Parser {
             else {
                 items.push(this.parseDeclaration());
             }
-            this.skipSeparators();
+            separators.push(this.skipSeparators());
         }
+        items.sourceSeparators = separators;
         return items;
     }
     // -- declarations ----------------------------------------------------------
@@ -13512,17 +13590,20 @@ class Parser {
     parseDeclarationSequence(stopValues) {
         const stops = new Set(stopValues);
         const declarations = [];
-        this.skipSeparators();
+        const separators = [this.skipSeparators()];
         while (!this.is("eof") && !stops.has(this.peek().value)) {
             declarations.push(this.parseDeclaration());
-            this.skipSeparators();
+            separators.push(this.skipSeparators());
         }
         if (declarations.length === 0)
-            return undefined;
-        if (declarations.length === 1)
-            return declarations[0];
+            return separators[0] ? block("dec_empty", this.ids, { extraState: { t2bbSource: { boundary: [separators[0], 0] } } }) : undefined;
+        if (declarations.length === 1) {
+            const item = declarations[0];
+            item.extraState = { ...item.extraState, t2bbSource: { boundary: separators } };
+            return item;
+        }
         return block("dec_sequence", this.ids, {
-            extraState: { itemCount: declarations.length },
+            extraState: { itemCount: declarations.length, t2bbSource: { separators } },
             inputs: indexedInputs(declarations),
         });
     }
@@ -13644,9 +13725,6 @@ class Parser {
             returnType = this.parseType();
         this.expectValue("=", "Expected '=' in function clause");
         const expression = this.parseExpression();
-        if (extraPatterns.length === 0) {
-            return this.buildInfixFunClause(left, opToken.value, right, returnType, expression);
-        }
         const inputs = {
             pat1: input(left),
             id: input(this.idBlock(opToken.value)),
@@ -14026,15 +14104,16 @@ class Parser {
     // -- specifications ---------------------------------------------------------
     parseSpecificationSequence() {
         let specs = [];
+        let separators = [0];
         for (;;) {
-            this.skipSeparators();
+            separators[specs.length] = (separators[specs.length] || 0) + this.skipSeparators();
             if (this.matchKeyword("sharing")) {
                 // `sharing [type] longid = longid ...` constrains the preceding specs.
                 const sharingType = this.matchKeyword("type") ? "type" : "";
                 const paths = [this.parseLongIdBlock()];
                 while (this.matchValue("="))
                     paths.push(this.parseLongIdBlock());
-                const preceding = this.wrapSpecs(specs);
+                const preceding = this.wrapSpecs(specs, separators);
                 specs = [
                     block("spec_type_sharing", this.ids, {
                         fields: { sharingType },
@@ -14045,22 +14124,26 @@ class Parser {
                         },
                     }),
                 ];
+                separators = [0, 0];
                 continue;
             }
             const spec = this.parseSpecificationOpt();
             if (!spec)
                 break;
             specs.push(spec);
+            separators.push(0);
         }
-        return this.wrapSpecs(specs);
+        return this.wrapSpecs(specs, separators);
     }
-    wrapSpecs(specs) {
+    wrapSpecs(specs, separators = Array(specs.length + 1).fill(0)) {
         if (specs.length === 0)
-            return undefined;
-        if (specs.length === 1)
+            return separators[0] ? block("spec_empty", this.ids, { extraState: { t2bbSource: { boundary: [separators[0], 0] } } }) : undefined;
+        if (specs.length === 1) {
+            specs[0].extraState = { ...specs[0].extraState, t2bbSource: { boundary: separators } };
             return specs[0];
+        }
         return block("spec_sequence", this.ids, {
-            extraState: { itemCount: specs.length },
+            extraState: { itemCount: specs.length, t2bbSource: { separators } },
             inputs: indexedInputs(specs),
         });
     }
@@ -14563,20 +14646,21 @@ class Parser {
             case "int": {
                 this.advance();
                 return block("con_int", this.ids, {
-                    fields: { inputValue: Number(token.value.replace("~", "-")) },
+                    fields: { inputValue: token.value },
                 });
             }
             case "real": {
                 this.advance();
-                const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
+                // Keep the literal verbatim: splitting it into (whole, fraction)
+                // numbers loses the fraction's leading zeros (3.05 vs 3.5).
                 return block("con_float", this.ids, {
-                    fields: { NAME: Number(whole), inputValue: Number(fraction) },
+                    fields: { inputValue: token.value },
                 });
             }
             case "word": {
                 this.advance();
                 return block("con_word", this.ids, {
-                    fields: { inputValue: Number(token.value.slice(2)) },
+                    fields: { inputValue: token.value },
                 });
             }
             case "string": {
@@ -14690,13 +14774,7 @@ class Parser {
             });
         }
         this.expectValue(")", "Expected ')' after expression");
-        // Operator and sequence blocks emit their own parentheses; wrapping them
-        // again would add a pair of parentheses on every round-trip.
-        if (first.type === "exp_primtv_optr_arith" ||
-            first.type === "exp_primtv_optr_logic" ||
-            first.type === "exp_sequence") {
-            return first;
-        }
+        // Source grouping is provenance. Only the renderer may normalize it.
         return block("exp_parentheses", this.ids, { inputs: { exp: input(first) } });
     }
     parseLetExpression() {
@@ -14869,20 +14947,20 @@ class Parser {
             case "int": {
                 this.advance();
                 return block("con_int", this.ids, {
-                    fields: { inputValue: Number(token.value.replace("~", "-")) },
+                    fields: { inputValue: token.value },
                 });
             }
             case "real": {
                 this.advance();
-                const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
+                // See the pattern-side case above: the literal is kept verbatim.
                 return block("con_float", this.ids, {
-                    fields: { NAME: Number(whole), inputValue: Number(fraction) },
+                    fields: { inputValue: token.value },
                 });
             }
             case "word": {
                 this.advance();
                 return block("con_word", this.ids, {
-                    fields: { inputValue: Number(token.value.slice(2)) },
+                    fields: { inputValue: token.value },
                 });
             }
             case "string": {
@@ -15111,7 +15189,7 @@ function smlToVismlWorkspaceState(source) {
         deletable: false,
         movable: true,
         editable: true,
-        extraState: { itemCount: Math.max(1, declarations.length) },
+        extraState: { itemCount: Math.max(1, declarations.length), t2bbSource: { separators: declarations.sourceSeparators } },
         inputs: indexedInputs(declarations),
     };
     return {
@@ -15120,6 +15198,1029 @@ function smlToVismlWorkspaceState(source) {
             blocks: [program],
         },
     };
+}
+
+
+/***/ },
+
+/***/ "./src/core/preservation/formal_codec.ts"
+/*!***********************************************!*\
+  !*** ./src/core/preservation/formal_codec.ts ***!
+  \***********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   PreservationError: () => (/* binding */ PreservationError),
+/* harmony export */   certificate: () => (/* binding */ certificate),
+/* harmony export */   decodeCanonicalWorkspace: () => (/* binding */ decodeCanonicalWorkspace),
+/* harmony export */   encodeDerivation: () => (/* binding */ encodeDerivation),
+/* harmony export */   make: () => (/* binding */ make),
+/* harmony export */   printCanonicalWorkspace: () => (/* binding */ printCanonicalWorkspace),
+/* harmony export */   productions: () => (/* binding */ productions),
+/* harmony export */   renderDerivation: () => (/* binding */ renderDerivation),
+/* harmony export */   role: () => (/* binding */ role),
+/* harmony export */   smlGrammar: () => (/* binding */ smlGrammar),
+/* harmony export */   terminalClass: () => (/* binding */ terminalClass),
+/* harmony export */   tryDecodeCanonicalWorkspace: () => (/* binding */ tryDecodeCanonicalWorkspace),
+/* harmony export */   validateDerivation: () => (/* binding */ validateDerivation)
+/* harmony export */ });
+/* harmony import */ var _formal_sml_grammar_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./formal_sml_grammar.json */ "./src/core/preservation/formal_sml_grammar.json");
+
+const smlGrammar = _formal_sml_grammar_json__WEBPACK_IMPORTED_MODULE_0__;
+const productions = new Map(smlGrammar.productions.map(p => [p.id, p]));
+class PreservationError extends Error {
+}
+function requireState(condition, message) {
+    if (!condition)
+        throw new PreservationError(message);
+}
+function role(d) {
+    const p = productions.get(d?.p);
+    requireState(p, `Unknown production ${d?.p}`);
+    return p.lhs;
+}
+function terminalClass(name, value) {
+    if (typeof value !== "string")
+        return false;
+    switch (name) {
+        case "digit": return /^[0-9]$/.test(value);
+        case "letter": return /^[A-Za-z]$/.test(value);
+        case "hexDigit": return /^[0-9A-Fa-f]$/.test(value);
+        case "ascii": return /^(?:[\x20-\x21\x23-\x5b\x5d-\x7e]|\\(?:[abtnvfr\\"]|[0-9]{3}|\^[\x40-\x5f]|\s+\\))$/.test(value) && (!/^\\[0-9]{3}$/.test(value) || Number(value.slice(1)) <= 255);
+        default: return false;
+    }
+}
+/** Construct only members of the exact source registry, never tooltip strings. */
+function make(p, ...values) {
+    const production = productions.get(p);
+    requireState(production, `Unknown production ${p}`);
+    const fill = (e, input) => {
+        switch (e.kind) {
+            case "eps": return null;
+            case "t": return e.value;
+            case "n":
+            case "c":
+                requireState(input.length, `Missing ${p} component`);
+                return input.shift();
+            case "seq": return e.items.map((x) => fill(x, input));
+            case "opt": {
+                requireState(input.length, `Missing optional tag for ${p}`);
+                const v = input.shift();
+                if (v === null)
+                    return null;
+                const args = v === true ? [] : Array.isArray(v) ? [...v] : [v];
+                const result = fill(e.item, args);
+                requireState(!args.length, `Extra optional state for ${p}`);
+                return result;
+            }
+            case "rep": {
+                const items = input.shift();
+                requireState(Array.isArray(items), `Missing repetition for ${p}`);
+                return items.map(v => { const args = Array.isArray(v) ? [...v] : [v]; const r = fill(e.item, args); requireState(!args.length, `Extra repetition state for ${p}`); return r; });
+            }
+            case "args": return input.shift();
+            case "choice": {
+                const v = input.shift();
+                requireState(v && e.items[v.branch], `Invalid branch for ${p}`);
+                const args = e.items[v.branch].kind === "t" ? [] : [v.value];
+                return { branch: v.branch, value: fill(e.items[v.branch], args) };
+            }
+            default: throw new PreservationError(`Unknown RHS constructor ${e.kind}`);
+        }
+    };
+    const input = [...values], d = { p, rhs: fill(production.rhs, input) };
+    requireState(!input.length, `Extra state for ${p}`);
+    validateDerivation(d, production.lhs);
+    return d;
+}
+/** Validation includes slot-free state; connector compatibility is insufficient. */
+function validateDerivation(d, expected = smlGrammar.start, grammar = smlGrammar) {
+    const registry = new Map(grammar.productions.map(p => [p.id, p]));
+    const seen = new Set();
+    const node = (value, rootRole) => {
+        requireState(value && typeof value === "object" && !seen.has(value), "Cyclic or shared derivation node");
+        seen.add(value);
+        const p = registry.get(value.p);
+        requireState(p && p.lhs === rootRole, `Production/root-role mismatch: ${value.p}, expected ${rootRole}`);
+        requireState(Object.keys(value).every(k => ["p", "rhs"].includes(k)), "Unknown derivation metadata");
+        walk(p.rhs, value.rhs, value.p, "rhs");
+    };
+    const walk = (e, u, pid, path) => {
+        const error = `${pid}/${path}: invalid ${e.kind} state`;
+        switch (e.kind) {
+            case "eps":
+                requireState(u === null, error);
+                break;
+            case "t":
+                requireState(u === e.value, error);
+                break;
+            case "c":
+                requireState(terminalClass(e.name, u), error);
+                break;
+            case "n":
+                node(u, e.role);
+                break;
+            case "seq":
+                requireState(Array.isArray(u) && u.length === e.items.length, error);
+                e.items.forEach((x, i) => walk(x, u[i], pid, `${path}/${i}`));
+                break;
+            case "opt":
+                if (u !== null)
+                    walk(e.item, u, pid, `${path}/present`);
+                break;
+            case "rep":
+                requireState(Array.isArray(u) && u.length >= e.min && !(e.exclude || []).includes(u.length), error);
+                u.forEach((x, i) => walk(e.item, x, pid, `${path}/item/${i}`));
+                break;
+            case "choice":
+                requireState(u && Number.isInteger(u.branch) && e.items[u.branch] && Object.keys(u).length === 2, error);
+                walk(e.items[u.branch], u.value, pid, `${path}/branch/${u.branch}`);
+                break;
+            case "args":
+                requireState(u && Array.isArray(u.items) && ["bare", "parenthesized"].includes(u.style) && (u.style === "bare" ? u.items.length <= 1 : u.items.length >= 1), error);
+                u.items.forEach((x) => node(x, e.role));
+                break;
+            default: throw new PreservationError(error);
+        }
+    };
+    node(d, expected);
+}
+function encodeDerivation(d, grammar = smlGrammar) {
+    validateDerivation(d, grammar.start, grammar);
+    const registry = new Map(grammar.productions.map(p => [p.id, p]));
+    const nodes = [];
+    const encode = (d) => {
+        const p = registry.get(d.p), id = `p${nodes.length}`;
+        const target = { id, production: d.p, role: p.lhs };
+        nodes.push(target);
+        const walk = (e, u, path) => {
+            switch (e.kind) {
+                case "n": return { node: encode(u), slot: { production: d.p, path, expect: e.role } };
+                case "seq": return e.items.map((x, i) => walk(x, u[i], `${path}/${i}`));
+                case "opt": return u === null ? null : walk(e.item, u, `${path}/present`);
+                case "rep": return u.map((x, i) => walk(e.item, x, `${path}/item/${i}`));
+                case "choice": return { branch: u.branch, value: walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`) };
+                case "args": return { style: u.style, items: u.items.map((x, i) => ({ node: encode(x), slot: { production: d.p, path: `${path}/item/${i}`, expect: e.role } })) };
+                default: return u;
+            }
+        };
+        target.rhs = walk(p.rhs, d.rhs, "rhs");
+        return id;
+    };
+    return { schema: 1, root: encode(d), nodes };
+}
+/** Partial production decoder: invalid graphs have no derivation. No text is parsed. */
+function decodeCanonicalWorkspace(w, grammar = smlGrammar) {
+    requireState(w?.schema === 1 && Array.isArray(w.nodes), "Invalid canonical workspace");
+    const registry = new Map(grammar.productions.map(p => [p.id, p])), nodes = new Map();
+    for (const n of w.nodes) {
+        requireState(n && typeof n.id === "string" && !nodes.has(n.id), "Duplicate/missing node ID");
+        nodes.set(n.id, n);
+    }
+    const visited = new Set();
+    const decode = (id, expected) => {
+        requireState(nodes.has(id) && !visited.has(id), "Missing, shared, or cyclic production node");
+        visited.add(id);
+        const n = nodes.get(id), p = registry.get(n.production);
+        requireState(p && p.lhs === expected && n.role === expected, "Invalid root role/production descriptor");
+        const edge = (u, role, path) => {
+            requireState(u && u.slot?.production === p.id && u.slot?.path === path && u.slot?.expect === role, "Source slot/path mismatch");
+            const child = nodes.get(u.node);
+            requireState(child, "Missing required child");
+            if (child.role === role) {
+                requireState(!u.witness, "Unnecessary alias witness");
+                return decode(u.node, role);
+            }
+            const alias = registry.get(u.witness);
+            requireState(alias && alias.lhs === role && alias.rhs.kind === "n" && alias.rhs.role === child.role, "Missing or invalid one-step alias witness");
+            return { p: alias.id, rhs: decode(u.node, child.role) };
+        };
+        const walk = (e, u, path) => {
+            switch (e.kind) {
+                case "n": return edge(u, e.role, path);
+                case "seq":
+                    requireState(Array.isArray(u) && u.length === e.items.length, "Invalid sequence state");
+                    return e.items.map((x, i) => walk(x, u[i], `${path}/${i}`));
+                case "opt": return u === null ? null : walk(e.item, u, `${path}/present`);
+                case "rep":
+                    requireState(Array.isArray(u), "Invalid repetition state");
+                    return u.map((x, i) => walk(e.item, x, `${path}/item/${i}`));
+                case "choice":
+                    requireState(u && e.items[u.branch], "Invalid lexical branch");
+                    return { branch: u.branch, value: walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`) };
+                case "args":
+                    requireState(u && Array.isArray(u.items), "Invalid argument state");
+                    return { style: u.style, items: u.items.map((x, i) => edge(x, e.role, `${path}/item/${i}`)) };
+                default: return u;
+            }
+        };
+        return { p: p.id, rhs: walk(p.rhs, n.rhs, "rhs") };
+    };
+    const d = decode(w.root, grammar.start);
+    requireState(visited.size === nodes.size, "Unreachable production-owned node");
+    validateDerivation(d, grammar.start, grammar);
+    return d;
+}
+function tryDecodeCanonicalWorkspace(w, grammar = smlGrammar) {
+    try {
+        return decodeCanonicalWorkspace(w, grammar);
+    }
+    catch (e) {
+        if (e instanceof PreservationError)
+            return undefined;
+        throw e;
+    }
+}
+/** Full certificate includes source order, all EBNF states, and lexical payload. */
+function certificate(d) { validateDerivation(d, role(d)); return JSON.parse(JSON.stringify(d)); }
+function renderDerivation(d, grammar = smlGrammar, preserveAssociation = false) {
+    validateDerivation(d, new Map(grammar.productions.map(p => [p.id, p])).get(d.p).lhs, grammar);
+    const registry = new Map(grammar.productions.map(p => [p.id, p]));
+    const infixPrecedence = (op) => ["o", ":="].includes(op) ? 7 : ["::", "@"].includes(op) ? 9 : ["+", "-", "^"].includes(op) ? 10 : ["*", "/", "div", "mod"].includes(op) ? 11 : 8;
+    const expPrecedence = (d) => d.p === "exp.3" ? infixPrecedence(node(d.rhs[1])) : d.p === "exp.2" ? 12 : d.p === "exp.11" ? 4 : d.p === "exp.13" ? 1 : d.p === "exp.14" ? 3 : d.p === "exp.15" ? 2 : ["exp.12", "exp.16", "exp.17", "exp.18", "exp.19"].includes(d.p) ? 0 : 13;
+    const typPrecedence = (d) => d.p === "typ.3" ? 0 : d.p === "typ.4" ? 1 : 2;
+    const node = (d) => {
+        const p = registry.get(d.p), lexical = (grammar.lexical_roles || []).includes(p.lhs);
+        const join = (parts) => parts.filter(x => x !== "").reduce((a, b) => a + (lexical || a.endsWith(":") && b.startsWith(">") ? "" : " ") + b, "").trim();
+        const child = (e, u, path) => {
+            const text = node(u);
+            if (!preserveAssociation)
+                return text;
+            let group = false;
+            if (e.role === "exp") {
+                const prec = expPrecedence(u), parent = expPrecedence(d), right = path === "rhs/2";
+                if (d.p === "exp.2")
+                    group = prec < (path === "rhs/0" ? 12 : 13);
+                else if (["exp.3", "exp.11", "exp.13", "exp.14", "exp.15"].includes(d.p)) {
+                    const rightAssociative = d.p === "exp.3" && ["::", "@"].includes(node(d.rhs[1]));
+                    group = prec < parent || prec === parent && (rightAssociative ? !right : right);
+                }
+            }
+            else if (e.role === "typ") {
+                if (d.p === "typ.3")
+                    group = typPrecedence(u) < 0 || path === "rhs/0" && typPrecedence(u) === 0;
+                else if (d.p === "typ.4")
+                    group = typPrecedence(u) <= 1;
+            }
+            else if (e.role === "pat") {
+                if (d.p === "pat.3")
+                    group = u.p === "pat.3" && u.rhs[2] !== null || ["pat.4", "pat.9", "pat.10"].includes(u.p);
+                if (d.p === "pat.4")
+                    group = ["pat.9", "pat.10"].includes(u.p) || path === "rhs/0" && u.p === "pat.4";
+            }
+            return group ? `( ${text} )` : text;
+        };
+        const walk = (e, u, path = "rhs") => {
+            switch (e.kind) {
+                case "eps": return "";
+                case "t":
+                case "c": return u;
+                case "n": return child(e, u, path);
+                case "seq": return join(e.items.map((x, i) => walk(x, u[i], `${path}/${i}`)));
+                case "opt": return u === null ? "" : walk(e.item, u, `${path}/present`);
+                case "choice": return walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`);
+                case "rep": return u.map((x, i) => walk(e.item, x, `${path}/item/${i}`)).join(lexical ? e.separator : e.separator ? ` ${e.separator} ` : " ");
+                case "args": {
+                    const value = u.items.map((x) => preserveAssociation && e.role === "typ" && u.style === "bare" && typPrecedence(x) < 2 ? `( ${node(x)} )` : node(x)).join(", ");
+                    return u.style === "parenthesized" ? `(${value})` : value;
+                }
+                default: throw new PreservationError("Unknown renderer constructor");
+            }
+        };
+        return walk(p.rhs, d.rhs);
+    };
+    return node(d);
+}
+function printCanonicalWorkspace(w, grammar = smlGrammar) { return renderDerivation(decodeCanonicalWorkspace(w, grammar), grammar); }
+
+
+/***/ },
+
+/***/ "./src/core/preservation/lexical.ts"
+/*!******************************************!*\
+  !*** ./src/core/preservation/lexical.ts ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   INT: () => (/* binding */ INT),
+/* harmony export */   REAL: () => (/* binding */ REAL),
+/* harmony export */   WORD: () => (/* binding */ WORD),
+/* harmony export */   intLiteral: () => (/* binding */ intLiteral),
+/* harmony export */   realLiteral: () => (/* binding */ realLiteral),
+/* harmony export */   wordLiteral: () => (/* binding */ wordLiteral)
+/* harmony export */ });
+/** Validators keep literal spellings as strings, including radix and zeros. */
+const INT = /^(?:~|-)?(?:0x[0-9a-fA-F]+|[0-9]+)$/;
+const REAL = /^(?:~|-)?[0-9]+(?:\.[0-9]+e(?:~|-)?[0-9]+|e(?:~|-)?[0-9]+|\.[0-9]+)$/;
+const WORD = /^0w(?:x[0-9a-fA-F]+|[0-9]+)$/;
+function intLiteral(value) {
+    return INT.test(value) ? value.replace(/^-/, "~") : null;
+}
+function realLiteral(value) {
+    return REAL.test(value) ? value.replace(/-/g, "~") : null;
+}
+function wordLiteral(value) {
+    const spelling = /^[0-9]+$/.test(value) ? "0w" + value : value;
+    return WORD.test(spelling) ? spelling : null;
+}
+
+
+/***/ },
+
+/***/ "./src/core/preservation/presentation_factoring.ts"
+/*!*********************************************************!*\
+  !*** ./src/core/preservation/presentation_factoring.ts ***!
+  \*********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   factorDerivation: () => (/* binding */ factorDerivation),
+/* harmony export */   factoredGrammar: () => (/* binding */ factoredGrammar),
+/* harmony export */   unfactorDerivation: () => (/* binding */ unfactorDerivation)
+/* harmony export */ });
+/* harmony import */ var _formal_codec__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./formal_codec */ "./src/core/preservation/formal_codec.ts");
+/* harmony import */ var _formal_sml_grammar_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./formal_sml_grammar.json */ "./src/core/preservation/formal_sml_grammar.json");
+
+
+/** Remove the table's list/argument shorthands before the seven-constructor theorem. */
+const factoredGrammar = _formal_sml_grammar_json__WEBPACK_IMPORTED_MODULE_1__.factored_grammar;
+const source = new Map(_formal_codec__WEBPACK_IMPORTED_MODULE_0__.smlGrammar.productions.map(p => [p.id, p]));
+const factored = new Map(factoredGrammar.productions.map(p => [p.id, p]));
+function mapState(e, u, node, forward) {
+    if (e.kind === "args") {
+        if (forward) {
+            if (!u.items.length)
+                return null;
+            const items = u.items.map(node), stem = "__args_" + e.role;
+            return u.style === "bare" ? { p: stem + ".0", rhs: items[0] } : { p: stem + ".1", rhs: ["(", pack(items, 1, ","), ")"] };
+        }
+        if (u === null)
+            return { style: "bare", items: [] };
+        if (u.p === "__args_" + e.role + ".0")
+            return { style: "bare", items: [node(u.rhs)] };
+        if (u.p !== "__args_" + e.role + ".1")
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid argument factoring descriptor");
+        return { style: "parenthesized", items: unpack(u.rhs[1], 1).map(node) };
+    }
+    if (e.kind === "rep" && e.separator) {
+        const minimum = e.min >= 2 || (e.exclude || []).includes(1) ? 2 : 1;
+        if (forward) {
+            if (!u.length)
+                return null;
+            return pack(u.map((x) => mapState(e.item, x, node, true)), minimum, e.separator);
+        }
+        if (u === null)
+            return [];
+        return unpack(u, minimum).map((x) => mapState(e.item, x, node, false));
+    }
+    switch (e.kind) {
+        case "n": return node(u);
+        case "seq": return e.items.map((x, i) => mapState(x, u[i], node, forward));
+        case "opt": return u === null ? null : mapState(e.item, u, node, forward);
+        case "rep": return u.map((x) => mapState(e.item, x, node, forward));
+        case "choice": return { branch: u.branch, value: mapState(e.items[u.branch], u.value, node, forward) };
+        default: return u;
+    }
+}
+function pack(items, minimum, separator) {
+    const result = [items[0]];
+    for (let i = 1; i < minimum; i++)
+        result.push(separator, items[i]);
+    result.push(items.slice(minimum).map(x => [separator, x]));
+    return result;
+}
+function unpack(state, minimum) {
+    return [...Array.from({ length: minimum }, (_, i) => state[i * 2]), ...state[state.length - 1].map((pair) => pair[1])];
+}
+function factorDerivation(d) {
+    const p = source.get(d.p);
+    if (!p)
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Unknown source presentation row");
+    (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.validateDerivation)(d, p.lhs, _formal_codec__WEBPACK_IMPORTED_MODULE_0__.smlGrammar);
+    const node = (d) => ({ p: d.p, rhs: mapState(source.get(d.p).rhs, d.rhs, node, true) });
+    const result = node(d);
+    (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.validateDerivation)(result, p.lhs, factoredGrammar);
+    return result;
+}
+function unfactorDerivation(d) {
+    const p = factored.get(d.p);
+    if (!p || !source.has(d.p))
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Unknown original root row");
+    (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.validateDerivation)(d, p.lhs, factoredGrammar);
+    const node = (d) => ({ p: d.p, rhs: mapState(source.get(d.p).rhs, d.rhs, node, false) });
+    const result = node(d);
+    (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.validateDerivation)(result, p.lhs, _formal_codec__WEBPACK_IMPORTED_MODULE_0__.smlGrammar);
+    return result;
+}
+
+
+/***/ },
+
+/***/ "./src/core/preservation/source_layout.ts"
+/*!************************************************!*\
+  !*** ./src/core/preservation/source_layout.ts ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   installSourceMetadata: () => (/* binding */ installSourceMetadata),
+/* harmony export */   sourceSeparator: () => (/* binding */ sourceSeparator)
+/* harmony export */ });
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+
+/** Source separators are owned tokens, never printer normalization. */
+function sourceSeparator(block, index) {
+    const counts = block.t2bbSource_?.separators;
+    if (!counts)
+        return "";
+    const count = counts[index] ?? 0;
+    if (!Number.isSafeInteger(count) || count < 0)
+        throw new Error("Invalid source separator count");
+    return ";".repeat(count);
+}
+/** Keep provenance through Blockly's own save/load boundary and editor changes. */
+function installSourceMetadata(generator) {
+    for (const definition of Object.values(blockly__WEBPACK_IMPORTED_MODULE_0__.Blocks)) {
+        if (definition.__t2bbSourceInstalled)
+            continue;
+        const save = definition.saveExtraState, load = definition.loadExtraState;
+        definition.saveExtraState = function (...args) {
+            const state = save ? save.apply(this, args) : {};
+            return { ...state, ...(this.t2bbSource_ ? { t2bbSource: this.t2bbSource_ } : {}) };
+        };
+        definition.loadExtraState = function (state, ...args) {
+            this.t2bbSource_ = state?.t2bbSource;
+            this.t2bbLoading_ = true;
+            try {
+                if (load)
+                    load.call(this, state, ...args);
+            }
+            finally {
+                this.t2bbLoading_ = false;
+            }
+        };
+        const shape = definition.updateShape_;
+        if (shape)
+            definition.updateShape_ = function (...args) {
+                const result = shape.apply(this, args);
+                const counts = this.t2bbSource_?.separators;
+                if (!this.t2bbLoading_ && counts && counts.every((n) => Number.isSafeInteger(n) && n >= 0)) {
+                    const count = this.type === "program" && this.itemCount_ === 1 && !this.getInputTargetBlock("ADD0") ? 0 : this.itemCount_;
+                    if (counts.length !== count + 1) {
+                        // Preserve existing tokens when an editor mutation adds/removes slots.
+                        const next = Array(count + 1).fill(0);
+                        counts.forEach((n, i) => { next[Math.min(i, count)] += n; });
+                        this.t2bbSource_ = { ...this.t2bbSource_, separators: next };
+                    }
+                }
+                return result;
+            };
+        definition.__t2bbSourceInstalled = true;
+    }
+    for (const type of Object.keys(generator.forBlock)) {
+        const original = generator.forBlock[type];
+        if (original.__t2bbSourceInstalled)
+            continue;
+        const wrapped = function (block, ...args) {
+            const result = original(block, ...args);
+            const boundary = block.t2bbSource_?.boundary;
+            if (!boundary)
+                return result;
+            if (boundary.length !== 2 || boundary.some((n) => !Number.isSafeInteger(n) || n < 0)) {
+                throw new Error("Invalid source separator boundary");
+            }
+            const decorate = (code) => ";".repeat(boundary[0]) + code + ";".repeat(boundary[1]);
+            return Array.isArray(result) ? [decorate(result[0]), result[1]] : decorate(result);
+        };
+        wrapped.__t2bbSourceInstalled = true;
+        generator.forBlock[type] = wrapped;
+    }
+}
+
+
+/***/ },
+
+/***/ "./src/core/preservation/visml_decoder.ts"
+/*!************************************************!*\
+  !*** ./src/core/preservation/visml_decoder.ts ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   decodeVismlWorkspace: () => (/* binding */ decodeVismlWorkspace),
+/* harmony export */   lexicalDerivation: () => (/* binding */ lexicalDerivation),
+/* harmony export */   validateVismlWorkspace: () => (/* binding */ validateVismlWorkspace)
+/* harmony export */ });
+/* harmony import */ var _formal_codec__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./formal_codec */ "./src/core/preservation/formal_codec.ts");
+
+/** Explicit bindings to source rows; no tooltips or regenerated text are read. */
+function asciiUnits(text) {
+    const units = text.match(/\\(?:\s+\\|[0-9]{3}|\^[\x40-\x5f]|.)|[^\\]/gs) || [];
+    if (units.join("") !== text)
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid ASCII escape payload");
+    return units;
+}
+function lexicalDerivation(kind, text) {
+    const num = (s) => (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("num.0", s.split(""));
+    const hex = (s) => (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("hex.0", s.split(""));
+    const branch = (ch) => ({ branch: /[A-Za-z]/.test(ch) ? 0 : /[0-9]/.test(ch) ? 1 : ch === "'" ? 2 : 3, value: ch });
+    if (kind === "id") {
+        if (/^[A-Za-z][A-Za-z0-9_']*$/.test(text))
+            return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("id.0", text[0], text.slice(1).split("").map(branch));
+        const symbols = "!%&$#+-/:<=>?@\\~^|*";
+        return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("id.1", text.split("").map(ch => ({ branch: symbols.indexOf(ch), value: ch })));
+    }
+    if (kind === "var") {
+        if (!/^'{1,2}[A-Za-z0-9_']*$/.test(text))
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid type-variable payload");
+        return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(text.startsWith("''") ? "var.1" : "var.0", text.slice(text.startsWith("''") ? 2 : 1).split("").map(branch));
+    }
+    if (kind === "int") {
+        const m = /^(~)?(0x)?([0-9A-Fa-f]+)$/.exec(text);
+        if (!m)
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid integer payload");
+        return m[2] ? (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("int.1", m[1] ? true : null, hex(m[3])) : (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("int.0", m[1] ? true : null, num(m[3]));
+    }
+    if (kind === "word") {
+        const m = /^0w(x)?([0-9A-Fa-f]+)$/.exec(text);
+        if (!m)
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid word payload");
+        return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(m[1] ? "word.1" : "word.0", m[1] ? hex(m[2]) : num(m[2]));
+    }
+    if (kind === "float") {
+        const m = /^(~)?([0-9]+)(?:\.([0-9]+))?(?:e(~)?([0-9]+))?$/.exec(text);
+        if (!m || (!m[3] && !m[5]))
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid real payload");
+        return m[5] ? (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("float.1", m[1] ? true : null, num(m[2]), m[3] ? num(m[3]) : null, m[4] ? true : null, num(m[5])) : (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("float.0", m[1] ? true : null, num(m[2]), num(m[3]));
+    }
+    if (kind === "string")
+        return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("string.0", asciiUnits(text).map(ch => (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("ascii.0", ch)));
+    if (kind === "char") {
+        const units = asciiUnits(text);
+        if (units.length !== 1)
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Character must contain exactly one ASCII/escape unit");
+        return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("char.0", (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("ascii.0", units[0]));
+    }
+    throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`Unknown lexical role ${kind}`);
+}
+function coerce(d, expected) {
+    if ((0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.role)(d) === expected)
+        return d;
+    const aliases = [..._formal_codec__WEBPACK_IMPORTED_MODULE_0__.productions.values()].filter(p => p.lhs === expected && p.rhs.kind === "n" && p.rhs.role === (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.role)(d));
+    if (aliases.length !== 1)
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`No unique one-step alias ${expected} -> ${(0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.role)(d)}`);
+    return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(aliases[0].id, d);
+}
+function appendTail(d, tail) {
+    if (!tail)
+        return d;
+    if (d.p === "valbind.1")
+        return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("valbind.1", appendTail(d.rhs, tail));
+    const p = _formal_codec__WEBPACK_IMPORTED_MODULE_0__.productions.get(d.p), e = p.rhs.items?.[p.rhs.items.length - 1];
+    if (e?.kind !== "opt" || e.item.kind !== "seq" || e.item.items[e.item.items.length - 1]?.kind !== "n" || e.item.items[e.item.items.length - 1].role !== (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.role)(tail))
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`No recursive tail for ${d.p}`);
+    const copy = JSON.parse(JSON.stringify(d));
+    copy.rhs[copy.rhs.length - 1] = e.item.items.map((x) => x.kind === "t" ? x.value : tail);
+    return copy;
+}
+function chain(items) { return items.reduceRight((tail, item) => appendTail(item, tail), null); }
+function sequence(items, root, separators) {
+    const empty = () => (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(root === "prog" ? "prog.3" : root === "dec" ? "dec.8" : "spec.8");
+    const p = root === "prog" ? "prog.4" : root === "dec" ? "dec.9" : "spec.9";
+    const counts = separators || Array(items.length + 1).fill(0);
+    if (counts.length !== items.length + 1 || counts.some(n => !Number.isSafeInteger(n) || n < 0))
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid source separator state");
+    if (!items.length) {
+        let d = empty();
+        for (let i = 0; i < counts[0]; i++)
+            d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(p, empty(), true, d);
+        return d;
+    }
+    const nodes = [], tags = [];
+    if (counts[0] > 0) {
+        nodes.push(empty());
+        for (let j = 1; j < counts[0]; j++) {
+            tags.push(true);
+            nodes.push(empty());
+        }
+        tags.push(true);
+    }
+    items.forEach((item, i) => {
+        nodes.push(item);
+        const count = counts[i + 1];
+        if (i + 1 < items.length) {
+            for (let j = 1; j < count; j++) {
+                tags.push(true);
+                nodes.push(empty());
+            }
+            tags.push(count > 0);
+        }
+        else
+            for (let j = 0; j < count; j++) {
+                tags.push(true);
+                nodes.push(empty());
+            }
+    });
+    if (!nodes.length)
+        return empty();
+    let tail = nodes[nodes.length - 1];
+    for (let i = nodes.length - 2; i >= 0; i--)
+        tail = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(p, nodes[i], tags[i] ? true : null, tail);
+    return tail;
+}
+function decodeVismlWorkspace(state) {
+    const tops = state?.blocks?.blocks;
+    if (!Array.isArray(tops) || tops.length !== 1 || tops[0].type !== "program")
+        throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Exactly one program root is required");
+    const seen = new Set(), ids = new Set();
+    const decode = (b, expected) => {
+        if (!b || typeof b !== "object" || seen.has(b))
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Missing, cyclic or shared block");
+        seen.add(b);
+        if (typeof b.id !== "string" || ids.has(b.id))
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Duplicate/missing block ID");
+        ids.add(b.id);
+        if (b.next)
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Unexpected statement chain in a value realization");
+        const used = new Set(), fields = b.fields || {}, extra = b.extraState || {};
+        const f = (key, defaultValue = "") => { const v = fields[key] ?? defaultValue; return v === true ? "TRUE" : v === false ? "FALSE" : v; };
+        for (const [key, value] of Object.entries(fields)) {
+            if (key.startsWith("chk") && !["TRUE", "FALSE", true, false].includes(value))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${b.type}: invalid optional tag ${key}`);
+        }
+        const selectors = { spec_type_sharing: { sharingType: ["", "type"] }, exp_primtv_optr_arith: { opt: ["+", "-", "*", "/"] }, exp_primtv_optr_logic: { opt: ["=", "<>", "<", "<=", ">", ">="] }, id_var: { constrType: ["'", "''"] }, id_lab: { MODE: ["NUM", "ID"] }, exp_bound: { opt: ["NON_OP", "OP"] }, pat_id: { OP: ["nothing", "operator"] }, pat_long_id: { OP: ["nothing", "operator"], patOpt: ["nothing", "pattern"] }, pat_layered: { Op: ["nothing", "operator"] }, valbind: { recVal: ["", "rec"] }, funmatch_nonfix: { optr: [" ", "op"] }, strbind_single: { greatherSign: ["", ">"] }, fctbind_plain: { isTrans: ["", ">"] }, fctbind_opened: { isTrans: ["", ">"] } };
+        for (const [key, values] of Object.entries(selectors[b.type] || {})) {
+            if (fields[key] !== undefined && !values.includes(fields[key]))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${b.type}: invalid selector ${key}`);
+        }
+        const has = (key) => !!b.inputs?.[key]?.block;
+        if (b.type === "pat_long_id" && fields.patOpt !== undefined && (f("patOpt") === "pattern") !== has("PATTERN"))
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Inconsistent pattern optional tag");
+        const child = (key, role, nullable = false) => {
+            used.add(key);
+            if (!has(key)) {
+                if (nullable && ["dec", "spec"].includes(role))
+                    return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(role === "dec" ? "dec.8" : "spec.8");
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${b.type}: missing ${key}`);
+            }
+            return decode(b.inputs[key].block, role);
+        };
+        const optional = (key, role, flag) => {
+            if (flag && fields[flag] !== undefined && (f(flag) === "TRUE") !== has(key))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${b.type}: inconsistent optional tag ${flag}`);
+            used.add(key);
+            return has(key) ? child(key, role) : null;
+        };
+        const list = (role, prefix = "ADD") => {
+            const count = b.type === "typ_constructor" && extra.itemCount == null ? 0 : extra.itemCount;
+            if (!Number.isSafeInteger(count) || count < 0)
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${b.type}: invalid repetition count`);
+            return Array.from({ length: count }, (_, i) => child(prefix + i, role));
+        };
+        const args = (key, flag) => {
+            if (flag && fields[flag] !== undefined && (f(flag) === "TRUE") !== has(key))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${b.type}: inconsistent argument tag ${flag}`);
+            used.add(key);
+            if (!has(key))
+                return { style: "bare", items: [] };
+            const arg = b.inputs[key].block;
+            if (arg.type !== "id_long_var")
+                return { style: "bare", items: [decode(arg, "var")] };
+            if (typeof arg.id !== "string" || arg.next || seen.has(arg) || ids.has(arg.id))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Shared argument helper");
+            seen.add(arg);
+            ids.add(arg.id);
+            const count = arg.extraState?.itemCount;
+            if (!Number.isSafeInteger(count) || count < 1)
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Invalid argument helper count");
+            const items = Array.from({ length: count }, (_, i) => decode(arg.inputs?.["ADD" + i]?.block, "var"));
+            if (Object.keys(arg.inputs || {}).some(k => !/^ADD\d+$/.test(k) || Number(k.slice(3)) >= count))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Extra argument input");
+            return { style: arg.extraState?.t2bbSource?.argumentStyle ?? (count > 1 ? "parenthesized" : "bare"), items };
+        };
+        const sigConstraint = (key, flag, selector) => {
+            const sig = optional(key, "sig", flag);
+            return sig ? [f(selector) === '>' ? true : null, sig] : null;
+        };
+        let d;
+        const type = b.type;
+        const wrappers = { program_functor: ["prog.1", "fctbind", "fctbind"], program_signature: ["prog.2", "sigbind", "sigbind"], exp_raise: ["exp.12", "exp", "exp"], exp_fn: ["exp.19", "fn", "match"], exp_record_select: ["exp.7", "lab", "lab"], exp_parentheses: ["exp.4", "exp", "exp"], pat_parentheses: ["pat.5", "pat", "pat"], typ_parentheses: ["typ.2", "typ", "typ"], typ_var: ["typ.0", "typ_var", "var"], dec_type: ["dec.2", "typbind", "typbind"], dec_exception: ["dec.6", "exnbind", "exnbind"], dec_structure: ["dec.7", "strbind", "strbind"], str_identifier: ["str.0", "longId", "longid"], sig_id: ["sig.0", "id", "id"], spec_value: ["spec.0", "valdesc", "valdesc"], spec_type: ["spec.1", "typdesc", "typdesc"], spec_equality_type: ["spec.2", "typdesc", "typdesc"], spec_type_abbreviation: ["spec.3", "typbind", "typbind"], spec_datatype: ["spec.4", "datdesc", "datdesc"], spec_exception: ["spec.6", "exndesc", "exndesc"], spec_structure: ["spec.7", "strdesc", "strdesc"], spec_inclusion_sig: ["spec.10", "sig", "sig"] };
+        const binaries = { exp_application: ["exp.2", "exp1", "exp", "exp2", "exp"], exp_with_type: ["exp.11", "exp", "exp", "typ", "typ"], exp_handle: ["exp.13", "exp", "exp", "match", "match"], exp_andalso: ["exp.14", "exp1", "exp", "exp2", "exp"], exp_orelse: ["exp.15", "exp1", "exp", "exp2", "exp"], exp_while_do: ["exp.17", "while", "exp", "do", "exp"], exp_case: ["exp.18", "case", "exp", "of", "match"], pat_type_annotation: ["pat.9", "pat", "pat", "typ", "typ"], typ_function: ["typ.3", "from", "typ", "to", "typ"], str_transparent_annotation: ["str.2", "str", "str", "sig", "sig"], str_opaque_annotation: ["str.3", "str", "str", "sig", "sig"], str_functor_application_str: ["str.4", "id", "id", "str", "str"], str_functor_application_dec: ["str.5", "id", "id", "dec", "dec"], sig_refinement: ["sig.2", "sig", "sig", "typrefin", "typrefin"] };
+        const containers = { typebind_more_inhabitants: "typbind", databind_more_inhabitants: "datbind", conbind_more_inhabitants: "conbind", exnbind_more_inhabitants: "exnbind", strbind_nested: "strbind", sigbind_nested: "sigbind", typrefin_nested: "typrefin", valdesc_nested: "valdesc", typdesc_nested: "typdesc", datdesc_nested: "datdesc", condesc_nested: "condesc", exndesc_nested: "exndesc", strdesc_nested: "strdesc", fctbind_nested: "fctbind", matchs: "match", funmatch_more_row: "funmatch" };
+        if (wrappers[type]) {
+            const [p, k, r] = wrappers[type];
+            d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(p, child(k, r));
+        }
+        else if (binaries[type]) {
+            const [p, a, ar, c, cr] = binaries[type];
+            d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(p, child(a, ar), child(c, cr));
+        }
+        else if (containers[type]) {
+            d = chain(list(containers[type]));
+            if (!d)
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Empty recursive container");
+        }
+        else
+            switch (type) {
+                case "dec_empty":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.8");
+                    break;
+                case "spec_empty":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("spec.8");
+                    break;
+                case "program": {
+                    const items = extra.itemCount === 1 && !has("ADD0") ? [] : list("prog");
+                    d = sequence(items, "prog", extra.t2bbSource?.separators);
+                    break;
+                }
+                case "con_int":
+                case "con_word":
+                case "con_float":
+                case "con_char":
+                case "con_string": {
+                    const kind = { con_int: ["con.0", "int", "0"], con_word: ["con.1", "word", "0w0"], con_float: ["con.2", "float", "0.0"], con_char: ["con.3", "char", "a"], con_string: ["con.4", "string", ""] };
+                    const [p, k, v] = kind[type];
+                    let value = String(f("inputValue", v));
+                    if (k === "word" && !value.startsWith("0w"))
+                        value = "0w" + value;
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(p, lexicalDerivation(k, ["int", "float"].includes(k) ? value.replace(/-/g, "~") : value));
+                    break;
+                }
+                case "id_id":
+                    d = lexicalDerivation("id", String(f("inputValue", "x")));
+                    break;
+                case "id_var":
+                    d = lexicalDerivation("var", String(f("constrType", "'")) + String(f("inputValue", "a")));
+                    break;
+                case "id_long_id":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("longid.0", list("id"));
+                    break;
+                case "id_lab":
+                    d = f("MODE", "NUM") === "ID" ? (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("lab.0", child("inputId", "id")) : (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("lab.1", (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("num.0", String(f("inputNum", "1")).split("")));
+                    break;
+                case "exp_bound":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exp.1", f("opt") === "OP" ? true : null, child("longid", "longid"));
+                    break;
+                case "exp_infix_application":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exp.3", child("exp1", "exp"), child("id", "id"), child("exp2", "exp"));
+                    break;
+                case "exp_primtv_optr_arith":
+                case "exp_primtv_optr_logic":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exp.3", child("exp_1", "exp"), lexicalDerivation("id", String(f("opt", type.endsWith("arith") ? "+" : "="))), child("exp_2", "exp"));
+                    break;
+                case "exp_if_else":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exp.16", child("if", "exp"), child("then", "exp"), child("else", "exp"));
+                    break;
+                case "exp_tuple":
+                case "exp_list":
+                case "exp_sequence":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(type === "exp_tuple" ? "exp.5" : type === "exp_list" ? "exp.8" : "exp.9", list("exp"));
+                    break;
+                case "exp_let_in_end":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exp.10", child("let", "dec", true), list("exp"));
+                    break;
+                case "exp_record":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exp.6", chain(list("exprow")));
+                    break;
+                case "exprow":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exprow.0", child("lab", "lab"), child("exp", "exp"), null);
+                    break;
+                case "match":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("match.0", child("pat", "pat"), child("exp", "exp"), null);
+                    break;
+                case "pat_wildcard":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("pat.1");
+                    break;
+                case "pat_id":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("pat.2", f("OP") === "operator" ? true : null, child("id", "id"));
+                    break;
+                case "pat_long_id":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("pat.3", f("OP") === "operator" ? true : null, child("longId", "longid"), optional("PATTERN", "pat"));
+                    break;
+                case "pat_infix":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("pat.4", child("pat_lhs", "pat"), child("id", "id"), child("pat_rhs", "pat"));
+                    break;
+                case "pat_layered":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("pat.10", f("Op") === "operator" ? true : null, child("id", "id"), optional("inTyp", "typ", "chkTyp"), child("inPat", "pat"));
+                    break;
+                case "pat_tuple":
+                case "pat_list":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(type === "pat_tuple" ? "pat.6" : "pat.8", list("pat"));
+                    break;
+                case "pat_record":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("pat.7", chain(list("patrow")));
+                    break;
+                case "patrow_wildcard":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("patrow.0");
+                    break;
+                case "patrow_lab_pat":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("patrow.1", child("lab", "lab"), child("pat", "pat"), null);
+                    break;
+                case "patrow_variable":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("patrow.2", child("id", "id"), optional("inTyp", "typ", "chkTyp"), optional("inPat", "pat", "chkAs"), null);
+                    break;
+                case "typ_primtv":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typ.1", { style: "bare", items: [] }, (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("longid.0", [lexicalDerivation("id", String(f("type", "int")))]));
+                    break;
+                case "typ_list":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typ.1", { style: "bare", items: [child("typ", "typ")] }, (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("longid.0", [lexicalDerivation("id", "list")]));
+                    break;
+                case "typ_constructor": {
+                    const items = list("typ");
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typ.1", { style: items.length > 1 ? "parenthesized" : "bare", items }, child("longid", "longid"));
+                    break;
+                }
+                case "typ_tuple":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typ.4", list("typ"));
+                    break;
+                case "typ_record": {
+                    const labs = list("lab"), types = list("typ", "TYP");
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typ.5", chain(labs.map((l, i) => (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typrow.0", l, types[i], null))));
+                    break;
+                }
+                case "dec_val": {
+                    const bindings = list("valbind");
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.0", args("inVar", "chkTyp"), chain(bindings));
+                    break;
+                }
+                case "valbind": {
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("valbind.0", child("pat", "pat"), child("exp", "exp"), null);
+                    if (f("recVal") === "rec")
+                        d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("valbind.1", d);
+                    break;
+                }
+                case "dec_fun": {
+                    const clauses = list("funmatch").map(x => (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("funbind.0", x, null));
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.1", args("inVar", "chkTyp"), chain(clauses));
+                    break;
+                }
+                case "funmatch_nonfix":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("funmatch.0", String(f("optr")).trim() === "op" ? true : null, child("id", "id"), list("pat"), optional("inVar", "typ", "chkTyp"), child("exp", "exp"), null);
+                    break;
+                case "funmatch_infix":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("funmatch.1", child("pat1", "pat"), child("id", "id"), child("pat2", "pat"), optional("inTyp", "typ", "chkTyp"), child("inexp", "exp"), null);
+                    break;
+                case "funmatch_infix_n_inhabitant":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("funmatch.2", child("pat1", "pat"), child("id", "id"), child("pat2", "pat"), list("pat"), optional("inVar", "typ", "chkTyp"), child("exp", "exp"), null);
+                    break;
+                case "dec_datatype_bind":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.3", child("datbind", "datbind"), optional("inVar", "typbind", "chkTyp"));
+                    break;
+                case "dec_datatype_replication":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.4", child("id", "id"), child("longid", "longid"));
+                    break;
+                case "dec_abstype":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.5", child("datbind", "datbind"), optional("inVar", "typbind", "chkTyp"), child("withDec", "dec", true));
+                    break;
+                case "dec_local":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.10", child("local", "dec", true), child("in", "dec", true));
+                    break;
+                case "dec_sequence":
+                case "spec_sequence":
+                    d = sequence(list(type === "dec_sequence" ? "dec" : "spec"), type === "dec_sequence" ? "dec" : "spec", extra.t2bbSource?.separators);
+                    break;
+                case "dec_open":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.11", list("longid"));
+                    break;
+                case "dec_nonfix":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("dec.12", list("id"));
+                    break;
+                case "dec_infix":
+                case "dec_infixr":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(type === "dec_infix" ? "dec.13" : "dec.14", String(f("digit")).trim() || null, list("id"));
+                    break;
+                case "typbind":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typbind.0", args("inVar", "chkTyp"), child("id", "id"), child("inTyp", "typ"), null);
+                    break;
+                case "datbind":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("datbind.0", args("inVar", "chkTyp"), child("id", "id"), child("inConbind", "conbind"), null);
+                    break;
+                case "conbind":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("conbind.0", child("id", "id"), optional("inVar", "typ", "chkTyp"), null);
+                    break;
+                case "exnbind":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exnbind.0", child("id", "id"), optional("inVar", "typ", "chkTyp"), null);
+                    break;
+                case "exnbind_renaming":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exnbind.1", child("id", "id"), child("longId", "longid"), null);
+                    break;
+                case "str_structure":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("str.1", child("dec", "dec", true));
+                    break;
+                case "str_local_declaration":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("str.6", child("dec", "dec", true), child("str", "str"));
+                    break;
+                case "strbind_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("strbind.0", child("id", "id"), sigConstraint("inputSig", "chkSub", "greatherSign"), child("inputStr", "str"), null);
+                    break;
+                case "sig_signature":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("sig.1", child("spec", "spec", true));
+                    break;
+                case "typrefin_single": {
+                    const v = optional("inputVar", "var", "chkSub");
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typrefin.0", { style: "bare", items: v ? [v] : [] }, child("inputLongid", "longid"), child("inputTyp", "typ"), null);
+                    break;
+                }
+                case "spec_datatype_replication":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("spec.5", child("datId", "id"), child("datLongId", "longid"));
+                    break;
+                case "spec_inclusion":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("spec.11", list("id"));
+                    break;
+                case "spec_type_sharing":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)(f("sharingType") === "type" ? "spec.12" : "spec.13", child("specBlock", "spec", true), list("longid"));
+                    break;
+                case "valdesc_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("valdesc.0", child("inputId", "id"), child("inputTyp", "typ"), null);
+                    break;
+                case "typdesc_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("typdesc.0", args("inputVar", "chkSub"), child("inputId", "id"), null);
+                    break;
+                case "datdesc_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("datdesc.0", args("inputVar", "chkSub"), child("inputId", "id"), child("inputConDesc", "condesc"), null);
+                    break;
+                case "condesc_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("condesc.0", child("inputId", "id"), optional("inputVar", "typ", "chkSub"), null);
+                    break;
+                case "exndesc_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("exndesc.0", child("inputId", "id"), optional("inputVar", "typ", "chkSub"), null);
+                    break;
+                case "strdesc_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("strdesc.0", child("inputId", "id"), child("inputSig", "sig"), null);
+                    break;
+                case "sigbind_single":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("sigbind.0", child("inputId", "id"), child("inputVar", "sig"), null);
+                    break;
+                case "fctbind_plain":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("fctbind.0", child("inputId1", "id"), child("inputId2", "id"), child("inputSig", "sig"), sigConstraint("inputVar", "chkSub", "isTrans"), child("inputStr", "str"), null);
+                    break;
+                case "fctbind_opened":
+                    d = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.make)("fctbind.1", child("inputId", "id"), child("inputSpec", "spec", true), sigConstraint("inputVar", "chkSub", "isTrans"), child("inputStr", "str"), null);
+                    break;
+                default: throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`No formal source binding for ${type}`);
+            }
+        if (Object.keys(b.inputs || {}).some(k => !used.has(k) && b.inputs[k]?.block))
+            throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError(`${type}: unexpected input occurrence`);
+        if (extra.t2bbSource?.boundary) {
+            const root = (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.role)(d);
+            if (!["dec", "spec"].includes(root))
+                throw new _formal_codec__WEBPACK_IMPORTED_MODULE_0__.PreservationError("Layout boundary on non-sequence role");
+            d = sequence([d], root, extra.t2bbSource.boundary);
+        }
+        return coerce(d, expected);
+    };
+    const d = decode(tops[0], "prog");
+    (0,_formal_codec__WEBPACK_IMPORTED_MODULE_0__.validateDerivation)(d);
+    return d;
+}
+function validateVismlWorkspace(state) {
+    try {
+        decodeVismlWorkspace(state);
+        return { ok: true };
+    }
+    catch (e) {
+        return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+    }
+}
+
+
+/***/ },
+
+/***/ "./src/core/preservation/workspace_export.ts"
+/*!***************************************************!*\
+  !*** ./src/core/preservation/workspace_export.ts ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   preservingWorkspaceToCode: () => (/* binding */ preservingWorkspaceToCode)
+/* harmony export */ });
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+/* harmony import */ var _visml_decoder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./visml_decoder */ "./src/core/preservation/visml_decoder.ts");
+/* harmony import */ var _formal_codec__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./formal_codec */ "./src/core/preservation/formal_codec.ts");
+/* harmony import */ var _presentation_factoring__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./presentation_factoring */ "./src/core/preservation/presentation_factoring.ts");
+
+
+
+
+/** Export only complete, structurally decoded workspaces. */
+function preservingWorkspaceToCode(workspace) {
+    const derivation = (0,_visml_decoder__WEBPACK_IMPORTED_MODULE_1__.decodeVismlWorkspace)(blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.save(workspace));
+    (0,_presentation_factoring__WEBPACK_IMPORTED_MODULE_3__.factorDerivation)(derivation); // Validate the elaborated seven-constructor grammar too.
+    return (0,_formal_codec__WEBPACK_IMPORTED_MODULE_2__.renderDerivation)(derivation, undefined, true);
 }
 
 
@@ -18896,149 +19997,155 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySmlEditorNow: () => (/* binding */ applySmlEditorNow),
 /* harmony export */   convertSmlToVisml: () => (/* binding */ convertSmlToVisml),
-/* harmony export */   getAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.getAutosaveIntervalMinutes),
+/* harmony export */   getAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.getAutosaveIntervalMinutes),
 /* harmony export */   getRendererName: () => (/* binding */ getRendererName),
-/* harmony export */   menuLoadAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.menuLoadAutosave),
-/* harmony export */   menuLoadFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.menuLoadFile),
-/* harmony export */   menuSaveFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.menuSaveFile),
+/* harmony export */   menuLoadAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.menuLoadAutosave),
+/* harmony export */   menuLoadFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.menuLoadFile),
+/* harmony export */   menuSaveFile: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.menuSaveFile),
 /* harmony export */   refreshGeneratedCode: () => (/* binding */ refreshGeneratedCode),
 /* harmony export */   requestLayoutUpdate: () => (/* binding */ requestLayoutUpdate),
-/* harmony export */   sampleLoader: () => (/* reexport safe */ _sample_sample_loader__WEBPACK_IMPORTED_MODULE_123__.sampleLoader),
-/* harmony export */   saveAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.saveAutosave),
-/* harmony export */   setAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.setAutosaveIntervalMinutes),
+/* harmony export */   sampleLoader: () => (/* reexport safe */ _sample_sample_loader__WEBPACK_IMPORTED_MODULE_127__.sampleLoader),
+/* harmony export */   saveAutosave: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.saveAutosave),
+/* harmony export */   setAutosaveIntervalMinutes: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.setAutosaveIntervalMinutes),
 /* harmony export */   setRenderer: () => (/* binding */ setRenderer),
-/* harmony export */   setThemesBnW: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_121__.setThemesBnW),
-/* harmony export */   setThemestarsius: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_121__.setThemestarsius),
-/* harmony export */   startAutosaveTimer: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.startAutosaveTimer),
+/* harmony export */   setThemesBnW: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_125__.setThemesBnW),
+/* harmony export */   setThemestarsius: () => (/* reexport safe */ _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_125__.setThemestarsius),
+/* harmony export */   startAutosaveTimer: () => (/* reexport safe */ _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.startAutosaveTimer),
 /* harmony export */   tarsiusWorkspace: () => (/* binding */ tarsiusWorkspace)
 /* harmony export */ });
-/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
-/* harmony import */ var _core_blocks_programs_program__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core/blocks/programs/program */ "./src/core/blocks/programs/program.ts");
-/* harmony import */ var _core_blocks_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./core/blocks/constants */ "./src/core/blocks/constants.ts");
-/* harmony import */ var _core_blocks_identifiers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./core/blocks/identifiers */ "./src/core/blocks/identifiers.ts");
-/* harmony import */ var _core_blocks_expressions_expressions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./core/blocks/expressions/expressions */ "./src/core/blocks/expressions/expressions.ts");
-/* harmony import */ var _core_blocks_expressions_expression_let_in_end__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./core/blocks/expressions/expression_let_in_end */ "./src/core/blocks/expressions/expression_let_in_end.ts");
-/* harmony import */ var _core_blocks_expressions_expression_list__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./core/blocks/expressions/expression_list */ "./src/core/blocks/expressions/expression_list.ts");
-/* harmony import */ var _core_blocks_expressions_expression_record__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./core/blocks/expressions/expression_record */ "./src/core/blocks/expressions/expression_record.ts");
-/* harmony import */ var _core_blocks_expressions_exprow__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./core/blocks/expressions/exprow */ "./src/core/blocks/expressions/exprow.ts");
-/* harmony import */ var _core_blocks_expressions_expression_tuple__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./core/blocks/expressions/expression_tuple */ "./src/core/blocks/expressions/expression_tuple.ts");
-/* harmony import */ var _core_blocks_expressions_expression_sequence__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./core/blocks/expressions/expression_sequence */ "./src/core/blocks/expressions/expression_sequence.ts");
-/* harmony import */ var _core_blocks_expressions_match__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./core/blocks/expressions/match */ "./src/core/blocks/expressions/match.ts");
-/* harmony import */ var _core_blocks_patterns_patterns__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./core/blocks/patterns/patterns */ "./src/core/blocks/patterns/patterns.ts");
-/* harmony import */ var _core_blocks_patterns_pattern_record__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./core/blocks/patterns/pattern_record */ "./src/core/blocks/patterns/pattern_record.ts");
-/* harmony import */ var _core_blocks_patterns_patrows__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./core/blocks/patterns/patrows */ "./src/core/blocks/patterns/patrows.ts");
-/* harmony import */ var _core_blocks_patterns_pattern_tuple__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./core/blocks/patterns/pattern_tuple */ "./src/core/blocks/patterns/pattern_tuple.ts");
-/* harmony import */ var _core_blocks_patterns_pattern_list__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./core/blocks/patterns/pattern_list */ "./src/core/blocks/patterns/pattern_list.ts");
-/* harmony import */ var _core_blocks_types_types__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./core/blocks/types/types */ "./src/core/blocks/types/types.ts");
-/* harmony import */ var _core_blocks_types_type_constructor__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./core/blocks/types/type_constructor */ "./src/core/blocks/types/type_constructor.ts");
-/* harmony import */ var _core_blocks_types_type_tuple__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./core/blocks/types/type_tuple */ "./src/core/blocks/types/type_tuple.ts");
-/* harmony import */ var _core_blocks_types_type_record__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./core/blocks/types/type_record */ "./src/core/blocks/types/type_record.ts");
-/* harmony import */ var _core_blocks_types_type_primitives__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./core/blocks/types/type_primitives */ "./src/core/blocks/types/type_primitives.ts");
-/* harmony import */ var _core_blocks_declarations_declarations__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./core/blocks/declarations/declarations */ "./src/core/blocks/declarations/declarations.ts");
-/* harmony import */ var _core_blocks_declarations_declaration_sequence__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_sequence */ "./src/core/blocks/declarations/declaration_sequence.ts");
-/* harmony import */ var _core_blocks_declarations_declaration_open__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_open */ "./src/core/blocks/declarations/declaration_open.ts");
-/* harmony import */ var _core_blocks_declarations_declaration_nonfix__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_nonfix */ "./src/core/blocks/declarations/declaration_nonfix.ts");
-/* harmony import */ var _core_blocks_declarations_declaration_infix__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_infix */ "./src/core/blocks/declarations/declaration_infix.ts");
-/* harmony import */ var _core_blocks_declarations_declaration_infiixr__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_infiixr */ "./src/core/blocks/declarations/declaration_infiixr.ts");
-/* harmony import */ var _core_blocks_declarations_value_declaration_val__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./core/blocks/declarations/value/declaration_val */ "./src/core/blocks/declarations/value/declaration_val.ts");
-/* harmony import */ var _core_blocks_declarations_value_valbind__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ./core/blocks/declarations/value/valbind */ "./src/core/blocks/declarations/value/valbind.ts");
-/* harmony import */ var _core_blocks_identifier_long_var__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./core/blocks/identifier_long_var */ "./src/core/blocks/identifier_long_var.ts");
-/* harmony import */ var _core_blocks_declarations_function_declaration_fun__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ./core/blocks/declarations/function/declaration_fun */ "./src/core/blocks/declarations/function/declaration_fun.ts");
-/* harmony import */ var _core_blocks_declarations_function_funmatch__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./core/blocks/declarations/function/funmatch */ "./src/core/blocks/declarations/function/funmatch.ts");
-/* harmony import */ var _core_blocks_declarations_function_funmatch_infix_n__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! ./core/blocks/declarations/function/funmatch_infix_n */ "./src/core/blocks/declarations/function/funmatch_infix_n.ts");
-/* harmony import */ var _core_blocks_declarations_function_funmatch_nonfix__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! ./core/blocks/declarations/function/funmatch_nonfix */ "./src/core/blocks/declarations/function/funmatch_nonfix.ts");
-/* harmony import */ var _core_blocks_declarations_typbind__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! ./core/blocks/declarations/typbind */ "./src/core/blocks/declarations/typbind.ts");
-/* harmony import */ var _core_blocks_declarations_datbind__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ./core/blocks/declarations/datbind */ "./src/core/blocks/declarations/datbind.ts");
-/* harmony import */ var _core_blocks_declarations_conbind__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ./core/blocks/declarations/conbind */ "./src/core/blocks/declarations/conbind.ts");
-/* harmony import */ var _core_blocks_declarations_exnbind__WEBPACK_IMPORTED_MODULE_38__ = __webpack_require__(/*! ./core/blocks/declarations/exnbind */ "./src/core/blocks/declarations/exnbind.ts");
-/* harmony import */ var _core_blocks_module_language_structures_str__WEBPACK_IMPORTED_MODULE_39__ = __webpack_require__(/*! ./core/blocks/module_language/structures/str */ "./src/core/blocks/module_language/structures/str.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_sig__WEBPACK_IMPORTED_MODULE_40__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/sig */ "./src/core/blocks/module_language/signatures/sig.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_typrefin__WEBPACK_IMPORTED_MODULE_41__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/typrefin */ "./src/core/blocks/module_language/signatures/typrefin.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_spec__WEBPACK_IMPORTED_MODULE_42__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec */ "./src/core/blocks/module_language/signatures/spec.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_valdesc__WEBPACK_IMPORTED_MODULE_43__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/valdesc */ "./src/core/blocks/module_language/signatures/valdesc.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_typdesc__WEBPACK_IMPORTED_MODULE_44__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/typdesc */ "./src/core/blocks/module_language/signatures/typdesc.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_datdesc__WEBPACK_IMPORTED_MODULE_45__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/datdesc */ "./src/core/blocks/module_language/signatures/datdesc.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_condesc__WEBPACK_IMPORTED_MODULE_46__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/condesc */ "./src/core/blocks/module_language/signatures/condesc.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_spec_sequence__WEBPACK_IMPORTED_MODULE_47__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec_sequence */ "./src/core/blocks/module_language/signatures/spec_sequence.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_exndesc__WEBPACK_IMPORTED_MODULE_48__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/exndesc */ "./src/core/blocks/module_language/signatures/exndesc.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_strdesc__WEBPACK_IMPORTED_MODULE_49__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/strdesc */ "./src/core/blocks/module_language/signatures/strdesc.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_spec_inclusion__WEBPACK_IMPORTED_MODULE_50__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec_inclusion */ "./src/core/blocks/module_language/signatures/spec_inclusion.ts");
-/* harmony import */ var _core_blocks_module_language_signatures_spec_type_sharing__WEBPACK_IMPORTED_MODULE_51__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec_type_sharing */ "./src/core/blocks/module_language/signatures/spec_type_sharing.ts");
-/* harmony import */ var _core_blocks_programs_fctbind__WEBPACK_IMPORTED_MODULE_52__ = __webpack_require__(/*! ./core/blocks/programs/fctbind */ "./src/core/blocks/programs/fctbind.ts");
-/* harmony import */ var _core_blocks_programs_sigbind__WEBPACK_IMPORTED_MODULE_53__ = __webpack_require__(/*! ./core/blocks/programs/sigbind */ "./src/core/blocks/programs/sigbind.ts");
-/* harmony import */ var _core_blocks_expressions_expression_primtv_operators__WEBPACK_IMPORTED_MODULE_54__ = __webpack_require__(/*! ./core/blocks/expressions/expression_primtv_operators */ "./src/core/blocks/expressions/expression_primtv_operators.ts");
-/* harmony import */ var _core_blocks_declarations_strbind__WEBPACK_IMPORTED_MODULE_55__ = __webpack_require__(/*! ./core/blocks/declarations/strbind */ "./src/core/blocks/declarations/strbind.ts");
-/* harmony import */ var _core_generator_sml_sml__WEBPACK_IMPORTED_MODULE_56__ = __webpack_require__(/*! ./core/generator/sml/sml */ "./src/core/generator/sml/sml.ts");
-/* harmony import */ var _core_generator_sml_blocks_programs_program__WEBPACK_IMPORTED_MODULE_57__ = __webpack_require__(/*! ./core/generator/sml/blocks/programs/program */ "./src/core/generator/sml/blocks/programs/program.ts");
-/* harmony import */ var _core_generator_sml_blocks_constants__WEBPACK_IMPORTED_MODULE_58__ = __webpack_require__(/*! ./core/generator/sml/blocks/constants */ "./src/core/generator/sml/blocks/constants.ts");
-/* harmony import */ var _core_generator_sml_blocks_identifiers__WEBPACK_IMPORTED_MODULE_59__ = __webpack_require__(/*! ./core/generator/sml/blocks/identifiers */ "./src/core/generator/sml/blocks/identifiers.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expressions__WEBPACK_IMPORTED_MODULE_60__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expressions */ "./src/core/generator/sml/blocks/expressions/expressions.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expression_let_in_end__WEBPACK_IMPORTED_MODULE_61__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_let_in_end */ "./src/core/generator/sml/blocks/expressions/expression_let_in_end.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expression_list__WEBPACK_IMPORTED_MODULE_62__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_list */ "./src/core/generator/sml/blocks/expressions/expression_list.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expression_record__WEBPACK_IMPORTED_MODULE_63__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_record */ "./src/core/generator/sml/blocks/expressions/expression_record.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_exprow__WEBPACK_IMPORTED_MODULE_64__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/exprow */ "./src/core/generator/sml/blocks/expressions/exprow.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expression_tuple__WEBPACK_IMPORTED_MODULE_65__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_tuple */ "./src/core/generator/sml/blocks/expressions/expression_tuple.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expression_sequence__WEBPACK_IMPORTED_MODULE_66__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_sequence */ "./src/core/generator/sml/blocks/expressions/expression_sequence.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_match__WEBPACK_IMPORTED_MODULE_67__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/match */ "./src/core/generator/sml/blocks/expressions/match.ts");
-/* harmony import */ var _core_generator_sml_blocks_patterns_patterns__WEBPACK_IMPORTED_MODULE_68__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/patterns */ "./src/core/generator/sml/blocks/patterns/patterns.ts");
-/* harmony import */ var _core_generator_sml_blocks_patterns_pattern_record__WEBPACK_IMPORTED_MODULE_69__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/pattern_record */ "./src/core/generator/sml/blocks/patterns/pattern_record.ts");
-/* harmony import */ var _core_generator_sml_blocks_patterns_patrows__WEBPACK_IMPORTED_MODULE_70__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/patrows */ "./src/core/generator/sml/blocks/patterns/patrows.ts");
-/* harmony import */ var _core_generator_sml_blocks_patterns_pattern_tuple__WEBPACK_IMPORTED_MODULE_71__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/pattern_tuple */ "./src/core/generator/sml/blocks/patterns/pattern_tuple.ts");
-/* harmony import */ var _core_generator_sml_blocks_patterns_pattern_list__WEBPACK_IMPORTED_MODULE_72__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/pattern_list */ "./src/core/generator/sml/blocks/patterns/pattern_list.ts");
-/* harmony import */ var _core_generator_sml_blocks_types_types__WEBPACK_IMPORTED_MODULE_73__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/types */ "./src/core/generator/sml/blocks/types/types.ts");
-/* harmony import */ var _core_generator_sml_blocks_types_type_constructor__WEBPACK_IMPORTED_MODULE_74__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_constructor */ "./src/core/generator/sml/blocks/types/type_constructor.ts");
-/* harmony import */ var _core_generator_sml_blocks_types_type_tuple__WEBPACK_IMPORTED_MODULE_75__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_tuple */ "./src/core/generator/sml/blocks/types/type_tuple.ts");
-/* harmony import */ var _core_generator_sml_blocks_types_type_record__WEBPACK_IMPORTED_MODULE_76__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_record */ "./src/core/generator/sml/blocks/types/type_record.ts");
-/* harmony import */ var _core_generator_sml_blocks_types_type_primitives__WEBPACK_IMPORTED_MODULE_77__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_primitives */ "./src/core/generator/sml/blocks/types/type_primitives.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_declarations__WEBPACK_IMPORTED_MODULE_78__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declarations */ "./src/core/generator/sml/blocks/declarations/declarations.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_sequence__WEBPACK_IMPORTED_MODULE_79__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_sequence */ "./src/core/generator/sml/blocks/declarations/declaration_sequence.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_open__WEBPACK_IMPORTED_MODULE_80__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_open */ "./src/core/generator/sml/blocks/declarations/declaration_open.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_nonfix__WEBPACK_IMPORTED_MODULE_81__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_nonfix */ "./src/core/generator/sml/blocks/declarations/declaration_nonfix.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_infix__WEBPACK_IMPORTED_MODULE_82__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_infix */ "./src/core/generator/sml/blocks/declarations/declaration_infix.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_infixr__WEBPACK_IMPORTED_MODULE_83__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_infixr */ "./src/core/generator/sml/blocks/declarations/declaration_infixr.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_value_declaration_val__WEBPACK_IMPORTED_MODULE_84__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/value/declaration_val */ "./src/core/generator/sml/blocks/declarations/value/declaration_val.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_value_valbind__WEBPACK_IMPORTED_MODULE_85__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/value/valbind */ "./src/core/generator/sml/blocks/declarations/value/valbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_identifier_long_var__WEBPACK_IMPORTED_MODULE_86__ = __webpack_require__(/*! ./core/generator/sml/blocks/identifier_long_var */ "./src/core/generator/sml/blocks/identifier_long_var.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_function_declaration_fun__WEBPACK_IMPORTED_MODULE_87__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/declaration_fun */ "./src/core/generator/sml/blocks/declarations/function/declaration_fun.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_function_funmatch__WEBPACK_IMPORTED_MODULE_88__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/funmatch */ "./src/core/generator/sml/blocks/declarations/function/funmatch.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_function_funmatch_infix_n__WEBPACK_IMPORTED_MODULE_89__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/funmatch_infix_n */ "./src/core/generator/sml/blocks/declarations/function/funmatch_infix_n.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_function_funmatch_nonfix__WEBPACK_IMPORTED_MODULE_90__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/funmatch_nonfix */ "./src/core/generator/sml/blocks/declarations/function/funmatch_nonfix.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_typbind__WEBPACK_IMPORTED_MODULE_91__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/typbind */ "./src/core/generator/sml/blocks/declarations/typbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_datbind__WEBPACK_IMPORTED_MODULE_92__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/datbind */ "./src/core/generator/sml/blocks/declarations/datbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_conbind__WEBPACK_IMPORTED_MODULE_93__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/conbind */ "./src/core/generator/sml/blocks/declarations/conbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_exnbind__WEBPACK_IMPORTED_MODULE_94__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/exnbind */ "./src/core/generator/sml/blocks/declarations/exnbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_structures_str__WEBPACK_IMPORTED_MODULE_95__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/structures/str */ "./src/core/generator/sml/blocks/module_language/structures/str.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_sig__WEBPACK_IMPORTED_MODULE_96__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/sig */ "./src/core/generator/sml/blocks/module_language/signatures/sig.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_typrefin__WEBPACK_IMPORTED_MODULE_97__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/typrefin */ "./src/core/generator/sml/blocks/module_language/signatures/typrefin.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec__WEBPACK_IMPORTED_MODULE_98__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec */ "./src/core/generator/sml/blocks/module_language/signatures/spec.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_valdesc__WEBPACK_IMPORTED_MODULE_99__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/valdesc */ "./src/core/generator/sml/blocks/module_language/signatures/valdesc.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_typdesc__WEBPACK_IMPORTED_MODULE_100__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/typdesc */ "./src/core/generator/sml/blocks/module_language/signatures/typdesc.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_datdesc__WEBPACK_IMPORTED_MODULE_101__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/datdesc */ "./src/core/generator/sml/blocks/module_language/signatures/datdesc.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_condesc__WEBPACK_IMPORTED_MODULE_102__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/condesc */ "./src/core/generator/sml/blocks/module_language/signatures/condesc.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec_sequence__WEBPACK_IMPORTED_MODULE_103__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec_sequence */ "./src/core/generator/sml/blocks/module_language/signatures/spec_sequence.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_exndesc__WEBPACK_IMPORTED_MODULE_104__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/exndesc */ "./src/core/generator/sml/blocks/module_language/signatures/exndesc.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_strdesc__WEBPACK_IMPORTED_MODULE_105__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/strdesc */ "./src/core/generator/sml/blocks/module_language/signatures/strdesc.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec_inclusion__WEBPACK_IMPORTED_MODULE_106__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec_inclusion */ "./src/core/generator/sml/blocks/module_language/signatures/spec_inclusion.ts");
-/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec_type_sharing__WEBPACK_IMPORTED_MODULE_107__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec_type_sharing */ "./src/core/generator/sml/blocks/module_language/signatures/spec_type_sharing.ts");
-/* harmony import */ var _core_generator_sml_blocks_programs_fctbind__WEBPACK_IMPORTED_MODULE_108__ = __webpack_require__(/*! ./core/generator/sml/blocks/programs/fctbind */ "./src/core/generator/sml/blocks/programs/fctbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_programs_sigbind__WEBPACK_IMPORTED_MODULE_109__ = __webpack_require__(/*! ./core/generator/sml/blocks/programs/sigbind */ "./src/core/generator/sml/blocks/programs/sigbind.ts");
-/* harmony import */ var _core_generator_sml_blocks_expressions_expression_primtv_operators__WEBPACK_IMPORTED_MODULE_110__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_primtv_operators */ "./src/core/generator/sml/blocks/expressions/expression_primtv_operators.ts");
-/* harmony import */ var _core_generator_sml_blocks_declarations_strbind__WEBPACK_IMPORTED_MODULE_111__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/strbind */ "./src/core/generator/sml/blocks/declarations/strbind.ts");
-/* harmony import */ var _core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_112__ = __webpack_require__(/*! ./core/blocks/grammar_tooltips */ "./src/core/blocks/grammar_tooltips.ts");
-/* harmony import */ var _renderer_macaca_nigra_macacanigra_renderer__WEBPACK_IMPORTED_MODULE_113__ = __webpack_require__(/*! ./renderer/macaca_nigra/macacanigra_renderer */ "./src/renderer/macaca_nigra/macacanigra_renderer.ts");
-/* harmony import */ var _renderer_goropa_goropa_renderer__WEBPACK_IMPORTED_MODULE_114__ = __webpack_require__(/*! ./renderer/goropa/goropa_renderer */ "./src/renderer/goropa/goropa_renderer.ts");
-/* harmony import */ var _core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./core/generator/code_generator */ "./src/core/generator/code_generator.ts");
-/* harmony import */ var _core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./core/parser/sml_to_visml */ "./src/core/parser/sml_to_visml.ts");
-/* harmony import */ var _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./ui/sml_code_editor */ "./src/ui/sml_code_editor.ts");
-/* harmony import */ var _ui_layout_resize__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./ui/layout_resize */ "./src/ui/layout_resize.ts");
-/* harmony import */ var _ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./ui/context_menu_workspace */ "./src/ui/context_menu_workspace.ts");
-/* harmony import */ var _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./ui/themes_tarsius */ "./src/ui/themes_tarsius.ts");
-/* harmony import */ var _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./assets/js/theme_changer */ "./src/assets/js/theme_changer.ts");
-/* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
-/* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
-/* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_124__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
-/* harmony import */ var _ui_ide_workbench__WEBPACK_IMPORTED_MODULE_125__ = __webpack_require__(/*! ./ui/ide_workbench */ "./src/ui/ide_workbench.ts");
-/* harmony import */ var _ui_screenshot__WEBPACK_IMPORTED_MODULE_126__ = __webpack_require__(/*! ./ui/screenshot */ "./src/ui/screenshot.ts");
+/* harmony import */ var _core_blocks_preservation_empty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./core/blocks/preservation_empty */ "./src/core/blocks/preservation_empty.ts");
+/* harmony import */ var _core_generator_sml_blocks_preservation_empty__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core/generator/sml/blocks/preservation_empty */ "./src/core/generator/sml/blocks/preservation_empty.ts");
+/* harmony import */ var blockly__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! blockly */ "./node_modules/blockly/index.mjs");
+/* harmony import */ var _core_blocks_programs_program__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./core/blocks/programs/program */ "./src/core/blocks/programs/program.ts");
+/* harmony import */ var _core_blocks_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./core/blocks/constants */ "./src/core/blocks/constants.ts");
+/* harmony import */ var _core_blocks_identifiers__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./core/blocks/identifiers */ "./src/core/blocks/identifiers.ts");
+/* harmony import */ var _core_blocks_expressions_expressions__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./core/blocks/expressions/expressions */ "./src/core/blocks/expressions/expressions.ts");
+/* harmony import */ var _core_blocks_expressions_expression_let_in_end__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./core/blocks/expressions/expression_let_in_end */ "./src/core/blocks/expressions/expression_let_in_end.ts");
+/* harmony import */ var _core_blocks_expressions_expression_list__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./core/blocks/expressions/expression_list */ "./src/core/blocks/expressions/expression_list.ts");
+/* harmony import */ var _core_blocks_expressions_expression_record__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./core/blocks/expressions/expression_record */ "./src/core/blocks/expressions/expression_record.ts");
+/* harmony import */ var _core_blocks_expressions_exprow__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./core/blocks/expressions/exprow */ "./src/core/blocks/expressions/exprow.ts");
+/* harmony import */ var _core_blocks_expressions_expression_tuple__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./core/blocks/expressions/expression_tuple */ "./src/core/blocks/expressions/expression_tuple.ts");
+/* harmony import */ var _core_blocks_expressions_expression_sequence__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./core/blocks/expressions/expression_sequence */ "./src/core/blocks/expressions/expression_sequence.ts");
+/* harmony import */ var _core_blocks_expressions_match__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./core/blocks/expressions/match */ "./src/core/blocks/expressions/match.ts");
+/* harmony import */ var _core_blocks_patterns_patterns__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./core/blocks/patterns/patterns */ "./src/core/blocks/patterns/patterns.ts");
+/* harmony import */ var _core_blocks_patterns_pattern_record__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./core/blocks/patterns/pattern_record */ "./src/core/blocks/patterns/pattern_record.ts");
+/* harmony import */ var _core_blocks_patterns_patrows__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./core/blocks/patterns/patrows */ "./src/core/blocks/patterns/patrows.ts");
+/* harmony import */ var _core_blocks_patterns_pattern_tuple__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./core/blocks/patterns/pattern_tuple */ "./src/core/blocks/patterns/pattern_tuple.ts");
+/* harmony import */ var _core_blocks_patterns_pattern_list__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./core/blocks/patterns/pattern_list */ "./src/core/blocks/patterns/pattern_list.ts");
+/* harmony import */ var _core_blocks_types_types__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./core/blocks/types/types */ "./src/core/blocks/types/types.ts");
+/* harmony import */ var _core_blocks_types_type_constructor__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./core/blocks/types/type_constructor */ "./src/core/blocks/types/type_constructor.ts");
+/* harmony import */ var _core_blocks_types_type_tuple__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./core/blocks/types/type_tuple */ "./src/core/blocks/types/type_tuple.ts");
+/* harmony import */ var _core_blocks_types_type_record__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./core/blocks/types/type_record */ "./src/core/blocks/types/type_record.ts");
+/* harmony import */ var _core_blocks_types_type_primitives__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./core/blocks/types/type_primitives */ "./src/core/blocks/types/type_primitives.ts");
+/* harmony import */ var _core_blocks_declarations_declarations__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./core/blocks/declarations/declarations */ "./src/core/blocks/declarations/declarations.ts");
+/* harmony import */ var _core_blocks_declarations_declaration_sequence__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_sequence */ "./src/core/blocks/declarations/declaration_sequence.ts");
+/* harmony import */ var _core_blocks_declarations_declaration_open__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_open */ "./src/core/blocks/declarations/declaration_open.ts");
+/* harmony import */ var _core_blocks_declarations_declaration_nonfix__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_nonfix */ "./src/core/blocks/declarations/declaration_nonfix.ts");
+/* harmony import */ var _core_blocks_declarations_declaration_infix__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_infix */ "./src/core/blocks/declarations/declaration_infix.ts");
+/* harmony import */ var _core_blocks_declarations_declaration_infiixr__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ./core/blocks/declarations/declaration_infiixr */ "./src/core/blocks/declarations/declaration_infiixr.ts");
+/* harmony import */ var _core_blocks_declarations_value_declaration_val__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./core/blocks/declarations/value/declaration_val */ "./src/core/blocks/declarations/value/declaration_val.ts");
+/* harmony import */ var _core_blocks_declarations_value_valbind__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ./core/blocks/declarations/value/valbind */ "./src/core/blocks/declarations/value/valbind.ts");
+/* harmony import */ var _core_blocks_identifier_long_var__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./core/blocks/identifier_long_var */ "./src/core/blocks/identifier_long_var.ts");
+/* harmony import */ var _core_blocks_declarations_function_declaration_fun__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! ./core/blocks/declarations/function/declaration_fun */ "./src/core/blocks/declarations/function/declaration_fun.ts");
+/* harmony import */ var _core_blocks_declarations_function_funmatch__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! ./core/blocks/declarations/function/funmatch */ "./src/core/blocks/declarations/function/funmatch.ts");
+/* harmony import */ var _core_blocks_declarations_function_funmatch_infix_n__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! ./core/blocks/declarations/function/funmatch_infix_n */ "./src/core/blocks/declarations/function/funmatch_infix_n.ts");
+/* harmony import */ var _core_blocks_declarations_function_funmatch_nonfix__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ./core/blocks/declarations/function/funmatch_nonfix */ "./src/core/blocks/declarations/function/funmatch_nonfix.ts");
+/* harmony import */ var _core_blocks_declarations_typbind__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ./core/blocks/declarations/typbind */ "./src/core/blocks/declarations/typbind.ts");
+/* harmony import */ var _core_blocks_declarations_datbind__WEBPACK_IMPORTED_MODULE_38__ = __webpack_require__(/*! ./core/blocks/declarations/datbind */ "./src/core/blocks/declarations/datbind.ts");
+/* harmony import */ var _core_blocks_declarations_conbind__WEBPACK_IMPORTED_MODULE_39__ = __webpack_require__(/*! ./core/blocks/declarations/conbind */ "./src/core/blocks/declarations/conbind.ts");
+/* harmony import */ var _core_blocks_declarations_exnbind__WEBPACK_IMPORTED_MODULE_40__ = __webpack_require__(/*! ./core/blocks/declarations/exnbind */ "./src/core/blocks/declarations/exnbind.ts");
+/* harmony import */ var _core_blocks_module_language_structures_str__WEBPACK_IMPORTED_MODULE_41__ = __webpack_require__(/*! ./core/blocks/module_language/structures/str */ "./src/core/blocks/module_language/structures/str.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_sig__WEBPACK_IMPORTED_MODULE_42__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/sig */ "./src/core/blocks/module_language/signatures/sig.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_typrefin__WEBPACK_IMPORTED_MODULE_43__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/typrefin */ "./src/core/blocks/module_language/signatures/typrefin.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_spec__WEBPACK_IMPORTED_MODULE_44__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec */ "./src/core/blocks/module_language/signatures/spec.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_valdesc__WEBPACK_IMPORTED_MODULE_45__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/valdesc */ "./src/core/blocks/module_language/signatures/valdesc.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_typdesc__WEBPACK_IMPORTED_MODULE_46__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/typdesc */ "./src/core/blocks/module_language/signatures/typdesc.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_datdesc__WEBPACK_IMPORTED_MODULE_47__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/datdesc */ "./src/core/blocks/module_language/signatures/datdesc.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_condesc__WEBPACK_IMPORTED_MODULE_48__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/condesc */ "./src/core/blocks/module_language/signatures/condesc.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_spec_sequence__WEBPACK_IMPORTED_MODULE_49__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec_sequence */ "./src/core/blocks/module_language/signatures/spec_sequence.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_exndesc__WEBPACK_IMPORTED_MODULE_50__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/exndesc */ "./src/core/blocks/module_language/signatures/exndesc.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_strdesc__WEBPACK_IMPORTED_MODULE_51__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/strdesc */ "./src/core/blocks/module_language/signatures/strdesc.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_spec_inclusion__WEBPACK_IMPORTED_MODULE_52__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec_inclusion */ "./src/core/blocks/module_language/signatures/spec_inclusion.ts");
+/* harmony import */ var _core_blocks_module_language_signatures_spec_type_sharing__WEBPACK_IMPORTED_MODULE_53__ = __webpack_require__(/*! ./core/blocks/module_language/signatures/spec_type_sharing */ "./src/core/blocks/module_language/signatures/spec_type_sharing.ts");
+/* harmony import */ var _core_blocks_programs_fctbind__WEBPACK_IMPORTED_MODULE_54__ = __webpack_require__(/*! ./core/blocks/programs/fctbind */ "./src/core/blocks/programs/fctbind.ts");
+/* harmony import */ var _core_blocks_programs_sigbind__WEBPACK_IMPORTED_MODULE_55__ = __webpack_require__(/*! ./core/blocks/programs/sigbind */ "./src/core/blocks/programs/sigbind.ts");
+/* harmony import */ var _core_blocks_expressions_expression_primtv_operators__WEBPACK_IMPORTED_MODULE_56__ = __webpack_require__(/*! ./core/blocks/expressions/expression_primtv_operators */ "./src/core/blocks/expressions/expression_primtv_operators.ts");
+/* harmony import */ var _core_blocks_declarations_strbind__WEBPACK_IMPORTED_MODULE_57__ = __webpack_require__(/*! ./core/blocks/declarations/strbind */ "./src/core/blocks/declarations/strbind.ts");
+/* harmony import */ var _core_generator_sml_sml__WEBPACK_IMPORTED_MODULE_58__ = __webpack_require__(/*! ./core/generator/sml/sml */ "./src/core/generator/sml/sml.ts");
+/* harmony import */ var _core_generator_sml_blocks_programs_program__WEBPACK_IMPORTED_MODULE_59__ = __webpack_require__(/*! ./core/generator/sml/blocks/programs/program */ "./src/core/generator/sml/blocks/programs/program.ts");
+/* harmony import */ var _core_generator_sml_blocks_constants__WEBPACK_IMPORTED_MODULE_60__ = __webpack_require__(/*! ./core/generator/sml/blocks/constants */ "./src/core/generator/sml/blocks/constants.ts");
+/* harmony import */ var _core_generator_sml_blocks_identifiers__WEBPACK_IMPORTED_MODULE_61__ = __webpack_require__(/*! ./core/generator/sml/blocks/identifiers */ "./src/core/generator/sml/blocks/identifiers.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expressions__WEBPACK_IMPORTED_MODULE_62__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expressions */ "./src/core/generator/sml/blocks/expressions/expressions.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expression_let_in_end__WEBPACK_IMPORTED_MODULE_63__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_let_in_end */ "./src/core/generator/sml/blocks/expressions/expression_let_in_end.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expression_list__WEBPACK_IMPORTED_MODULE_64__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_list */ "./src/core/generator/sml/blocks/expressions/expression_list.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expression_record__WEBPACK_IMPORTED_MODULE_65__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_record */ "./src/core/generator/sml/blocks/expressions/expression_record.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_exprow__WEBPACK_IMPORTED_MODULE_66__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/exprow */ "./src/core/generator/sml/blocks/expressions/exprow.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expression_tuple__WEBPACK_IMPORTED_MODULE_67__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_tuple */ "./src/core/generator/sml/blocks/expressions/expression_tuple.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expression_sequence__WEBPACK_IMPORTED_MODULE_68__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_sequence */ "./src/core/generator/sml/blocks/expressions/expression_sequence.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_match__WEBPACK_IMPORTED_MODULE_69__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/match */ "./src/core/generator/sml/blocks/expressions/match.ts");
+/* harmony import */ var _core_generator_sml_blocks_patterns_patterns__WEBPACK_IMPORTED_MODULE_70__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/patterns */ "./src/core/generator/sml/blocks/patterns/patterns.ts");
+/* harmony import */ var _core_generator_sml_blocks_patterns_pattern_record__WEBPACK_IMPORTED_MODULE_71__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/pattern_record */ "./src/core/generator/sml/blocks/patterns/pattern_record.ts");
+/* harmony import */ var _core_generator_sml_blocks_patterns_patrows__WEBPACK_IMPORTED_MODULE_72__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/patrows */ "./src/core/generator/sml/blocks/patterns/patrows.ts");
+/* harmony import */ var _core_generator_sml_blocks_patterns_pattern_tuple__WEBPACK_IMPORTED_MODULE_73__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/pattern_tuple */ "./src/core/generator/sml/blocks/patterns/pattern_tuple.ts");
+/* harmony import */ var _core_generator_sml_blocks_patterns_pattern_list__WEBPACK_IMPORTED_MODULE_74__ = __webpack_require__(/*! ./core/generator/sml/blocks/patterns/pattern_list */ "./src/core/generator/sml/blocks/patterns/pattern_list.ts");
+/* harmony import */ var _core_generator_sml_blocks_types_types__WEBPACK_IMPORTED_MODULE_75__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/types */ "./src/core/generator/sml/blocks/types/types.ts");
+/* harmony import */ var _core_generator_sml_blocks_types_type_constructor__WEBPACK_IMPORTED_MODULE_76__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_constructor */ "./src/core/generator/sml/blocks/types/type_constructor.ts");
+/* harmony import */ var _core_generator_sml_blocks_types_type_tuple__WEBPACK_IMPORTED_MODULE_77__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_tuple */ "./src/core/generator/sml/blocks/types/type_tuple.ts");
+/* harmony import */ var _core_generator_sml_blocks_types_type_record__WEBPACK_IMPORTED_MODULE_78__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_record */ "./src/core/generator/sml/blocks/types/type_record.ts");
+/* harmony import */ var _core_generator_sml_blocks_types_type_primitives__WEBPACK_IMPORTED_MODULE_79__ = __webpack_require__(/*! ./core/generator/sml/blocks/types/type_primitives */ "./src/core/generator/sml/blocks/types/type_primitives.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_declarations__WEBPACK_IMPORTED_MODULE_80__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declarations */ "./src/core/generator/sml/blocks/declarations/declarations.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_sequence__WEBPACK_IMPORTED_MODULE_81__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_sequence */ "./src/core/generator/sml/blocks/declarations/declaration_sequence.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_open__WEBPACK_IMPORTED_MODULE_82__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_open */ "./src/core/generator/sml/blocks/declarations/declaration_open.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_nonfix__WEBPACK_IMPORTED_MODULE_83__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_nonfix */ "./src/core/generator/sml/blocks/declarations/declaration_nonfix.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_infix__WEBPACK_IMPORTED_MODULE_84__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_infix */ "./src/core/generator/sml/blocks/declarations/declaration_infix.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_declaration_infixr__WEBPACK_IMPORTED_MODULE_85__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/declaration_infixr */ "./src/core/generator/sml/blocks/declarations/declaration_infixr.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_value_declaration_val__WEBPACK_IMPORTED_MODULE_86__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/value/declaration_val */ "./src/core/generator/sml/blocks/declarations/value/declaration_val.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_value_valbind__WEBPACK_IMPORTED_MODULE_87__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/value/valbind */ "./src/core/generator/sml/blocks/declarations/value/valbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_identifier_long_var__WEBPACK_IMPORTED_MODULE_88__ = __webpack_require__(/*! ./core/generator/sml/blocks/identifier_long_var */ "./src/core/generator/sml/blocks/identifier_long_var.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_function_declaration_fun__WEBPACK_IMPORTED_MODULE_89__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/declaration_fun */ "./src/core/generator/sml/blocks/declarations/function/declaration_fun.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_function_funmatch__WEBPACK_IMPORTED_MODULE_90__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/funmatch */ "./src/core/generator/sml/blocks/declarations/function/funmatch.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_function_funmatch_infix_n__WEBPACK_IMPORTED_MODULE_91__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/funmatch_infix_n */ "./src/core/generator/sml/blocks/declarations/function/funmatch_infix_n.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_function_funmatch_nonfix__WEBPACK_IMPORTED_MODULE_92__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/function/funmatch_nonfix */ "./src/core/generator/sml/blocks/declarations/function/funmatch_nonfix.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_typbind__WEBPACK_IMPORTED_MODULE_93__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/typbind */ "./src/core/generator/sml/blocks/declarations/typbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_datbind__WEBPACK_IMPORTED_MODULE_94__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/datbind */ "./src/core/generator/sml/blocks/declarations/datbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_conbind__WEBPACK_IMPORTED_MODULE_95__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/conbind */ "./src/core/generator/sml/blocks/declarations/conbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_exnbind__WEBPACK_IMPORTED_MODULE_96__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/exnbind */ "./src/core/generator/sml/blocks/declarations/exnbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_structures_str__WEBPACK_IMPORTED_MODULE_97__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/structures/str */ "./src/core/generator/sml/blocks/module_language/structures/str.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_sig__WEBPACK_IMPORTED_MODULE_98__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/sig */ "./src/core/generator/sml/blocks/module_language/signatures/sig.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_typrefin__WEBPACK_IMPORTED_MODULE_99__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/typrefin */ "./src/core/generator/sml/blocks/module_language/signatures/typrefin.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec__WEBPACK_IMPORTED_MODULE_100__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec */ "./src/core/generator/sml/blocks/module_language/signatures/spec.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_valdesc__WEBPACK_IMPORTED_MODULE_101__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/valdesc */ "./src/core/generator/sml/blocks/module_language/signatures/valdesc.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_typdesc__WEBPACK_IMPORTED_MODULE_102__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/typdesc */ "./src/core/generator/sml/blocks/module_language/signatures/typdesc.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_datdesc__WEBPACK_IMPORTED_MODULE_103__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/datdesc */ "./src/core/generator/sml/blocks/module_language/signatures/datdesc.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_condesc__WEBPACK_IMPORTED_MODULE_104__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/condesc */ "./src/core/generator/sml/blocks/module_language/signatures/condesc.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec_sequence__WEBPACK_IMPORTED_MODULE_105__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec_sequence */ "./src/core/generator/sml/blocks/module_language/signatures/spec_sequence.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_exndesc__WEBPACK_IMPORTED_MODULE_106__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/exndesc */ "./src/core/generator/sml/blocks/module_language/signatures/exndesc.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_strdesc__WEBPACK_IMPORTED_MODULE_107__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/strdesc */ "./src/core/generator/sml/blocks/module_language/signatures/strdesc.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec_inclusion__WEBPACK_IMPORTED_MODULE_108__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec_inclusion */ "./src/core/generator/sml/blocks/module_language/signatures/spec_inclusion.ts");
+/* harmony import */ var _core_generator_sml_blocks_module_language_signatures_spec_type_sharing__WEBPACK_IMPORTED_MODULE_109__ = __webpack_require__(/*! ./core/generator/sml/blocks/module_language/signatures/spec_type_sharing */ "./src/core/generator/sml/blocks/module_language/signatures/spec_type_sharing.ts");
+/* harmony import */ var _core_generator_sml_blocks_programs_fctbind__WEBPACK_IMPORTED_MODULE_110__ = __webpack_require__(/*! ./core/generator/sml/blocks/programs/fctbind */ "./src/core/generator/sml/blocks/programs/fctbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_programs_sigbind__WEBPACK_IMPORTED_MODULE_111__ = __webpack_require__(/*! ./core/generator/sml/blocks/programs/sigbind */ "./src/core/generator/sml/blocks/programs/sigbind.ts");
+/* harmony import */ var _core_generator_sml_blocks_expressions_expression_primtv_operators__WEBPACK_IMPORTED_MODULE_112__ = __webpack_require__(/*! ./core/generator/sml/blocks/expressions/expression_primtv_operators */ "./src/core/generator/sml/blocks/expressions/expression_primtv_operators.ts");
+/* harmony import */ var _core_generator_sml_blocks_declarations_strbind__WEBPACK_IMPORTED_MODULE_113__ = __webpack_require__(/*! ./core/generator/sml/blocks/declarations/strbind */ "./src/core/generator/sml/blocks/declarations/strbind.ts");
+/* harmony import */ var _core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_114__ = __webpack_require__(/*! ./core/blocks/grammar_tooltips */ "./src/core/blocks/grammar_tooltips.ts");
+/* harmony import */ var _renderer_macaca_nigra_macacanigra_renderer__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./renderer/macaca_nigra/macacanigra_renderer */ "./src/renderer/macaca_nigra/macacanigra_renderer.ts");
+/* harmony import */ var _renderer_goropa_goropa_renderer__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./renderer/goropa/goropa_renderer */ "./src/renderer/goropa/goropa_renderer.ts");
+/* harmony import */ var _core_preservation_source_layout__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./core/preservation/source_layout */ "./src/core/preservation/source_layout.ts");
+/* harmony import */ var _core_preservation_visml_decoder__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./core/preservation/visml_decoder */ "./src/core/preservation/visml_decoder.ts");
+/* harmony import */ var _core_generator_code_generator__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./core/generator/code_generator */ "./src/core/generator/code_generator.ts");
+/* harmony import */ var _core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./core/parser/sml_to_visml */ "./src/core/parser/sml_to_visml.ts");
+/* harmony import */ var _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./ui/sml_code_editor */ "./src/ui/sml_code_editor.ts");
+/* harmony import */ var _ui_layout_resize__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./ui/layout_resize */ "./src/ui/layout_resize.ts");
+/* harmony import */ var _ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./ui/context_menu_workspace */ "./src/ui/context_menu_workspace.ts");
+/* harmony import */ var _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_124__ = __webpack_require__(/*! ./ui/themes_tarsius */ "./src/ui/themes_tarsius.ts");
+/* harmony import */ var _assets_js_theme_changer__WEBPACK_IMPORTED_MODULE_125__ = __webpack_require__(/*! ./assets/js/theme_changer */ "./src/assets/js/theme_changer.ts");
+/* harmony import */ var _assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__ = __webpack_require__(/*! ./assets/js/fileSvLd */ "./src/assets/js/fileSvLd.ts");
+/* harmony import */ var _sample_sample_loader__WEBPACK_IMPORTED_MODULE_127__ = __webpack_require__(/*! ./sample/sample_loader */ "./src/sample/sample_loader.ts");
+/* harmony import */ var _ui_html_toolbox__WEBPACK_IMPORTED_MODULE_128__ = __webpack_require__(/*! ./ui/html_toolbox */ "./src/ui/html_toolbox.ts");
+/* harmony import */ var _ui_ide_workbench__WEBPACK_IMPORTED_MODULE_129__ = __webpack_require__(/*! ./ui/ide_workbench */ "./src/ui/ide_workbench.ts");
+/* harmony import */ var _ui_screenshot__WEBPACK_IMPORTED_MODULE_130__ = __webpack_require__(/*! ./ui/screenshot */ "./src/ui/screenshot.ts");
+
+
 
 // Start Blocks
 
@@ -19159,6 +20266,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+(0,_core_preservation_source_layout__WEBPACK_IMPORTED_MODULE_117__.installSourceMetadata)(_core_generator_sml_sml__WEBPACK_IMPORTED_MODULE_58__.SML);
+
+
+
 
 
 
@@ -19195,7 +20306,7 @@ function setRenderer(rendererName) {
         return;
     try {
         window.localStorage.setItem(RENDERER_STORAGE_KEY, rendererName);
-        window.localStorage.setItem(RENDERER_PENDING_WORKSPACE_KEY, JSON.stringify(blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.save(tarsiusWorkspace)));
+        window.localStorage.setItem(RENDERER_PENDING_WORKSPACE_KEY, JSON.stringify(blockly__WEBPACK_IMPORTED_MODULE_2__.serialization.workspaces.save(tarsiusWorkspace)));
     }
     catch (error) {
         console.error(error);
@@ -19203,13 +20314,13 @@ function setRenderer(rendererName) {
     window.location.reload();
 }
 // Updating context menu
-(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_119__.unregisteredUnnecessaryMenu)();
-(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_119__.registerFirstContextMenuOptions)();
-(0,_core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_112__.applyGrammarTooltips)();
-const tarsiusWorkspace = blockly__WEBPACK_IMPORTED_MODULE_0__.inject(blockArea, {
+(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_123__.unregisteredUnnecessaryMenu)();
+(0,_ui_context_menu_workspace__WEBPACK_IMPORTED_MODULE_123__.registerFirstContextMenuOptions)();
+(0,_core_blocks_grammar_tooltips__WEBPACK_IMPORTED_MODULE_114__.applyGrammarTooltips)();
+const tarsiusWorkspace = blockly__WEBPACK_IMPORTED_MODULE_2__.inject(blockArea, {
     // plugins:
     // theme: Blockly.Themes.Macaca,
-    theme: _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_120__.MacacaBlackWhite,
+    theme: _ui_themes_tarsius__WEBPACK_IMPORTED_MODULE_124__.MacacaBlackWhite,
     renderer: getRendererName(),
     // renderer: "TarsiusRenderer",
     collapse: true,
@@ -19258,7 +20369,7 @@ var main_file_block = {
     }
 };
 function loadMainFileBlock() {
-    blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.load(main_file_block, tarsiusWorkspace);
+    blockly__WEBPACK_IMPORTED_MODULE_2__.serialization.workspaces.load(main_file_block, tarsiusWorkspace);
     const mainBlock = tarsiusWorkspace.getBlockById("wka+5-ZSnLLMV2hW(||?");
     if (!mainBlock)
         return;
@@ -19280,7 +20391,7 @@ function restorePendingWorkspace() {
     if (!raw)
         return;
     try {
-        blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.load(JSON.parse(raw), tarsiusWorkspace);
+        blockly__WEBPACK_IMPORTED_MODULE_2__.serialization.workspaces.load(JSON.parse(raw), tarsiusWorkspace);
         const mainBlock = tarsiusWorkspace.getBlockById("wka+5-ZSnLLMV2hW(||?");
         if (mainBlock) {
             mainBlock.setDeletable(false);
@@ -19317,22 +20428,30 @@ function updateVisualSmlStatus(message) {
 }
 let lastGeneratedCode = "";
 function refreshGeneratedCode() {
-    lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__.generateCode)("sml") ?? "";
-    (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.syncSmlEditorFromCode)(lastGeneratedCode);
-    updateVisualSmlStatus("Generated SML refreshed.");
+    try {
+        lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_119__.generateCode)("sml") ?? "";
+        (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__.syncSmlEditorFromCode)(lastGeneratedCode);
+        updateVisualSmlStatus("Generated SML refreshed.");
+    }
+    catch (error) {
+        lastGeneratedCode = "";
+        (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__.syncSmlEditorFromCode)("");
+        updateVisualSmlStatus("Complete the blocks to generate SML: " + (error instanceof Error ? error.message : String(error)));
+    }
     return lastGeneratedCode;
 }
 function convertSmlToVisml(source) {
-    const state = (0,_core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_116__.smlToVismlWorkspaceState)(source);
-    const previousState = blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.save(tarsiusWorkspace);
+    const state = (0,_core_parser_sml_to_visml__WEBPACK_IMPORTED_MODULE_120__.smlToVismlWorkspaceState)(source);
+    (0,_core_preservation_visml_decoder__WEBPACK_IMPORTED_MODULE_118__.decodeVismlWorkspace)(state);
+    const previousState = blockly__WEBPACK_IMPORTED_MODULE_2__.serialization.workspaces.save(tarsiusWorkspace);
     try {
         tarsiusWorkspace.clear();
-        blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.load(state, tarsiusWorkspace);
+        blockly__WEBPACK_IMPORTED_MODULE_2__.serialization.workspaces.load(state, tarsiusWorkspace);
     }
     catch (error) {
         // Loading failed halfway: restore the workspace as it was.
         tarsiusWorkspace.clear();
-        blockly__WEBPACK_IMPORTED_MODULE_0__.serialization.workspaces.load(previousState, tarsiusWorkspace);
+        blockly__WEBPACK_IMPORTED_MODULE_2__.serialization.workspaces.load(previousState, tarsiusWorkspace);
         throw error;
     }
     const mainBlock = tarsiusWorkspace.getBlockById("wka+5-ZSnLLMV2hW(||?");
@@ -19343,43 +20462,41 @@ function convertSmlToVisml(source) {
     }
     requestLayoutUpdate();
     refreshGeneratedCode();
-    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.scheduleAutosave)();
+    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.scheduleAutosave)();
     updateVisualSmlStatus("SML converted to ViSML blocks.");
 }
 /** Convert the Code tab text into blocks right now (used by the Convert button). */
 function applySmlEditorNow() {
-    const converted = (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.applySmlEditorText)({ reportEmpty: true });
+    const converted = (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__.applySmlEditorText)({ reportEmpty: true });
     if (converted) {
         // Normalize the editor to the canonical generated layout on explicit convert.
-        (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.forceSyncSmlEditorFromCode)(lastGeneratedCode, { preserveStatus: true });
+        (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__.forceSyncSmlEditorFromCode)(lastGeneratedCode, { preserveStatus: true });
     }
     return converted;
 }
 function eventListenerFortarsius(event) {
-    blockly__WEBPACK_IMPORTED_MODULE_0__.Events.disableOrphans(event);
-    lastGeneratedCode = (0,_core_generator_code_generator__WEBPACK_IMPORTED_MODULE_115__.generateCode)("sml") ?? "";
-    (0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.syncSmlEditorFromCode)(lastGeneratedCode);
-    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.scheduleAutosave)();
-    updateVisualSmlStatus("Generated SML updated.");
+    blockly__WEBPACK_IMPORTED_MODULE_2__.Events.disableOrphans(event);
+    refreshGeneratedCode();
+    (0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.scheduleAutosave)();
 }
-(0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.initSmlCodeEditor)({ convertSmlToBlocks: convertSmlToVisml });
+(0,_ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__.initSmlCodeEditor)({ convertSmlToBlocks: convertSmlToVisml });
 tarsiusWorkspace.addChangeListener(eventListenerFortarsius);
-(0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_122__.startAutosaveTimer)();
+(0,_assets_js_fileSvLd__WEBPACK_IMPORTED_MODULE_126__.startAutosaveTimer)();
 // Render the custom HTML toolbox (left column) from the toolbox definition.
-(0,_ui_html_toolbox__WEBPACK_IMPORTED_MODULE_124__.buildHtmlToolbox)(tarsiusWorkspace);
-const layoutResizeCoordinator = (0,_ui_layout_resize__WEBPACK_IMPORTED_MODULE_118__.createLayoutResizeCoordinator)({
+(0,_ui_html_toolbox__WEBPACK_IMPORTED_MODULE_128__.buildHtmlToolbox)(tarsiusWorkspace);
+const layoutResizeCoordinator = (0,_ui_layout_resize__WEBPACK_IMPORTED_MODULE_122__.createLayoutResizeCoordinator)({
     workspace: tarsiusWorkspace,
-    layoutCodeEditor: _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_117__.layoutSmlCodeEditor,
+    layoutCodeEditor: _ui_sml_code_editor__WEBPACK_IMPORTED_MODULE_121__.layoutSmlCodeEditor,
     updateStatus: updateVisualSmlStatus,
 });
 function requestLayoutUpdate(message) {
     layoutResizeCoordinator.request(message);
 }
-(0,_ui_ide_workbench__WEBPACK_IMPORTED_MODULE_125__.initializeIdeWorkbench)({
+(0,_ui_ide_workbench__WEBPACK_IMPORTED_MODULE_129__.initializeIdeWorkbench)({
     workspace: tarsiusWorkspace,
     requestLayoutUpdate,
     refreshGeneratedCode,
-    exportWorkspaceImage: () => (0,_ui_screenshot__WEBPACK_IMPORTED_MODULE_126__["default"])(tarsiusWorkspace),
+    exportWorkspaceImage: () => (0,_ui_screenshot__WEBPACK_IMPORTED_MODULE_130__["default"])(tarsiusWorkspace),
     getRendererName,
     setRenderer,
 });
@@ -20269,7 +21386,7 @@ function initializeIdeWorkbench(options) {
         { id: "run.unavailable", label: "Execution runtime is not configured", category: "Run", enabled: false, run: () => undefined },
         { id: "perspective.edit", label: "Activate Edit Perspective", category: "Perspective", run: () => setPerspective("edit") },
         { id: "perspective.presentation", label: "Activate Presentation Perspective", category: "Perspective", run: () => setPerspective("presentation") },
-        { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => window.open("https://l-workshop/help-visml", "_blank", "noopener,noreferrer") },
+        { id: "help.usage", label: "Open Usage Guide", category: "Help", run: () => window.open("https://l-workshop.my.id/help-visml/", "_blank", "noopener,noreferrer") },
         { id: "help.about", label: "About Visual SML", category: "Help", run: () => window.showAbout?.() },
     ];
     const commandMap = new Map(commands.map((command) => [command.id, command]));
@@ -87147,6 +88264,17 @@ function sml(hljs) {
 
 
 
+
+/***/ },
+
+/***/ "./src/core/preservation/formal_sml_grammar.json"
+/*!*******************************************************!*\
+  !*** ./src/core/preservation/formal_sml_grammar.json ***!
+  \*******************************************************/
+(module) {
+
+"use strict";
+module.exports = /*#__PURE__*/JSON.parse('{"schema_version":1,"start":"prog","grouping":["exp.4","pat.5","typ.2"],"lexical_roles":["int","word","float","char","string","num","hex","ascii","id","var","longid","lab"],"notes":["IDs identify exact split rows of the manuscript.","(,) stores argument count and source delimiter style.","The empty rows denote epsilon.","hexDigit restricts letters to A-F/a-f."],"productions":[{"id":"con.0","lhs":"con","rhs_tex":"\\\\nt{int}","category":"R_N","name":"integer","rhs":{"kind":"n","role":"int"}},{"id":"con.1","lhs":"con","rhs_tex":"\\\\nt{word}","category":"R_N","name":"word","rhs":{"kind":"n","role":"word"}},{"id":"con.2","lhs":"con","rhs_tex":"\\\\nt{float}","category":"R_N","name":"floating point","rhs":{"kind":"n","role":"float"}},{"id":"con.3","lhs":"con","rhs_tex":"\\\\nt{char}","category":"R_N","name":"character","rhs":{"kind":"n","role":"char"}},{"id":"con.4","lhs":"con","rhs_tex":"\\\\nt{string}","category":"R_N","name":"string","rhs":{"kind":"n","role":"string"}},{"id":"int.0","lhs":"int","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}","category":"R_{Mix}","name":"decimal","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"}]}},{"id":"int.1","lhs":"int","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\kw{0x}\\\\,\\\\nt{hex}","category":"R_{Mix}","name":"hexadecimal","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"t","value":"0x"},{"kind":"n","role":"hex"}]}},{"id":"word.0","lhs":"word","rhs_tex":"\\\\kw{0w}\\\\,\\\\nt{num}","category":"R_{Mix}","name":"decimal","rhs":{"kind":"seq","items":[{"kind":"t","value":"0w"},{"kind":"n","role":"num"}]}},{"id":"word.1","lhs":"word","rhs_tex":"\\\\kw{0wx}\\\\,\\\\nt{hex}","category":"R_{Mix}","name":"hexadecimal","rhs":{"kind":"seq","items":[{"kind":"t","value":"0wx"},{"kind":"n","role":"hex"}]}},{"id":"float.0","lhs":"float","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}\\\\kw{.}\\\\nt{num}","category":"R_{Mix}","name":"floating point","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"},{"kind":"t","value":"."},{"kind":"n","role":"num"}]}},{"id":"float.1","lhs":"float","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}\\\\,\\\\opt{\\\\kw{.}\\\\nt{num}}\\\\,\\\\kw{e}\\\\,\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}","category":"R_{Mix}","name":"scientific","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"."},{"kind":"n","role":"num"}]}},{"kind":"t","value":"e"},{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"}]}},{"id":"char.0","lhs":"char","rhs_tex":"\\\\kw{\\\\#\\"}\\\\,\\\\nt{ascii}\\\\,\\\\kw{\\"}","category":"R_{Mix}","name":"character","rhs":{"kind":"seq","items":[{"kind":"t","value":"#\\""},{"kind":"n","role":"ascii"},{"kind":"t","value":"\\""}]}},{"id":"string.0","lhs":"string","rhs_tex":"\\\\kw{\\"}\\\\,$\\\\langle\\\\,\\\\mathit{ascii}\\\\,\\\\rangle^*$\\\\,\\\\kw{\\"}","category":"R_R","name":"string","rhs":{"kind":"seq","items":[{"kind":"t","value":"\\""},{"kind":"rep","item":{"kind":"n","role":"ascii"},"min":0,"separator":"","exclude":[]},{"kind":"t","value":"\\""}]}},{"id":"num.0","lhs":"num","rhs_tex":"$\\\\langle\\\\,\\\\text{digit}\\\\,\\\\rangle^+$","category":"R_R","name":"number","rhs":{"kind":"rep","item":{"kind":"c","name":"digit"},"min":1,"separator":"","exclude":[]}},{"id":"hex.0","lhs":"hex","rhs_tex":"$\\\\langle\\\\,\\\\text{hex-digit}\\\\,\\\\rangle^+$","category":"R_R","name":"hexadecimal number","rhs":{"kind":"rep","item":{"kind":"c","name":"hexDigit"},"min":1,"separator":"","exclude":[]}},{"id":"ascii.0","lhs":"ascii","rhs_tex":"\\\\ldots","category":"R_T","name":"single ASCII char or \\\\kw{\\\\textbackslash}-escape","rhs":{"kind":"c","name":"ascii"}},{"id":"id.0","lhs":"id","rhs_tex":"\\\\kw{letter}\\\\,$\\\\langle\\\\,\\\\text{letter}\\\\mid\\\\text{digit}\\\\mid\\\\kw{\'}\\\\mid\\\\kw{\\\\_}\\\\,\\\\rangle^*$","category":"R_R","name":"alphanumeric","rhs":{"kind":"seq","items":[{"kind":"c","name":"letter"},{"kind":"rep","item":{"kind":"choice","items":[{"kind":"c","name":"letter"},{"kind":"c","name":"digit"},{"kind":"t","value":"\'"},{"kind":"t","value":"_"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"id.1","lhs":"id","rhs_tex":"$\\\\langle\\\\,\\\\kw{!}\\\\mid\\\\kw{\\\\%}\\\\mid\\\\kw{\\\\&}\\\\mid\\\\kw{\\\\$}\\\\mid\\\\kw{\\\\#}\\\\mid\\n     \\\\kw{+}\\\\mid\\\\kw{-}\\\\mid\\\\kw{/}\\\\mid\\\\kw{:}\\\\mid\\\\kw{<}\\\\mid\\\\kw{=}\\\\mid\\n     \\\\kw{>}\\\\mid\\\\kw{?}\\\\mid\\\\kw{@}\\\\mid\\\\kw{\\\\textbackslash}\\\\mid\\\\kw{\\\\textasciitilde}\\\\mid\\n     \\\\kw{\\\\textasciicircum}\\\\mid\\\\kw{|}\\\\mid\\\\kw{*}\\\\,\\\\rangle^+$","category":"R_R","name":"symbolic","rhs":{"kind":"rep","item":{"kind":"choice","items":[{"kind":"t","value":"!"},{"kind":"t","value":"%"},{"kind":"t","value":"&"},{"kind":"t","value":"$"},{"kind":"t","value":"#"},{"kind":"t","value":"+"},{"kind":"t","value":"-"},{"kind":"t","value":"/"},{"kind":"t","value":":"},{"kind":"t","value":"<"},{"kind":"t","value":"="},{"kind":"t","value":">"},{"kind":"t","value":"?"},{"kind":"t","value":"@"},{"kind":"t","value":"\\\\"},{"kind":"t","value":"~"},{"kind":"t","value":"^"},{"kind":"t","value":"|"},{"kind":"t","value":"*"}]},"min":1,"separator":"","exclude":[]}},{"id":"var.0","lhs":"var","rhs_tex":"\\\\kw{\'}\\\\,$\\\\langle\\\\,\\\\text{letter}\\\\mid\\\\text{digit}\\\\mid\\\\kw{\'}\\\\mid\\\\kw{\\\\_}\\\\,\\\\rangle^*$","category":"R_R","name":"unconstrained","rhs":{"kind":"seq","items":[{"kind":"t","value":"\'"},{"kind":"rep","item":{"kind":"choice","items":[{"kind":"c","name":"letter"},{"kind":"c","name":"digit"},{"kind":"t","value":"\'"},{"kind":"t","value":"_"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"var.1","lhs":"var","rhs_tex":"\\\\kw{\'\'}\\\\,$\\\\langle\\\\,\\\\text{letter}\\\\mid\\\\text{digit}\\\\mid\\\\kw{\'}\\\\mid\\\\kw{\\\\_}\\\\,\\\\rangle^*$","category":"R_R","name":"equality","rhs":{"kind":"seq","items":[{"kind":"t","value":"\'\'"},{"kind":"rep","item":{"kind":"choice","items":[{"kind":"c","name":"letter"},{"kind":"c","name":"digit"},{"kind":"t","value":"\'"},{"kind":"t","value":"_"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"longid.0","lhs":"longid","rhs_tex":"$\\\\mathit{id}_1\\\\kw{.}\\\\cdots\\\\kw{.}\\\\mathit{id}_n\\\\quad(n\\\\ge 1)$","category":"R_R","name":"qualified","rhs":{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":".","exclude":[]}},{"id":"lab.0","lhs":"lab","rhs_tex":"\\\\nt{id}","category":"R_N","name":"identifier label","rhs":{"kind":"n","role":"id"}},{"id":"lab.1","lhs":"lab","rhs_tex":"\\\\nt{num}","category":"R_N","name":"numeric label","rhs":{"kind":"n","role":"num"}},{"id":"exp.0","lhs":"exp","rhs_tex":"\\\\nt{con}","category":"R_N","name":"constant","rhs":{"kind":"n","role":"con"}},{"id":"exp.1","lhs":"exp","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\,\\\\nt{longid}","category":"R_{Mix}","name":"value or constructor","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"longid"}]}},{"id":"exp.2","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"application","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"n","role":"exp"}]}},{"id":"exp.3","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"infix application","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"n","role":"id"},{"kind":"n","role":"exp"}]}},{"id":"exp.4","lhs":"exp","rhs_tex":"\\\\kw{(}\\\\,\\\\nt{exp}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"presentation-only grouping ($\\\\mathsf{Grp}_G$)","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"exp"},{"kind":"t","value":")"}]}},{"id":"exp.5","lhs":"exp","rhs_tex":"\\\\kw{(}\\\\,$\\\\mathit{exp}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{exp}_n$\\\\,\\\\kw{)}\\\\;$(n\\\\ne 1)$","category":"R_R","name":"tuple","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"rep","item":{"kind":"n","role":"exp"},"min":0,"separator":",","exclude":[1]},{"kind":"t","value":")"}]}},{"id":"exp.6","lhs":"exp","rhs_tex":"\\\\kw{\\\\{}\\\\,\\\\opt{\\\\nt{exprow}}\\\\,\\\\kw{\\\\}}","category":"R_{Mix}","name":"record","rhs":{"kind":"seq","items":[{"kind":"t","value":"{"},{"kind":"opt","item":{"kind":"n","role":"exprow"}},{"kind":"t","value":"}"}]}},{"id":"exp.7","lhs":"exp","rhs_tex":"\\\\kw{\\\\#}\\\\,\\\\nt{lab}","category":"R_{Mix}","name":"record selector","rhs":{"kind":"seq","items":[{"kind":"t","value":"#"},{"kind":"n","role":"lab"}]}},{"id":"exp.8","lhs":"exp","rhs_tex":"\\\\kw{[}\\\\,$\\\\mathit{exp}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{exp}_n$\\\\,\\\\kw{]}\\\\;$(n\\\\ge 0)$","category":"R_R","name":"list","rhs":{"kind":"seq","items":[{"kind":"t","value":"["},{"kind":"rep","item":{"kind":"n","role":"exp"},"min":0,"separator":",","exclude":[]},{"kind":"t","value":"]"}]}},{"id":"exp.9","lhs":"exp","rhs_tex":"\\\\kw{(}\\\\,$\\\\mathit{exp}_1\\\\kw{;}\\\\cdots\\\\kw{;}\\\\mathit{exp}_n$\\\\,\\\\kw{)}\\\\;$(n\\\\ge 2)$","category":"R_R","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"rep","item":{"kind":"n","role":"exp"},"min":2,"separator":";","exclude":[]},{"kind":"t","value":")"}]}},{"id":"exp.10","lhs":"exp","rhs_tex":"\\\\kw{let}\\\\;\\\\nt{dec}\\\\;\\\\kw{in}\\\\;$\\\\mathit{exp}_1\\\\kw{;}\\\\cdots\\\\kw{;}\\\\mathit{exp}_n$\\\\;\\\\kw{end}\\\\;$(n\\\\ge 1)$","category":"R_R","name":"local declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"let"},{"kind":"n","role":"dec"},{"kind":"t","value":"in"},{"kind":"rep","item":{"kind":"n","role":"exp"},"min":1,"separator":";","exclude":[]},{"kind":"t","value":"end"}]}},{"id":"exp.11","lhs":"exp","rhs_tex":"\\\\nt{exp}\\\\,\\\\kw{:}\\\\,\\\\nt{typ}","category":"R_{Mix}","name":"type annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"id":"exp.12","lhs":"exp","rhs_tex":"\\\\kw{raise}\\\\;\\\\nt{exp}","category":"R_{Mix}","name":"exception raising","rhs":{"kind":"seq","items":[{"kind":"t","value":"raise"},{"kind":"n","role":"exp"}]}},{"id":"exp.13","lhs":"exp","rhs_tex":"\\\\nt{exp}\\\\;\\\\kw{handle}\\\\;\\\\nt{match}","category":"R_{Mix}","name":"exception handling","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":"handle"},{"kind":"n","role":"match"}]}},{"id":"exp.14","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\kw{andalso}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"conjunction","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":"andalso"},{"kind":"n","role":"exp"}]}},{"id":"exp.15","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\kw{orelse}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"disjunction","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":"orelse"},{"kind":"n","role":"exp"}]}},{"id":"exp.16","lhs":"exp","rhs_tex":"\\\\kw{if}\\\\;\\\\nt{exp}$_1$\\\\;\\\\kw{then}\\\\;\\\\nt{exp}$_2$\\\\;\\\\kw{else}\\\\;\\\\nt{exp}$_3$","category":"R_{Mix}","name":"conditional","rhs":{"kind":"seq","items":[{"kind":"t","value":"if"},{"kind":"n","role":"exp"},{"kind":"t","value":"then"},{"kind":"n","role":"exp"},{"kind":"t","value":"else"},{"kind":"n","role":"exp"}]}},{"id":"exp.17","lhs":"exp","rhs_tex":"\\\\kw{while}\\\\;\\\\nt{exp}$_1$\\\\;\\\\kw{do}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"iteration","rhs":{"kind":"seq","items":[{"kind":"t","value":"while"},{"kind":"n","role":"exp"},{"kind":"t","value":"do"},{"kind":"n","role":"exp"}]}},{"id":"exp.18","lhs":"exp","rhs_tex":"\\\\kw{case}\\\\;\\\\nt{exp}\\\\;\\\\kw{of}\\\\;\\\\nt{match}","category":"R_{Mix}","name":"case analysis","rhs":{"kind":"seq","items":[{"kind":"t","value":"case"},{"kind":"n","role":"exp"},{"kind":"t","value":"of"},{"kind":"n","role":"match"}]}},{"id":"exp.19","lhs":"exp","rhs_tex":"\\\\kw{fn}\\\\;\\\\nt{match}","category":"R_{Mix}","name":"anonymous function","rhs":{"kind":"seq","items":[{"kind":"t","value":"fn"},{"kind":"n","role":"match"}]}},{"id":"exprow.0","lhs":"exprow","rhs_tex":"\\\\nt{lab}\\\\,\\\\kw{=}\\\\,\\\\nt{exp}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{exprow}}","category":"R_{Mix}","name":"expression row","rhs":{"kind":"seq","items":[{"kind":"n","role":"lab"},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"exprow"}]}}]}},{"id":"match.0","lhs":"match","rhs_tex":"\\\\nt{pat}\\\\;\\\\kw{=>}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{match}}","category":"R_{Mix}","name":"match clause","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":"=>"},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"match"}]}}]}},{"id":"pat.0","lhs":"pat","rhs_tex":"\\\\nt{con}","category":"R_N","name":"constant","rhs":{"kind":"n","role":"con"}},{"id":"pat.1","lhs":"pat","rhs_tex":"\\\\kw{\\\\_}","category":"R_T","name":"wildcard","rhs":{"kind":"t","value":"_"}},{"id":"pat.2","lhs":"pat","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{id}","category":"R_{Mix}","name":"variable","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"id"}]}},{"id":"pat.3","lhs":"pat","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{longid}\\\\;\\\\opt{\\\\nt{pat}}","category":"R_{Mix}","name":"construction","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"longid"},{"kind":"opt","item":{"kind":"n","role":"pat"}}]}},{"id":"pat.4","lhs":"pat","rhs_tex":"\\\\nt{pat}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{pat}$_2$","category":"R_{Mix}","name":"infix construction","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"n","role":"id"},{"kind":"n","role":"pat"}]}},{"id":"pat.5","lhs":"pat","rhs_tex":"\\\\kw{(}\\\\,\\\\nt{pat}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"presentation-only grouping ($\\\\mathsf{Grp}_G$)","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"pat"},{"kind":"t","value":")"}]}},{"id":"pat.6","lhs":"pat","rhs_tex":"\\\\kw{(}\\\\,$\\\\mathit{pat}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{pat}_n$\\\\,\\\\kw{)}\\\\;$(n\\\\ne 1)$","category":"R_R","name":"tuple","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"rep","item":{"kind":"n","role":"pat"},"min":0,"separator":",","exclude":[1]},{"kind":"t","value":")"}]}},{"id":"pat.7","lhs":"pat","rhs_tex":"\\\\kw{\\\\{}\\\\,\\\\opt{\\\\nt{patrow}}\\\\,\\\\kw{\\\\}}","category":"R_{Mix}","name":"record","rhs":{"kind":"seq","items":[{"kind":"t","value":"{"},{"kind":"opt","item":{"kind":"n","role":"patrow"}},{"kind":"t","value":"}"}]}},{"id":"pat.8","lhs":"pat","rhs_tex":"\\\\kw{[}\\\\,$\\\\mathit{pat}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{pat}_n$\\\\,\\\\kw{]}\\\\;$(n\\\\ge 0)$","category":"R_R","name":"list","rhs":{"kind":"seq","items":[{"kind":"t","value":"["},{"kind":"rep","item":{"kind":"n","role":"pat"},"min":0,"separator":",","exclude":[]},{"kind":"t","value":"]"}]}},{"id":"pat.9","lhs":"pat","rhs_tex":"\\\\nt{pat}\\\\,\\\\kw{:}\\\\,\\\\nt{typ}","category":"R_{Mix}","name":"type annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"id":"pat.10","lhs":"pat","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{id}\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\kw{as}\\\\;\\\\nt{pat}","category":"R_{Mix}","name":"layered","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"as"},{"kind":"n","role":"pat"}]}},{"id":"patrow.0","lhs":"patrow","rhs_tex":"\\\\kw{...}","category":"R_T","name":"wildcard row","rhs":{"kind":"t","value":"..."}},{"id":"patrow.1","lhs":"patrow","rhs_tex":"\\\\nt{lab}\\\\,\\\\kw{=}\\\\,\\\\nt{pat}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{patrow}}","category":"R_{Mix}","name":"pattern field","rhs":{"kind":"seq","items":[{"kind":"n","role":"lab"},{"kind":"t","value":"="},{"kind":"n","role":"pat"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"patrow"}]}}]}},{"id":"patrow.2","lhs":"patrow","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{as}\\\\;\\\\nt{pat}}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{patrow}}","category":"R_{Mix}","name":"variable field","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"as"},{"kind":"n","role":"pat"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"patrow"}]}}]}},{"id":"typ.0","lhs":"typ","rhs_tex":"\\\\nt{var}","category":"R_N","name":"type variable","rhs":{"kind":"n","role":"var"}},{"id":"typ.1","lhs":"typ","rhs_tex":"\\\\opt{\\\\nt{typ}}\\\\kw{(,)}\\\\;\\\\nt{longid}","category":"R_{Mix}","name":"type constructor","rhs":{"kind":"seq","items":[{"kind":"args","role":"typ"},{"kind":"n","role":"longid"}]}},{"id":"typ.2","lhs":"typ","rhs_tex":"\\\\kw{(}\\\\,\\\\nt{typ}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"presentation-only grouping ($\\\\mathsf{Grp}_G$)","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"typ"},{"kind":"t","value":")"}]}},{"id":"typ.3","lhs":"typ","rhs_tex":"\\\\nt{typ}$_1$\\\\;\\\\kw{->}\\\\;\\\\nt{typ}$_2$","category":"R_{Mix}","name":"function type","rhs":{"kind":"seq","items":[{"kind":"n","role":"typ"},{"kind":"t","value":"->"},{"kind":"n","role":"typ"}]}},{"id":"typ.4","lhs":"typ","rhs_tex":"$\\\\mathit{typ}_1\\\\kw{*}\\\\cdots\\\\kw{*}\\\\mathit{typ}_n\\\\;(n\\\\ge 2)$","category":"R_R","name":"tuple type","rhs":{"kind":"rep","item":{"kind":"n","role":"typ"},"min":2,"separator":"*","exclude":[]}},{"id":"typ.5","lhs":"typ","rhs_tex":"\\\\kw{\\\\{}\\\\,\\\\opt{\\\\nt{typrow}}\\\\,\\\\kw{\\\\}}","category":"R_{Mix}","name":"record type","rhs":{"kind":"seq","items":[{"kind":"t","value":"{"},{"kind":"opt","item":{"kind":"n","role":"typrow"}},{"kind":"t","value":"}"}]}},{"id":"typrow.0","lhs":"typrow","rhs_tex":"\\\\nt{lab}\\\\,\\\\kw{:}\\\\,\\\\nt{typ}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{typrow}}","category":"R_{Mix}","name":"type row","rhs":{"kind":"seq","items":[{"kind":"n","role":"lab"},{"kind":"t","value":":"},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"typrow"}]}}]}},{"id":"dec.0","lhs":"dec","rhs_tex":"\\\\kw{val}\\\\;\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{valbind}","category":"R_{Mix}","name":"value","rhs":{"kind":"seq","items":[{"kind":"t","value":"val"},{"kind":"args","role":"var"},{"kind":"n","role":"valbind"}]}},{"id":"dec.1","lhs":"dec","rhs_tex":"\\\\kw{fun}\\\\;\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{funbind}","category":"R_{Mix}","name":"function","rhs":{"kind":"seq","items":[{"kind":"t","value":"fun"},{"kind":"args","role":"var"},{"kind":"n","role":"funbind"}]}},{"id":"dec.2","lhs":"dec","rhs_tex":"\\\\kw{type}\\\\;\\\\nt{typbind}","category":"R_{Mix}","name":"type","rhs":{"kind":"seq","items":[{"kind":"t","value":"type"},{"kind":"n","role":"typbind"}]}},{"id":"dec.3","lhs":"dec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{datbind}\\\\;\\\\opt{\\\\kw{withtype}\\\\;\\\\nt{typbind}}","category":"R_{Mix}","name":"datatype","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"datbind"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"withtype"},{"kind":"n","role":"typbind"}]}}]}},{"id":"dec.4","lhs":"dec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\kw{datatype}\\\\;\\\\nt{longid}","category":"R_{Mix}","name":"datatype replication","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"t","value":"datatype"},{"kind":"n","role":"longid"}]}},{"id":"dec.5","lhs":"dec","rhs_tex":"\\\\kw{abstype}\\\\;\\\\nt{datbind}\\\\;\\\\opt{\\\\kw{withtype}\\\\;\\\\nt{typbind}}\\\\;\\\\kw{with}\\\\;\\\\nt{dec}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"abstract type","rhs":{"kind":"seq","items":[{"kind":"t","value":"abstype"},{"kind":"n","role":"datbind"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"withtype"},{"kind":"n","role":"typbind"}]}},{"kind":"t","value":"with"},{"kind":"n","role":"dec"},{"kind":"t","value":"end"}]}},{"id":"dec.6","lhs":"dec","rhs_tex":"\\\\kw{exception}\\\\;\\\\nt{exnbind}","category":"R_{Mix}","name":"exception","rhs":{"kind":"seq","items":[{"kind":"t","value":"exception"},{"kind":"n","role":"exnbind"}]}},{"id":"dec.7","lhs":"dec","rhs_tex":"\\\\kw{structure}\\\\;\\\\nt{strbind}","category":"R_{Mix}","name":"structure","rhs":{"kind":"seq","items":[{"kind":"t","value":"structure"},{"kind":"n","role":"strbind"}]}},{"id":"dec.8","lhs":"dec","rhs_tex":"$\\\\varepsilon$","category":"R_T","name":"empty","rhs":{"kind":"eps"}},{"id":"dec.9","lhs":"dec","rhs_tex":"\\\\nt{dec}$_1$\\\\;\\\\opt{\\\\kw{;}}\\\\;\\\\nt{dec}$_2$","category":"R_{Mix}","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"n","role":"dec"},{"kind":"opt","item":{"kind":"t","value":";"}},{"kind":"n","role":"dec"}]}},{"id":"dec.10","lhs":"dec","rhs_tex":"\\\\kw{local}\\\\;\\\\nt{dec}$_1$\\\\;\\\\kw{in}\\\\;\\\\nt{dec}$_2$\\\\;\\\\kw{end}","category":"R_{Mix}","name":"local","rhs":{"kind":"seq","items":[{"kind":"t","value":"local"},{"kind":"n","role":"dec"},{"kind":"t","value":"in"},{"kind":"n","role":"dec"},{"kind":"t","value":"end"}]}},{"id":"dec.11","lhs":"dec","rhs_tex":"\\\\kw{open}\\\\;$\\\\mathit{longid}_1\\\\cdots\\\\mathit{longid}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"open","rhs":{"kind":"seq","items":[{"kind":"t","value":"open"},{"kind":"rep","item":{"kind":"n","role":"longid"},"min":1,"separator":"","exclude":[]}]}},{"id":"dec.12","lhs":"dec","rhs_tex":"\\\\kw{nonfix}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"nonfix","rhs":{"kind":"seq","items":[{"kind":"t","value":"nonfix"},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"dec.13","lhs":"dec","rhs_tex":"\\\\kw{infix}\\\\;\\\\opt{\\\\kw{digit}}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"left-associative infix","rhs":{"kind":"seq","items":[{"kind":"t","value":"infix"},{"kind":"opt","item":{"kind":"c","name":"digit"}},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"dec.14","lhs":"dec","rhs_tex":"\\\\kw{infixr}\\\\;\\\\opt{\\\\kw{digit}}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"right-associative infix","rhs":{"kind":"seq","items":[{"kind":"t","value":"infixr"},{"kind":"opt","item":{"kind":"c","name":"digit"}},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"valbind.0","lhs":"valbind","rhs_tex":"\\\\nt{pat}\\\\;\\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{valbind}}","category":"R_{Mix}","name":"destructuring","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"valbind"}]}}]}},{"id":"valbind.1","lhs":"valbind","rhs_tex":"\\\\kw{rec}\\\\;\\\\nt{valbind}","category":"R_{Mix}","name":"recursive","rhs":{"kind":"seq","items":[{"kind":"t","value":"rec"},{"kind":"n","role":"valbind"}]}},{"id":"funbind.0","lhs":"funbind","rhs_tex":"\\\\nt{funmatch}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{funbind}}","category":"R_{Mix}","name":"clausal function","rhs":{"kind":"seq","items":[{"kind":"n","role":"funmatch"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"funbind"}]}}]}},{"id":"funmatch.0","lhs":"funmatch","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{id}\\\\;$\\\\mathit{pat}_1\\\\cdots\\\\mathit{pat}_n$\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{funmatch}}\\\\;$(n\\\\ge 1)$","category":"R_R","name":"nonfix clauses","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"id"},{"kind":"rep","item":{"kind":"n","role":"pat"},"min":1,"separator":"","exclude":[]},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"funmatch"}]}}]}},{"id":"funmatch.1","lhs":"funmatch","rhs_tex":"\\\\nt{pat}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{pat}$_2$\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{funmatch}}","category":"R_{Mix}","name":"infix clauses","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"n","role":"id"},{"kind":"n","role":"pat"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"funmatch"}]}}]}},{"id":"funmatch.2","lhs":"funmatch","rhs_tex":"\\\\kw{(}\\\\nt{pat}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{pat}$_2$\\\\kw{)}\\\\;$\\\\mathit{pat}\'_1\\\\cdots\\\\mathit{pat}\'_n$\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\newline\\n    \\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{funmatch}}\\\\;$(n\\\\ge 0)$","category":"R_R","name":"infix with extra args","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"pat"},{"kind":"n","role":"id"},{"kind":"n","role":"pat"},{"kind":"t","value":")"},{"kind":"rep","item":{"kind":"n","role":"pat"},"min":0,"separator":"","exclude":[]},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"funmatch"}]}}]}},{"id":"typbind.0","lhs":"typbind","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{typ}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{typbind}}","category":"R_{Mix}","name":"type abbreviation","rhs":{"kind":"seq","items":[{"kind":"args","role":"var"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"typbind"}]}}]}},{"id":"datbind.0","lhs":"datbind","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{conbind}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{datbind}}","category":"R_{Mix}","name":"datatype binding","rhs":{"kind":"seq","items":[{"kind":"args","role":"var"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"conbind"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"datbind"}]}}]}},{"id":"conbind.0","lhs":"conbind","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{conbind}}","category":"R_{Mix}","name":"data constructor","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"conbind"}]}}]}},{"id":"exnbind.0","lhs":"exnbind","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{exnbind}}","category":"R_{Mix}","name":"generative exception","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"exnbind"}]}}]}},{"id":"exnbind.1","lhs":"exnbind","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{longid}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{exnbind}}","category":"R_{Mix}","name":"exception renaming","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"longid"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"exnbind"}]}}]}},{"id":"str.0","lhs":"str","rhs_tex":"\\\\nt{longid}","category":"R_N","name":"identifier (encapsulated alias)","rhs":{"kind":"n","role":"longid"}},{"id":"str.1","lhs":"str","rhs_tex":"\\\\kw{struct}\\\\;\\\\nt{dec}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"structure expression","rhs":{"kind":"seq","items":[{"kind":"t","value":"struct"},{"kind":"n","role":"dec"},{"kind":"t","value":"end"}]}},{"id":"str.2","lhs":"str","rhs_tex":"\\\\nt{str}\\\\;\\\\kw{:}\\\\;\\\\nt{sig}","category":"R_{Mix}","name":"transparent annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"str"},{"kind":"t","value":":"},{"kind":"n","role":"sig"}]}},{"id":"str.3","lhs":"str","rhs_tex":"\\\\nt{str}\\\\;\\\\kw{:>}\\\\;\\\\nt{sig}","category":"R_{Mix}","name":"opaque annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"str"},{"kind":"t","value":":>"},{"kind":"n","role":"sig"}]}},{"id":"str.4","lhs":"str","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{(}\\\\,\\\\nt{str}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"functor application (str)","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"str"},{"kind":"t","value":")"}]}},{"id":"str.5","lhs":"str","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{(}\\\\,\\\\nt{dec}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"functor application (dec)","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"dec"},{"kind":"t","value":")"}]}},{"id":"str.6","lhs":"str","rhs_tex":"\\\\kw{let}\\\\;\\\\nt{dec}\\\\;\\\\kw{in}\\\\;\\\\nt{str}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"local declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"let"},{"kind":"n","role":"dec"},{"kind":"t","value":"in"},{"kind":"n","role":"str"},{"kind":"t","value":"end"}]}},{"id":"strbind.0","lhs":"strbind","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{:}\\\\opt{\\\\kw{>}}\\\\;\\\\nt{sig}}\\\\;\\\\kw{=}\\\\;\\\\nt{str}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{strbind}}","category":"R_{Mix}","name":"structure binding","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"opt","item":{"kind":"t","value":">"}},{"kind":"n","role":"sig"}]}},{"kind":"t","value":"="},{"kind":"n","role":"str"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"strbind"}]}}]}},{"id":"sig.0","lhs":"sig","rhs_tex":"\\\\nt{id}","category":"R_N","name":"identifier","rhs":{"kind":"n","role":"id"}},{"id":"sig.1","lhs":"sig","rhs_tex":"\\\\kw{sig}\\\\;\\\\nt{spec}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"signature expression","rhs":{"kind":"seq","items":[{"kind":"t","value":"sig"},{"kind":"n","role":"spec"},{"kind":"t","value":"end"}]}},{"id":"sig.2","lhs":"sig","rhs_tex":"\\\\nt{sig}\\\\;\\\\kw{where type}\\\\;\\\\nt{typrefin}","category":"R_{Mix}","name":"type refinement","rhs":{"kind":"seq","items":[{"kind":"n","role":"sig"},{"kind":"t","value":"where"},{"kind":"t","value":"type"},{"kind":"n","role":"typrefin"}]}},{"id":"typrefin.0","lhs":"typrefin","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{longid}\\\\;\\\\kw{=}\\\\;\\\\nt{typ}\\\\;\\\\opt{\\\\kw{and type}\\\\;\\\\nt{typrefin}}","category":"R_{Mix}","name":"type refinement binding","rhs":{"kind":"seq","items":[{"kind":"args","role":"var"},{"kind":"n","role":"longid"},{"kind":"t","value":"="},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"t","value":"type"},{"kind":"n","role":"typrefin"}]}}]}},{"id":"spec.0","lhs":"spec","rhs_tex":"\\\\kw{val}\\\\;\\\\nt{valdesc}","category":"R_{Mix}","name":"value specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"val"},{"kind":"n","role":"valdesc"}]}},{"id":"spec.1","lhs":"spec","rhs_tex":"\\\\kw{type}\\\\;\\\\nt{typdesc}","category":"R_{Mix}","name":"type specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"type"},{"kind":"n","role":"typdesc"}]}},{"id":"spec.2","lhs":"spec","rhs_tex":"\\\\kw{eqtype}\\\\;\\\\nt{typdesc}","category":"R_{Mix}","name":"equality type","rhs":{"kind":"seq","items":[{"kind":"t","value":"eqtype"},{"kind":"n","role":"typdesc"}]}},{"id":"spec.3","lhs":"spec","rhs_tex":"\\\\kw{type}\\\\;\\\\nt{typbind}","category":"R_{Mix}","name":"type abbreviation","rhs":{"kind":"seq","items":[{"kind":"t","value":"type"},{"kind":"n","role":"typbind"}]}},{"id":"spec.4","lhs":"spec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{datdesc}","category":"R_{Mix}","name":"datatype specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"datdesc"}]}},{"id":"spec.5","lhs":"spec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{id}\\\\;\\\\kw{= datatype}\\\\;\\\\nt{longid}","category":"R_{Mix}","name":"datatype replication","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"t","value":"datatype"},{"kind":"n","role":"longid"}]}},{"id":"spec.6","lhs":"spec","rhs_tex":"\\\\kw{exception}\\\\;\\\\nt{exndesc}","category":"R_{Mix}","name":"exception specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"exception"},{"kind":"n","role":"exndesc"}]}},{"id":"spec.7","lhs":"spec","rhs_tex":"\\\\kw{structure}\\\\;\\\\nt{strdesc}","category":"R_{Mix}","name":"structure specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"structure"},{"kind":"n","role":"strdesc"}]}},{"id":"spec.8","lhs":"spec","rhs_tex":"$\\\\varepsilon$","category":"R_T","name":"empty","rhs":{"kind":"eps"}},{"id":"spec.9","lhs":"spec","rhs_tex":"\\\\nt{spec}$_1$\\\\;\\\\opt{\\\\kw{;}}\\\\;\\\\nt{spec}$_2$","category":"R_{Mix}","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"n","role":"spec"},{"kind":"opt","item":{"kind":"t","value":";"}},{"kind":"n","role":"spec"}]}},{"id":"spec.10","lhs":"spec","rhs_tex":"\\\\kw{include}\\\\;\\\\nt{sig}","category":"R_{Mix}","name":"single inclusion","rhs":{"kind":"seq","items":[{"kind":"t","value":"include"},{"kind":"n","role":"sig"}]}},{"id":"spec.11","lhs":"spec","rhs_tex":"\\\\kw{include}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"multiple inclusion","rhs":{"kind":"seq","items":[{"kind":"t","value":"include"},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"spec.12","lhs":"spec","rhs_tex":"\\\\nt{spec}\\\\;\\\\kw{sharing type}\\\\;$\\\\mathit{longid}_1\\\\kw{=}\\\\cdots\\\\kw{=}\\\\mathit{longid}_n\\\\;(n\\\\ge 2)$","category":"R_R","name":"type sharing","rhs":{"kind":"seq","items":[{"kind":"n","role":"spec"},{"kind":"t","value":"sharing"},{"kind":"t","value":"type"},{"kind":"rep","item":{"kind":"n","role":"longid"},"min":2,"separator":"=","exclude":[]}]}},{"id":"spec.13","lhs":"spec","rhs_tex":"\\\\nt{spec}\\\\;\\\\kw{sharing}\\\\;$\\\\mathit{longid}_1\\\\kw{=}\\\\cdots\\\\kw{=}\\\\mathit{longid}_n\\\\;(n\\\\ge 2)$","category":"R_R","name":"structure sharing","rhs":{"kind":"seq","items":[{"kind":"n","role":"spec"},{"kind":"t","value":"sharing"},{"kind":"rep","item":{"kind":"n","role":"longid"},"min":2,"separator":"=","exclude":[]}]}},{"id":"valdesc.0","lhs":"valdesc","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{:}\\\\;\\\\nt{typ}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{valdesc}}","category":"R_{Mix}","name":"value description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":":"},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"valdesc"}]}}]}},{"id":"typdesc.0","lhs":"typdesc","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{typdesc}}","category":"R_{Mix}","name":"abstract type","rhs":{"kind":"seq","items":[{"kind":"args","role":"var"},{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"typdesc"}]}}]}},{"id":"datdesc.0","lhs":"datdesc","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{condesc}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{datdesc}}","category":"R_{Mix}","name":"datatype description","rhs":{"kind":"seq","items":[{"kind":"args","role":"var"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"condesc"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"datdesc"}]}}]}},{"id":"condesc.0","lhs":"condesc","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{condesc}}","category":"R_{Mix}","name":"constructor description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"condesc"}]}}]}},{"id":"exndesc.0","lhs":"exndesc","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{exndesc}}","category":"R_{Mix}","name":"exception description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"exndesc"}]}}]}},{"id":"strdesc.0","lhs":"strdesc","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{:}\\\\;\\\\nt{sig}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{strdesc}}","category":"R_{Mix}","name":"structure description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":":"},{"kind":"n","role":"sig"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"strdesc"}]}}]}},{"id":"prog.0","lhs":"prog","rhs_tex":"\\\\nt{dec}","category":"R_N","name":"core declaration","rhs":{"kind":"n","role":"dec"}},{"id":"prog.1","lhs":"prog","rhs_tex":"\\\\kw{functor}\\\\;\\\\nt{fctbind}","category":"R_{Mix}","name":"functor declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"functor"},{"kind":"n","role":"fctbind"}]}},{"id":"prog.2","lhs":"prog","rhs_tex":"\\\\kw{signature}\\\\;\\\\nt{sigbind}","category":"R_{Mix}","name":"signature declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"signature"},{"kind":"n","role":"sigbind"}]}},{"id":"prog.3","lhs":"prog","rhs_tex":"$\\\\varepsilon$","category":"R_T","name":"empty","rhs":{"kind":"eps"}},{"id":"prog.4","lhs":"prog","rhs_tex":"\\\\nt{prog}$_1$\\\\;\\\\opt{\\\\kw{;}}\\\\;\\\\nt{prog}$_2$","category":"R_{Mix}","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"n","role":"prog"},{"kind":"opt","item":{"kind":"t","value":";"}},{"kind":"n","role":"prog"}]}},{"id":"fctbind.0","lhs":"fctbind","rhs_tex":"$\\\\mathit{id}_1$\\\\,\\\\kw{(}$\\\\mathit{id}_2$\\\\,\\\\kw{:}\\\\,\\\\nt{sig}\\\\kw{)}\\\\;\\\\opt{\\\\kw{:}\\\\opt{\\\\kw{>}}\\\\;\\\\nt{sig}}\\\\;\\\\kw{=}\\\\;\\\\nt{str}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{fctbind}}","category":"R_{Mix}","name":"plain functor","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"id"},{"kind":"t","value":":"},{"kind":"n","role":"sig"},{"kind":"t","value":")"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"opt","item":{"kind":"t","value":">"}},{"kind":"n","role":"sig"}]}},{"kind":"t","value":"="},{"kind":"n","role":"str"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"fctbind"}]}}]}},{"id":"fctbind.1","lhs":"fctbind","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{(}\\\\,\\\\nt{spec}\\\\,\\\\kw{)}\\\\;\\\\opt{\\\\kw{:}\\\\opt{\\\\kw{>}}\\\\;\\\\nt{sig}}\\\\;\\\\kw{=}\\\\;\\\\nt{str}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{fctbind}}","category":"R_{Mix}","name":"opened functor","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"spec"},{"kind":"t","value":")"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"opt","item":{"kind":"t","value":">"}},{"kind":"n","role":"sig"}]}},{"kind":"t","value":"="},{"kind":"n","role":"str"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"fctbind"}]}}]}},{"id":"sigbind.0","lhs":"sigbind","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{sig}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{sigbind}}","category":"R_{Mix}","name":"signature binding","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"sig"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"sigbind"}]}}]}}],"factored_grammar":{"start":"prog","grouping":["exp.4","pat.5","typ.2"],"lexical_roles":["int","word","float","char","string","num","hex","ascii","id","var","longid","lab"],"productions":[{"id":"con.0","lhs":"con","rhs_tex":"\\\\nt{int}","category":"R_N","name":"integer","rhs":{"kind":"n","role":"int"}},{"id":"con.1","lhs":"con","rhs_tex":"\\\\nt{word}","category":"R_N","name":"word","rhs":{"kind":"n","role":"word"}},{"id":"con.2","lhs":"con","rhs_tex":"\\\\nt{float}","category":"R_N","name":"floating point","rhs":{"kind":"n","role":"float"}},{"id":"con.3","lhs":"con","rhs_tex":"\\\\nt{char}","category":"R_N","name":"character","rhs":{"kind":"n","role":"char"}},{"id":"con.4","lhs":"con","rhs_tex":"\\\\nt{string}","category":"R_N","name":"string","rhs":{"kind":"n","role":"string"}},{"id":"int.0","lhs":"int","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}","category":"R_{Mix}","name":"decimal","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"}]}},{"id":"int.1","lhs":"int","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\kw{0x}\\\\,\\\\nt{hex}","category":"R_{Mix}","name":"hexadecimal","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"t","value":"0x"},{"kind":"n","role":"hex"}]}},{"id":"word.0","lhs":"word","rhs_tex":"\\\\kw{0w}\\\\,\\\\nt{num}","category":"R_{Mix}","name":"decimal","rhs":{"kind":"seq","items":[{"kind":"t","value":"0w"},{"kind":"n","role":"num"}]}},{"id":"word.1","lhs":"word","rhs_tex":"\\\\kw{0wx}\\\\,\\\\nt{hex}","category":"R_{Mix}","name":"hexadecimal","rhs":{"kind":"seq","items":[{"kind":"t","value":"0wx"},{"kind":"n","role":"hex"}]}},{"id":"float.0","lhs":"float","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}\\\\kw{.}\\\\nt{num}","category":"R_{Mix}","name":"floating point","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"},{"kind":"t","value":"."},{"kind":"n","role":"num"}]}},{"id":"float.1","lhs":"float","rhs_tex":"\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}\\\\,\\\\opt{\\\\kw{.}\\\\nt{num}}\\\\,\\\\kw{e}\\\\,\\\\opt{${\\\\sim}$}\\\\,\\\\nt{num}","category":"R_{Mix}","name":"scientific","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"."},{"kind":"n","role":"num"}]}},{"kind":"t","value":"e"},{"kind":"opt","item":{"kind":"t","value":"~"}},{"kind":"n","role":"num"}]}},{"id":"char.0","lhs":"char","rhs_tex":"\\\\kw{\\\\#\\"}\\\\,\\\\nt{ascii}\\\\,\\\\kw{\\"}","category":"R_{Mix}","name":"character","rhs":{"kind":"seq","items":[{"kind":"t","value":"#\\""},{"kind":"n","role":"ascii"},{"kind":"t","value":"\\""}]}},{"id":"string.0","lhs":"string","rhs_tex":"\\\\kw{\\"}\\\\,$\\\\langle\\\\,\\\\mathit{ascii}\\\\,\\\\rangle^*$\\\\,\\\\kw{\\"}","category":"R_R","name":"string","rhs":{"kind":"seq","items":[{"kind":"t","value":"\\""},{"kind":"rep","item":{"kind":"n","role":"ascii"},"min":0,"separator":"","exclude":[]},{"kind":"t","value":"\\""}]}},{"id":"num.0","lhs":"num","rhs_tex":"$\\\\langle\\\\,\\\\text{digit}\\\\,\\\\rangle^+$","category":"R_R","name":"number","rhs":{"kind":"rep","item":{"kind":"c","name":"digit"},"min":1,"separator":"","exclude":[]}},{"id":"hex.0","lhs":"hex","rhs_tex":"$\\\\langle\\\\,\\\\text{hex-digit}\\\\,\\\\rangle^+$","category":"R_R","name":"hexadecimal number","rhs":{"kind":"rep","item":{"kind":"c","name":"hexDigit"},"min":1,"separator":"","exclude":[]}},{"id":"ascii.0","lhs":"ascii","rhs_tex":"\\\\ldots","category":"R_T","name":"single ASCII char or \\\\kw{\\\\textbackslash}-escape","rhs":{"kind":"c","name":"ascii"}},{"id":"id.0","lhs":"id","rhs_tex":"\\\\kw{letter}\\\\,$\\\\langle\\\\,\\\\text{letter}\\\\mid\\\\text{digit}\\\\mid\\\\kw{\'}\\\\mid\\\\kw{\\\\_}\\\\,\\\\rangle^*$","category":"R_R","name":"alphanumeric","rhs":{"kind":"seq","items":[{"kind":"c","name":"letter"},{"kind":"rep","item":{"kind":"choice","items":[{"kind":"c","name":"letter"},{"kind":"c","name":"digit"},{"kind":"t","value":"\'"},{"kind":"t","value":"_"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"id.1","lhs":"id","rhs_tex":"$\\\\langle\\\\,\\\\kw{!}\\\\mid\\\\kw{\\\\%}\\\\mid\\\\kw{\\\\&}\\\\mid\\\\kw{\\\\$}\\\\mid\\\\kw{\\\\#}\\\\mid\\n     \\\\kw{+}\\\\mid\\\\kw{-}\\\\mid\\\\kw{/}\\\\mid\\\\kw{:}\\\\mid\\\\kw{<}\\\\mid\\\\kw{=}\\\\mid\\n     \\\\kw{>}\\\\mid\\\\kw{?}\\\\mid\\\\kw{@}\\\\mid\\\\kw{\\\\textbackslash}\\\\mid\\\\kw{\\\\textasciitilde}\\\\mid\\n     \\\\kw{\\\\textasciicircum}\\\\mid\\\\kw{|}\\\\mid\\\\kw{*}\\\\,\\\\rangle^+$","category":"R_R","name":"symbolic","rhs":{"kind":"rep","item":{"kind":"choice","items":[{"kind":"t","value":"!"},{"kind":"t","value":"%"},{"kind":"t","value":"&"},{"kind":"t","value":"$"},{"kind":"t","value":"#"},{"kind":"t","value":"+"},{"kind":"t","value":"-"},{"kind":"t","value":"/"},{"kind":"t","value":":"},{"kind":"t","value":"<"},{"kind":"t","value":"="},{"kind":"t","value":">"},{"kind":"t","value":"?"},{"kind":"t","value":"@"},{"kind":"t","value":"\\\\"},{"kind":"t","value":"~"},{"kind":"t","value":"^"},{"kind":"t","value":"|"},{"kind":"t","value":"*"}]},"min":1,"separator":"","exclude":[]}},{"id":"var.0","lhs":"var","rhs_tex":"\\\\kw{\'}\\\\,$\\\\langle\\\\,\\\\text{letter}\\\\mid\\\\text{digit}\\\\mid\\\\kw{\'}\\\\mid\\\\kw{\\\\_}\\\\,\\\\rangle^*$","category":"R_R","name":"unconstrained","rhs":{"kind":"seq","items":[{"kind":"t","value":"\'"},{"kind":"rep","item":{"kind":"choice","items":[{"kind":"c","name":"letter"},{"kind":"c","name":"digit"},{"kind":"t","value":"\'"},{"kind":"t","value":"_"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"var.1","lhs":"var","rhs_tex":"\\\\kw{\'\'}\\\\,$\\\\langle\\\\,\\\\text{letter}\\\\mid\\\\text{digit}\\\\mid\\\\kw{\'}\\\\mid\\\\kw{\\\\_}\\\\,\\\\rangle^*$","category":"R_R","name":"equality","rhs":{"kind":"seq","items":[{"kind":"t","value":"\'\'"},{"kind":"rep","item":{"kind":"choice","items":[{"kind":"c","name":"letter"},{"kind":"c","name":"digit"},{"kind":"t","value":"\'"},{"kind":"t","value":"_"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"longid.0","lhs":"longid","rhs_tex":"$\\\\mathit{id}_1\\\\kw{.}\\\\cdots\\\\kw{.}\\\\mathit{id}_n\\\\quad(n\\\\ge 1)$","category":"R_R","name":"qualified","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":"."},{"kind":"n","role":"id"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"lab.0","lhs":"lab","rhs_tex":"\\\\nt{id}","category":"R_N","name":"identifier label","rhs":{"kind":"n","role":"id"}},{"id":"lab.1","lhs":"lab","rhs_tex":"\\\\nt{num}","category":"R_N","name":"numeric label","rhs":{"kind":"n","role":"num"}},{"id":"exp.0","lhs":"exp","rhs_tex":"\\\\nt{con}","category":"R_N","name":"constant","rhs":{"kind":"n","role":"con"}},{"id":"exp.1","lhs":"exp","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\,\\\\nt{longid}","category":"R_{Mix}","name":"value or constructor","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"longid"}]}},{"id":"exp.2","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"application","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"n","role":"exp"}]}},{"id":"exp.3","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"infix application","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"n","role":"id"},{"kind":"n","role":"exp"}]}},{"id":"exp.4","lhs":"exp","rhs_tex":"\\\\kw{(}\\\\,\\\\nt{exp}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"presentation-only grouping ($\\\\mathsf{Grp}_G$)","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"exp"},{"kind":"t","value":")"}]}},{"id":"exp.5","lhs":"exp","rhs_tex":"\\\\kw{(}\\\\,$\\\\mathit{exp}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{exp}_n$\\\\,\\\\kw{)}\\\\;$(n\\\\ne 1)$","category":"R_R","name":"tuple","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":","},{"kind":"n","role":"exp"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"exp"}]},"min":0,"separator":"","exclude":[]}]}},{"kind":"t","value":")"}]}},{"id":"exp.6","lhs":"exp","rhs_tex":"\\\\kw{\\\\{}\\\\,\\\\opt{\\\\nt{exprow}}\\\\,\\\\kw{\\\\}}","category":"R_{Mix}","name":"record","rhs":{"kind":"seq","items":[{"kind":"t","value":"{"},{"kind":"opt","item":{"kind":"n","role":"exprow"}},{"kind":"t","value":"}"}]}},{"id":"exp.7","lhs":"exp","rhs_tex":"\\\\kw{\\\\#}\\\\,\\\\nt{lab}","category":"R_{Mix}","name":"record selector","rhs":{"kind":"seq","items":[{"kind":"t","value":"#"},{"kind":"n","role":"lab"}]}},{"id":"exp.8","lhs":"exp","rhs_tex":"\\\\kw{[}\\\\,$\\\\mathit{exp}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{exp}_n$\\\\,\\\\kw{]}\\\\;$(n\\\\ge 0)$","category":"R_R","name":"list","rhs":{"kind":"seq","items":[{"kind":"t","value":"["},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"exp"}]},"min":0,"separator":"","exclude":[]}]}},{"kind":"t","value":"]"}]}},{"id":"exp.9","lhs":"exp","rhs_tex":"\\\\kw{(}\\\\,$\\\\mathit{exp}_1\\\\kw{;}\\\\cdots\\\\kw{;}\\\\mathit{exp}_n$\\\\,\\\\kw{)}\\\\;$(n\\\\ge 2)$","category":"R_R","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":";"},{"kind":"n","role":"exp"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":";"},{"kind":"n","role":"exp"}]},"min":0,"separator":"","exclude":[]}]},{"kind":"t","value":")"}]}},{"id":"exp.10","lhs":"exp","rhs_tex":"\\\\kw{let}\\\\;\\\\nt{dec}\\\\;\\\\kw{in}\\\\;$\\\\mathit{exp}_1\\\\kw{;}\\\\cdots\\\\kw{;}\\\\mathit{exp}_n$\\\\;\\\\kw{end}\\\\;$(n\\\\ge 1)$","category":"R_R","name":"local declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"let"},{"kind":"n","role":"dec"},{"kind":"t","value":"in"},{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":";"},{"kind":"n","role":"exp"}]},"min":0,"separator":"","exclude":[]}]},{"kind":"t","value":"end"}]}},{"id":"exp.11","lhs":"exp","rhs_tex":"\\\\nt{exp}\\\\,\\\\kw{:}\\\\,\\\\nt{typ}","category":"R_{Mix}","name":"type annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"id":"exp.12","lhs":"exp","rhs_tex":"\\\\kw{raise}\\\\;\\\\nt{exp}","category":"R_{Mix}","name":"exception raising","rhs":{"kind":"seq","items":[{"kind":"t","value":"raise"},{"kind":"n","role":"exp"}]}},{"id":"exp.13","lhs":"exp","rhs_tex":"\\\\nt{exp}\\\\;\\\\kw{handle}\\\\;\\\\nt{match}","category":"R_{Mix}","name":"exception handling","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":"handle"},{"kind":"n","role":"match"}]}},{"id":"exp.14","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\kw{andalso}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"conjunction","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":"andalso"},{"kind":"n","role":"exp"}]}},{"id":"exp.15","lhs":"exp","rhs_tex":"\\\\nt{exp}$_1$\\\\;\\\\kw{orelse}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"disjunction","rhs":{"kind":"seq","items":[{"kind":"n","role":"exp"},{"kind":"t","value":"orelse"},{"kind":"n","role":"exp"}]}},{"id":"exp.16","lhs":"exp","rhs_tex":"\\\\kw{if}\\\\;\\\\nt{exp}$_1$\\\\;\\\\kw{then}\\\\;\\\\nt{exp}$_2$\\\\;\\\\kw{else}\\\\;\\\\nt{exp}$_3$","category":"R_{Mix}","name":"conditional","rhs":{"kind":"seq","items":[{"kind":"t","value":"if"},{"kind":"n","role":"exp"},{"kind":"t","value":"then"},{"kind":"n","role":"exp"},{"kind":"t","value":"else"},{"kind":"n","role":"exp"}]}},{"id":"exp.17","lhs":"exp","rhs_tex":"\\\\kw{while}\\\\;\\\\nt{exp}$_1$\\\\;\\\\kw{do}\\\\;\\\\nt{exp}$_2$","category":"R_{Mix}","name":"iteration","rhs":{"kind":"seq","items":[{"kind":"t","value":"while"},{"kind":"n","role":"exp"},{"kind":"t","value":"do"},{"kind":"n","role":"exp"}]}},{"id":"exp.18","lhs":"exp","rhs_tex":"\\\\kw{case}\\\\;\\\\nt{exp}\\\\;\\\\kw{of}\\\\;\\\\nt{match}","category":"R_{Mix}","name":"case analysis","rhs":{"kind":"seq","items":[{"kind":"t","value":"case"},{"kind":"n","role":"exp"},{"kind":"t","value":"of"},{"kind":"n","role":"match"}]}},{"id":"exp.19","lhs":"exp","rhs_tex":"\\\\kw{fn}\\\\;\\\\nt{match}","category":"R_{Mix}","name":"anonymous function","rhs":{"kind":"seq","items":[{"kind":"t","value":"fn"},{"kind":"n","role":"match"}]}},{"id":"exprow.0","lhs":"exprow","rhs_tex":"\\\\nt{lab}\\\\,\\\\kw{=}\\\\,\\\\nt{exp}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{exprow}}","category":"R_{Mix}","name":"expression row","rhs":{"kind":"seq","items":[{"kind":"n","role":"lab"},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"exprow"}]}}]}},{"id":"match.0","lhs":"match","rhs_tex":"\\\\nt{pat}\\\\;\\\\kw{=>}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{match}}","category":"R_{Mix}","name":"match clause","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":"=>"},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"match"}]}}]}},{"id":"pat.0","lhs":"pat","rhs_tex":"\\\\nt{con}","category":"R_N","name":"constant","rhs":{"kind":"n","role":"con"}},{"id":"pat.1","lhs":"pat","rhs_tex":"\\\\kw{\\\\_}","category":"R_T","name":"wildcard","rhs":{"kind":"t","value":"_"}},{"id":"pat.2","lhs":"pat","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{id}","category":"R_{Mix}","name":"variable","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"id"}]}},{"id":"pat.3","lhs":"pat","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{longid}\\\\;\\\\opt{\\\\nt{pat}}","category":"R_{Mix}","name":"construction","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"longid"},{"kind":"opt","item":{"kind":"n","role":"pat"}}]}},{"id":"pat.4","lhs":"pat","rhs_tex":"\\\\nt{pat}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{pat}$_2$","category":"R_{Mix}","name":"infix construction","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"n","role":"id"},{"kind":"n","role":"pat"}]}},{"id":"pat.5","lhs":"pat","rhs_tex":"\\\\kw{(}\\\\,\\\\nt{pat}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"presentation-only grouping ($\\\\mathsf{Grp}_G$)","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"pat"},{"kind":"t","value":")"}]}},{"id":"pat.6","lhs":"pat","rhs_tex":"\\\\kw{(}\\\\,$\\\\mathit{pat}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{pat}_n$\\\\,\\\\kw{)}\\\\;$(n\\\\ne 1)$","category":"R_R","name":"tuple","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":","},{"kind":"n","role":"pat"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"pat"}]},"min":0,"separator":"","exclude":[]}]}},{"kind":"t","value":")"}]}},{"id":"pat.7","lhs":"pat","rhs_tex":"\\\\kw{\\\\{}\\\\,\\\\opt{\\\\nt{patrow}}\\\\,\\\\kw{\\\\}}","category":"R_{Mix}","name":"record","rhs":{"kind":"seq","items":[{"kind":"t","value":"{"},{"kind":"opt","item":{"kind":"n","role":"patrow"}},{"kind":"t","value":"}"}]}},{"id":"pat.8","lhs":"pat","rhs_tex":"\\\\kw{[}\\\\,$\\\\mathit{pat}_1\\\\kw{,}\\\\cdots\\\\kw{,}\\\\mathit{pat}_n$\\\\,\\\\kw{]}\\\\;$(n\\\\ge 0)$","category":"R_R","name":"list","rhs":{"kind":"seq","items":[{"kind":"t","value":"["},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"pat"}]},"min":0,"separator":"","exclude":[]}]}},{"kind":"t","value":"]"}]}},{"id":"pat.9","lhs":"pat","rhs_tex":"\\\\nt{pat}\\\\,\\\\kw{:}\\\\,\\\\nt{typ}","category":"R_{Mix}","name":"type annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"id":"pat.10","lhs":"pat","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{id}\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\kw{as}\\\\;\\\\nt{pat}","category":"R_{Mix}","name":"layered","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"as"},{"kind":"n","role":"pat"}]}},{"id":"patrow.0","lhs":"patrow","rhs_tex":"\\\\kw{...}","category":"R_T","name":"wildcard row","rhs":{"kind":"t","value":"..."}},{"id":"patrow.1","lhs":"patrow","rhs_tex":"\\\\nt{lab}\\\\,\\\\kw{=}\\\\,\\\\nt{pat}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{patrow}}","category":"R_{Mix}","name":"pattern field","rhs":{"kind":"seq","items":[{"kind":"n","role":"lab"},{"kind":"t","value":"="},{"kind":"n","role":"pat"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"patrow"}]}}]}},{"id":"patrow.2","lhs":"patrow","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{as}\\\\;\\\\nt{pat}}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{patrow}}","category":"R_{Mix}","name":"variable field","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"as"},{"kind":"n","role":"pat"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"patrow"}]}}]}},{"id":"typ.0","lhs":"typ","rhs_tex":"\\\\nt{var}","category":"R_N","name":"type variable","rhs":{"kind":"n","role":"var"}},{"id":"typ.1","lhs":"typ","rhs_tex":"\\\\opt{\\\\nt{typ}}\\\\kw{(,)}\\\\;\\\\nt{longid}","category":"R_{Mix}","name":"type constructor","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"n","role":"__args_typ"}},{"kind":"n","role":"longid"}]}},{"id":"typ.2","lhs":"typ","rhs_tex":"\\\\kw{(}\\\\,\\\\nt{typ}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"presentation-only grouping ($\\\\mathsf{Grp}_G$)","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"typ"},{"kind":"t","value":")"}]}},{"id":"typ.3","lhs":"typ","rhs_tex":"\\\\nt{typ}$_1$\\\\;\\\\kw{->}\\\\;\\\\nt{typ}$_2$","category":"R_{Mix}","name":"function type","rhs":{"kind":"seq","items":[{"kind":"n","role":"typ"},{"kind":"t","value":"->"},{"kind":"n","role":"typ"}]}},{"id":"typ.4","lhs":"typ","rhs_tex":"$\\\\mathit{typ}_1\\\\kw{*}\\\\cdots\\\\kw{*}\\\\mathit{typ}_n\\\\;(n\\\\ge 2)$","category":"R_R","name":"tuple type","rhs":{"kind":"seq","items":[{"kind":"n","role":"typ"},{"kind":"t","value":"*"},{"kind":"n","role":"typ"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":"*"},{"kind":"n","role":"typ"}]},"min":0,"separator":"","exclude":[]}]}},{"id":"typ.5","lhs":"typ","rhs_tex":"\\\\kw{\\\\{}\\\\,\\\\opt{\\\\nt{typrow}}\\\\,\\\\kw{\\\\}}","category":"R_{Mix}","name":"record type","rhs":{"kind":"seq","items":[{"kind":"t","value":"{"},{"kind":"opt","item":{"kind":"n","role":"typrow"}},{"kind":"t","value":"}"}]}},{"id":"typrow.0","lhs":"typrow","rhs_tex":"\\\\nt{lab}\\\\,\\\\kw{:}\\\\,\\\\nt{typ}\\\\;\\\\opt{\\\\kw{,}\\\\;\\\\nt{typrow}}","category":"R_{Mix}","name":"type row","rhs":{"kind":"seq","items":[{"kind":"n","role":"lab"},{"kind":"t","value":":"},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"typrow"}]}}]}},{"id":"dec.0","lhs":"dec","rhs_tex":"\\\\kw{val}\\\\;\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{valbind}","category":"R_{Mix}","name":"value","rhs":{"kind":"seq","items":[{"kind":"t","value":"val"},{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"valbind"}]}},{"id":"dec.1","lhs":"dec","rhs_tex":"\\\\kw{fun}\\\\;\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{funbind}","category":"R_{Mix}","name":"function","rhs":{"kind":"seq","items":[{"kind":"t","value":"fun"},{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"funbind"}]}},{"id":"dec.2","lhs":"dec","rhs_tex":"\\\\kw{type}\\\\;\\\\nt{typbind}","category":"R_{Mix}","name":"type","rhs":{"kind":"seq","items":[{"kind":"t","value":"type"},{"kind":"n","role":"typbind"}]}},{"id":"dec.3","lhs":"dec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{datbind}\\\\;\\\\opt{\\\\kw{withtype}\\\\;\\\\nt{typbind}}","category":"R_{Mix}","name":"datatype","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"datbind"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"withtype"},{"kind":"n","role":"typbind"}]}}]}},{"id":"dec.4","lhs":"dec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\kw{datatype}\\\\;\\\\nt{longid}","category":"R_{Mix}","name":"datatype replication","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"t","value":"datatype"},{"kind":"n","role":"longid"}]}},{"id":"dec.5","lhs":"dec","rhs_tex":"\\\\kw{abstype}\\\\;\\\\nt{datbind}\\\\;\\\\opt{\\\\kw{withtype}\\\\;\\\\nt{typbind}}\\\\;\\\\kw{with}\\\\;\\\\nt{dec}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"abstract type","rhs":{"kind":"seq","items":[{"kind":"t","value":"abstype"},{"kind":"n","role":"datbind"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"withtype"},{"kind":"n","role":"typbind"}]}},{"kind":"t","value":"with"},{"kind":"n","role":"dec"},{"kind":"t","value":"end"}]}},{"id":"dec.6","lhs":"dec","rhs_tex":"\\\\kw{exception}\\\\;\\\\nt{exnbind}","category":"R_{Mix}","name":"exception","rhs":{"kind":"seq","items":[{"kind":"t","value":"exception"},{"kind":"n","role":"exnbind"}]}},{"id":"dec.7","lhs":"dec","rhs_tex":"\\\\kw{structure}\\\\;\\\\nt{strbind}","category":"R_{Mix}","name":"structure","rhs":{"kind":"seq","items":[{"kind":"t","value":"structure"},{"kind":"n","role":"strbind"}]}},{"id":"dec.8","lhs":"dec","rhs_tex":"$\\\\varepsilon$","category":"R_T","name":"empty","rhs":{"kind":"eps"}},{"id":"dec.9","lhs":"dec","rhs_tex":"\\\\nt{dec}$_1$\\\\;\\\\opt{\\\\kw{;}}\\\\;\\\\nt{dec}$_2$","category":"R_{Mix}","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"n","role":"dec"},{"kind":"opt","item":{"kind":"t","value":";"}},{"kind":"n","role":"dec"}]}},{"id":"dec.10","lhs":"dec","rhs_tex":"\\\\kw{local}\\\\;\\\\nt{dec}$_1$\\\\;\\\\kw{in}\\\\;\\\\nt{dec}$_2$\\\\;\\\\kw{end}","category":"R_{Mix}","name":"local","rhs":{"kind":"seq","items":[{"kind":"t","value":"local"},{"kind":"n","role":"dec"},{"kind":"t","value":"in"},{"kind":"n","role":"dec"},{"kind":"t","value":"end"}]}},{"id":"dec.11","lhs":"dec","rhs_tex":"\\\\kw{open}\\\\;$\\\\mathit{longid}_1\\\\cdots\\\\mathit{longid}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"open","rhs":{"kind":"seq","items":[{"kind":"t","value":"open"},{"kind":"rep","item":{"kind":"n","role":"longid"},"min":1,"separator":"","exclude":[]}]}},{"id":"dec.12","lhs":"dec","rhs_tex":"\\\\kw{nonfix}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"nonfix","rhs":{"kind":"seq","items":[{"kind":"t","value":"nonfix"},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"dec.13","lhs":"dec","rhs_tex":"\\\\kw{infix}\\\\;\\\\opt{\\\\kw{digit}}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"left-associative infix","rhs":{"kind":"seq","items":[{"kind":"t","value":"infix"},{"kind":"opt","item":{"kind":"c","name":"digit"}},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"dec.14","lhs":"dec","rhs_tex":"\\\\kw{infixr}\\\\;\\\\opt{\\\\kw{digit}}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"right-associative infix","rhs":{"kind":"seq","items":[{"kind":"t","value":"infixr"},{"kind":"opt","item":{"kind":"c","name":"digit"}},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"valbind.0","lhs":"valbind","rhs_tex":"\\\\nt{pat}\\\\;\\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{valbind}}","category":"R_{Mix}","name":"destructuring","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"valbind"}]}}]}},{"id":"valbind.1","lhs":"valbind","rhs_tex":"\\\\kw{rec}\\\\;\\\\nt{valbind}","category":"R_{Mix}","name":"recursive","rhs":{"kind":"seq","items":[{"kind":"t","value":"rec"},{"kind":"n","role":"valbind"}]}},{"id":"funbind.0","lhs":"funbind","rhs_tex":"\\\\nt{funmatch}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{funbind}}","category":"R_{Mix}","name":"clausal function","rhs":{"kind":"seq","items":[{"kind":"n","role":"funmatch"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"funbind"}]}}]}},{"id":"funmatch.0","lhs":"funmatch","rhs_tex":"\\\\opt{\\\\kw{op}}\\\\;\\\\nt{id}\\\\;$\\\\mathit{pat}_1\\\\cdots\\\\mathit{pat}_n$\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{funmatch}}\\\\;$(n\\\\ge 1)$","category":"R_R","name":"nonfix clauses","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"t","value":"op"}},{"kind":"n","role":"id"},{"kind":"rep","item":{"kind":"n","role":"pat"},"min":1,"separator":"","exclude":[]},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"funmatch"}]}}]}},{"id":"funmatch.1","lhs":"funmatch","rhs_tex":"\\\\nt{pat}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{pat}$_2$\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\;\\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{funmatch}}","category":"R_{Mix}","name":"infix clauses","rhs":{"kind":"seq","items":[{"kind":"n","role":"pat"},{"kind":"n","role":"id"},{"kind":"n","role":"pat"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"funmatch"}]}}]}},{"id":"funmatch.2","lhs":"funmatch","rhs_tex":"\\\\kw{(}\\\\nt{pat}$_1$\\\\;\\\\nt{id}\\\\;\\\\nt{pat}$_2$\\\\kw{)}\\\\;$\\\\mathit{pat}\'_1\\\\cdots\\\\mathit{pat}\'_n$\\\\;\\\\opt{\\\\kw{:}\\\\;\\\\nt{typ}}\\\\newline\\n    \\\\kw{=}\\\\;\\\\nt{exp}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{funmatch}}\\\\;$(n\\\\ge 0)$","category":"R_R","name":"infix with extra args","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"n","role":"pat"},{"kind":"n","role":"id"},{"kind":"n","role":"pat"},{"kind":"t","value":")"},{"kind":"rep","item":{"kind":"n","role":"pat"},"min":0,"separator":"","exclude":[]},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"n","role":"typ"}]}},{"kind":"t","value":"="},{"kind":"n","role":"exp"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"funmatch"}]}}]}},{"id":"typbind.0","lhs":"typbind","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{typ}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{typbind}}","category":"R_{Mix}","name":"type abbreviation","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"typbind"}]}}]}},{"id":"datbind.0","lhs":"datbind","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{conbind}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{datbind}}","category":"R_{Mix}","name":"datatype binding","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"conbind"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"datbind"}]}}]}},{"id":"conbind.0","lhs":"conbind","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{conbind}}","category":"R_{Mix}","name":"data constructor","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"conbind"}]}}]}},{"id":"exnbind.0","lhs":"exnbind","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{exnbind}}","category":"R_{Mix}","name":"generative exception","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"exnbind"}]}}]}},{"id":"exnbind.1","lhs":"exnbind","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{longid}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{exnbind}}","category":"R_{Mix}","name":"exception renaming","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"longid"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"exnbind"}]}}]}},{"id":"str.0","lhs":"str","rhs_tex":"\\\\nt{longid}","category":"R_N","name":"identifier (encapsulated alias)","rhs":{"kind":"n","role":"longid"}},{"id":"str.1","lhs":"str","rhs_tex":"\\\\kw{struct}\\\\;\\\\nt{dec}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"structure expression","rhs":{"kind":"seq","items":[{"kind":"t","value":"struct"},{"kind":"n","role":"dec"},{"kind":"t","value":"end"}]}},{"id":"str.2","lhs":"str","rhs_tex":"\\\\nt{str}\\\\;\\\\kw{:}\\\\;\\\\nt{sig}","category":"R_{Mix}","name":"transparent annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"str"},{"kind":"t","value":":"},{"kind":"n","role":"sig"}]}},{"id":"str.3","lhs":"str","rhs_tex":"\\\\nt{str}\\\\;\\\\kw{:>}\\\\;\\\\nt{sig}","category":"R_{Mix}","name":"opaque annotation","rhs":{"kind":"seq","items":[{"kind":"n","role":"str"},{"kind":"t","value":":>"},{"kind":"n","role":"sig"}]}},{"id":"str.4","lhs":"str","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{(}\\\\,\\\\nt{str}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"functor application (str)","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"str"},{"kind":"t","value":")"}]}},{"id":"str.5","lhs":"str","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{(}\\\\,\\\\nt{dec}\\\\,\\\\kw{)}","category":"R_{Mix}","name":"functor application (dec)","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"dec"},{"kind":"t","value":")"}]}},{"id":"str.6","lhs":"str","rhs_tex":"\\\\kw{let}\\\\;\\\\nt{dec}\\\\;\\\\kw{in}\\\\;\\\\nt{str}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"local declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"let"},{"kind":"n","role":"dec"},{"kind":"t","value":"in"},{"kind":"n","role":"str"},{"kind":"t","value":"end"}]}},{"id":"strbind.0","lhs":"strbind","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{:}\\\\opt{\\\\kw{>}}\\\\;\\\\nt{sig}}\\\\;\\\\kw{=}\\\\;\\\\nt{str}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{strbind}}","category":"R_{Mix}","name":"structure binding","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"opt","item":{"kind":"t","value":">"}},{"kind":"n","role":"sig"}]}},{"kind":"t","value":"="},{"kind":"n","role":"str"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"strbind"}]}}]}},{"id":"sig.0","lhs":"sig","rhs_tex":"\\\\nt{id}","category":"R_N","name":"identifier","rhs":{"kind":"n","role":"id"}},{"id":"sig.1","lhs":"sig","rhs_tex":"\\\\kw{sig}\\\\;\\\\nt{spec}\\\\;\\\\kw{end}","category":"R_{Mix}","name":"signature expression","rhs":{"kind":"seq","items":[{"kind":"t","value":"sig"},{"kind":"n","role":"spec"},{"kind":"t","value":"end"}]}},{"id":"sig.2","lhs":"sig","rhs_tex":"\\\\nt{sig}\\\\;\\\\kw{where type}\\\\;\\\\nt{typrefin}","category":"R_{Mix}","name":"type refinement","rhs":{"kind":"seq","items":[{"kind":"n","role":"sig"},{"kind":"t","value":"where"},{"kind":"t","value":"type"},{"kind":"n","role":"typrefin"}]}},{"id":"typrefin.0","lhs":"typrefin","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{longid}\\\\;\\\\kw{=}\\\\;\\\\nt{typ}\\\\;\\\\opt{\\\\kw{and type}\\\\;\\\\nt{typrefin}}","category":"R_{Mix}","name":"type refinement binding","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"longid"},{"kind":"t","value":"="},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"t","value":"type"},{"kind":"n","role":"typrefin"}]}}]}},{"id":"spec.0","lhs":"spec","rhs_tex":"\\\\kw{val}\\\\;\\\\nt{valdesc}","category":"R_{Mix}","name":"value specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"val"},{"kind":"n","role":"valdesc"}]}},{"id":"spec.1","lhs":"spec","rhs_tex":"\\\\kw{type}\\\\;\\\\nt{typdesc}","category":"R_{Mix}","name":"type specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"type"},{"kind":"n","role":"typdesc"}]}},{"id":"spec.2","lhs":"spec","rhs_tex":"\\\\kw{eqtype}\\\\;\\\\nt{typdesc}","category":"R_{Mix}","name":"equality type","rhs":{"kind":"seq","items":[{"kind":"t","value":"eqtype"},{"kind":"n","role":"typdesc"}]}},{"id":"spec.3","lhs":"spec","rhs_tex":"\\\\kw{type}\\\\;\\\\nt{typbind}","category":"R_{Mix}","name":"type abbreviation","rhs":{"kind":"seq","items":[{"kind":"t","value":"type"},{"kind":"n","role":"typbind"}]}},{"id":"spec.4","lhs":"spec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{datdesc}","category":"R_{Mix}","name":"datatype specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"datdesc"}]}},{"id":"spec.5","lhs":"spec","rhs_tex":"\\\\kw{datatype}\\\\;\\\\nt{id}\\\\;\\\\kw{= datatype}\\\\;\\\\nt{longid}","category":"R_{Mix}","name":"datatype replication","rhs":{"kind":"seq","items":[{"kind":"t","value":"datatype"},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"t","value":"datatype"},{"kind":"n","role":"longid"}]}},{"id":"spec.6","lhs":"spec","rhs_tex":"\\\\kw{exception}\\\\;\\\\nt{exndesc}","category":"R_{Mix}","name":"exception specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"exception"},{"kind":"n","role":"exndesc"}]}},{"id":"spec.7","lhs":"spec","rhs_tex":"\\\\kw{structure}\\\\;\\\\nt{strdesc}","category":"R_{Mix}","name":"structure specification","rhs":{"kind":"seq","items":[{"kind":"t","value":"structure"},{"kind":"n","role":"strdesc"}]}},{"id":"spec.8","lhs":"spec","rhs_tex":"$\\\\varepsilon$","category":"R_T","name":"empty","rhs":{"kind":"eps"}},{"id":"spec.9","lhs":"spec","rhs_tex":"\\\\nt{spec}$_1$\\\\;\\\\opt{\\\\kw{;}}\\\\;\\\\nt{spec}$_2$","category":"R_{Mix}","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"n","role":"spec"},{"kind":"opt","item":{"kind":"t","value":";"}},{"kind":"n","role":"spec"}]}},{"id":"spec.10","lhs":"spec","rhs_tex":"\\\\kw{include}\\\\;\\\\nt{sig}","category":"R_{Mix}","name":"single inclusion","rhs":{"kind":"seq","items":[{"kind":"t","value":"include"},{"kind":"n","role":"sig"}]}},{"id":"spec.11","lhs":"spec","rhs_tex":"\\\\kw{include}\\\\;$\\\\mathit{id}_1\\\\cdots\\\\mathit{id}_n\\\\;(n\\\\ge 1)$","category":"R_R","name":"multiple inclusion","rhs":{"kind":"seq","items":[{"kind":"t","value":"include"},{"kind":"rep","item":{"kind":"n","role":"id"},"min":1,"separator":"","exclude":[]}]}},{"id":"spec.12","lhs":"spec","rhs_tex":"\\\\nt{spec}\\\\;\\\\kw{sharing type}\\\\;$\\\\mathit{longid}_1\\\\kw{=}\\\\cdots\\\\kw{=}\\\\mathit{longid}_n\\\\;(n\\\\ge 2)$","category":"R_R","name":"type sharing","rhs":{"kind":"seq","items":[{"kind":"n","role":"spec"},{"kind":"t","value":"sharing"},{"kind":"t","value":"type"},{"kind":"seq","items":[{"kind":"n","role":"longid"},{"kind":"t","value":"="},{"kind":"n","role":"longid"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":"="},{"kind":"n","role":"longid"}]},"min":0,"separator":"","exclude":[]}]}]}},{"id":"spec.13","lhs":"spec","rhs_tex":"\\\\nt{spec}\\\\;\\\\kw{sharing}\\\\;$\\\\mathit{longid}_1\\\\kw{=}\\\\cdots\\\\kw{=}\\\\mathit{longid}_n\\\\;(n\\\\ge 2)$","category":"R_R","name":"structure sharing","rhs":{"kind":"seq","items":[{"kind":"n","role":"spec"},{"kind":"t","value":"sharing"},{"kind":"seq","items":[{"kind":"n","role":"longid"},{"kind":"t","value":"="},{"kind":"n","role":"longid"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":"="},{"kind":"n","role":"longid"}]},"min":0,"separator":"","exclude":[]}]}]}},{"id":"valdesc.0","lhs":"valdesc","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{:}\\\\;\\\\nt{typ}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{valdesc}}","category":"R_{Mix}","name":"value description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":":"},{"kind":"n","role":"typ"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"valdesc"}]}}]}},{"id":"typdesc.0","lhs":"typdesc","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{typdesc}}","category":"R_{Mix}","name":"abstract type","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"typdesc"}]}}]}},{"id":"datdesc.0","lhs":"datdesc","rhs_tex":"\\\\opt{\\\\nt{var}}\\\\kw{(,)}\\\\;\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{condesc}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{datdesc}}","category":"R_{Mix}","name":"datatype description","rhs":{"kind":"seq","items":[{"kind":"opt","item":{"kind":"n","role":"__args_var"}},{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"condesc"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"datdesc"}]}}]}},{"id":"condesc.0","lhs":"condesc","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{|}\\\\;\\\\nt{condesc}}","category":"R_{Mix}","name":"constructor description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"|"},{"kind":"n","role":"condesc"}]}}]}},{"id":"exndesc.0","lhs":"exndesc","rhs_tex":"\\\\nt{id}\\\\;\\\\opt{\\\\kw{of}\\\\;\\\\nt{typ}}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{exndesc}}","category":"R_{Mix}","name":"exception description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"of"},{"kind":"n","role":"typ"}]}},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"exndesc"}]}}]}},{"id":"strdesc.0","lhs":"strdesc","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{:}\\\\;\\\\nt{sig}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{strdesc}}","category":"R_{Mix}","name":"structure description","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":":"},{"kind":"n","role":"sig"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"strdesc"}]}}]}},{"id":"prog.0","lhs":"prog","rhs_tex":"\\\\nt{dec}","category":"R_N","name":"core declaration","rhs":{"kind":"n","role":"dec"}},{"id":"prog.1","lhs":"prog","rhs_tex":"\\\\kw{functor}\\\\;\\\\nt{fctbind}","category":"R_{Mix}","name":"functor declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"functor"},{"kind":"n","role":"fctbind"}]}},{"id":"prog.2","lhs":"prog","rhs_tex":"\\\\kw{signature}\\\\;\\\\nt{sigbind}","category":"R_{Mix}","name":"signature declaration","rhs":{"kind":"seq","items":[{"kind":"t","value":"signature"},{"kind":"n","role":"sigbind"}]}},{"id":"prog.3","lhs":"prog","rhs_tex":"$\\\\varepsilon$","category":"R_T","name":"empty","rhs":{"kind":"eps"}},{"id":"prog.4","lhs":"prog","rhs_tex":"\\\\nt{prog}$_1$\\\\;\\\\opt{\\\\kw{;}}\\\\;\\\\nt{prog}$_2$","category":"R_{Mix}","name":"sequence","rhs":{"kind":"seq","items":[{"kind":"n","role":"prog"},{"kind":"opt","item":{"kind":"t","value":";"}},{"kind":"n","role":"prog"}]}},{"id":"fctbind.0","lhs":"fctbind","rhs_tex":"$\\\\mathit{id}_1$\\\\,\\\\kw{(}$\\\\mathit{id}_2$\\\\,\\\\kw{:}\\\\,\\\\nt{sig}\\\\kw{)}\\\\;\\\\opt{\\\\kw{:}\\\\opt{\\\\kw{>}}\\\\;\\\\nt{sig}}\\\\;\\\\kw{=}\\\\;\\\\nt{str}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{fctbind}}","category":"R_{Mix}","name":"plain functor","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"id"},{"kind":"t","value":":"},{"kind":"n","role":"sig"},{"kind":"t","value":")"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"opt","item":{"kind":"t","value":">"}},{"kind":"n","role":"sig"}]}},{"kind":"t","value":"="},{"kind":"n","role":"str"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"fctbind"}]}}]}},{"id":"fctbind.1","lhs":"fctbind","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{(}\\\\,\\\\nt{spec}\\\\,\\\\kw{)}\\\\;\\\\opt{\\\\kw{:}\\\\opt{\\\\kw{>}}\\\\;\\\\nt{sig}}\\\\;\\\\kw{=}\\\\;\\\\nt{str}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{fctbind}}","category":"R_{Mix}","name":"opened functor","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"("},{"kind":"n","role":"spec"},{"kind":"t","value":")"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":":"},{"kind":"opt","item":{"kind":"t","value":">"}},{"kind":"n","role":"sig"}]}},{"kind":"t","value":"="},{"kind":"n","role":"str"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"fctbind"}]}}]}},{"id":"sigbind.0","lhs":"sigbind","rhs_tex":"\\\\nt{id}\\\\;\\\\kw{=}\\\\;\\\\nt{sig}\\\\;\\\\opt{\\\\kw{and}\\\\;\\\\nt{sigbind}}","category":"R_{Mix}","name":"signature binding","rhs":{"kind":"seq","items":[{"kind":"n","role":"id"},{"kind":"t","value":"="},{"kind":"n","role":"sig"},{"kind":"opt","item":{"kind":"seq","items":[{"kind":"t","value":"and"},{"kind":"n","role":"sigbind"}]}}]}},{"id":"__args_var.0","lhs":"__args_var","rhs":{"kind":"n","role":"var"}},{"id":"__args_var.1","lhs":"__args_var","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"seq","items":[{"kind":"n","role":"var"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"var"}]},"min":0,"separator":"","exclude":[]}]},{"kind":"t","value":")"}]}},{"id":"__args_typ.0","lhs":"__args_typ","rhs":{"kind":"n","role":"typ"}},{"id":"__args_typ.1","lhs":"__args_typ","rhs":{"kind":"seq","items":[{"kind":"t","value":"("},{"kind":"seq","items":[{"kind":"n","role":"typ"},{"kind":"rep","item":{"kind":"seq","items":[{"kind":"t","value":","},{"kind":"n","role":"typ"}]},"min":0,"separator":"","exclude":[]}]},{"kind":"t","value":")"}]}}],"nonterminal_count":44,"production_count":136}}');
 
 /***/ }
 

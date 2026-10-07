@@ -2,9 +2,14 @@ import * as Blockly from "blockly";
 import { SML } from "../../sml";
 
 SML.forBlock["strbind_single"] = function (block) {
+  // `:>` is one token. Emitting it as `: >` produces text no SML compiler
+  // accepts; the parser used to tolerate the spaced form, which is what kept
+  // the round-trip a fixed point while the printed program stayed invalid.
   let typeVar =
       block.getFieldValue("chkSub") == "TRUE"
-        ? (block.getFieldValue("greatherSign") == ">" ? ":> " : ": ") +
+        ? ":" +
+          block.getFieldValue("greatherSign") +
+          " " +
           SML.valueToCode(block, "inputSig", SML.ORDER_NONE)
         : "",
     idVal = SML.valueToCode(block, "id", SML.ORDER_NONE),

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Targeted executable coverage for the nine generator-registered block types
- * not reached by the 98-case round-trip corpus.
+ * not reached by the 96-case round-trip corpus.
  *
  * This is intentionally reported separately from corpus coverage: it checks
  * registration, headless instantiation, and generator execution for each known

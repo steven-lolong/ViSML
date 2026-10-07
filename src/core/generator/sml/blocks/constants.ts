@@ -25,11 +25,14 @@ SML.forBlock["con_char"] = function (block) {
   return [code, SML.ORDER_NONE];
 };
 SML.forBlock["con_word"] = function (block) {
-  let code = "0w" + block.getFieldValue("inputValue").toString();
+  // Word literals are spelled with the `0w` radix prefix; without it the
+  // literal reconstructs as an int and the original terminal is lost.
+  const spelling = block.getFieldValue("inputValue").toString();
+  let code = spelling.startsWith("0w") ? spelling : "0w" + spelling;
   return [code, SML.ORDER_NONE];
 };
 SML.forBlock["con_float"] = function (block) {
-  const whole = block.getFieldValue("NAME").toString().replace("-", "~");
-  const fraction = block.getFieldValue("inputValue").toString();
-  return [`${whole}.${fraction}`, SML.ORDER_NONE];
+  // The field holds the literal as written (see blocks/constants.ts).
+  let code = block.getFieldValue("inputValue").toString().replace("-", "~");
+  return [code, SML.ORDER_NONE];
 };

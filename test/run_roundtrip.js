@@ -145,8 +145,19 @@ const CASES = [
 
   // -- generator-shaped input (what the Output pane prints) ---------------------------
   ["generated let braces", "val lb = let val a = 1 in { a; a + 1 } end"],
-  ["generated opaque space", "structure OS : > SIG2 = struct val x = 1 end"],
+  // The parser still accepts the spaced `: >` that older builds printed, but
+  // the generator no longer emits it; both spellings must land on the same
+  // blocks. This is the one case that deliberately does NOT preserve its input
+  // terminals — it repairs them — so the battery below exempts it.
+  ["legacy opaque space", "structure OS : > SIG2 = struct val x = 1 end", { normalizes: true }],
   ["nested comments", "(* outer (* inner *) still comment *) val cm = 1"],
+
+  // -- terminal-level regressions (values that earlier builds destroyed) ------
+  ["real leading-zero fraction", "val a = 3.05\nval b = 3.5"],
+  ["real negative", "val c = ~2.75"],
+  ["word keeps its radix", "val w2 = 0w42"],
+  ["opaque ascription", "structure OP :> SIG2 = struct val x = 1 end"],
+  ["tyvarseq parenthesised", "type ('a, 'b) pair2 = 'a * 'b"],
 ];
 
 let failures = 0;
@@ -162,7 +173,7 @@ let tPassed = 0;
 const FIDELITY_EXEMPT = new Set([
   "let multi body",
   "generated let braces",
-  "generated opaque space",
+  "legacy opaque space",
 ]);
 
 function signatureDifference(expected, actual) {
@@ -183,7 +194,59 @@ function fail(name, message, detail) {
   if (detail) console.log(detail.split("\n").map((l) => "      " + l).join("\n"));
 }
 
-for (const [name, source] of CASES) {
+/**
+ * Terminal recovery (the paper's criterion (i)).
+ *
+ * Fixed-point stability alone is too weak to be evidence of preservation: a
+ * generator that destroys a literal is still a fixed point if the parser reads
+ * its own damaged output back consistently. That is not hypothetical — it is
+ * how `val pi = 3.14` printed as `val pi = ()` and `structure U :> S` printed
+ * as the uncompilable `structure U : > S` survived here undetected.
+ *
+ * So we additionally require: no original terminal is lost or altered. The
+ * generator may ADD parentheses (it makes associativity explicit) and `;`
+ * separators, so the check is that the source token stream is a SUBSEQUENCE of
+ * the generated one and every extra token is a paren.
+ */
+function tokenize(text) {
+  let stripped = "";
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === "(" && text[i + 1] === "*") { depth++; i++; continue; }
+    if (text[i] === "*" && text[i + 1] === ")" && depth) { depth--; i++; continue; }
+    if (!depth) stripped += text[i];
+  }
+  const re = /"(?:[^"\\]|\\.)*"|#"(?:[^"\\]|\\.)*"|0w\d+|~?\d+\.\d+|~?\d+|'?[A-Za-z_][A-Za-z0-9_']*|:>|=>|->|::|<=|>=|<>|\.\.\.|[-+*/<>=@^|(){}\[\],;:.#!~]/g;
+  const out = [];
+  let m;
+  while ((m = re.exec(stripped))) if (m[0] !== ";") out.push(m[0]);
+  return out;
+}
+
+/** @returns undefined when every source terminal survives, else a report. */
+function terminalLoss(source, generated) {
+  const want = tokenize(source);
+  const got = tokenize(generated);
+  let i = 0;
+  const extra = [];
+  for (const t of got) {
+    if (i < want.length && want[i] === t) i++;
+    else extra.push(t);
+  }
+  const dropped = want.slice(i);
+  const bad = extra.filter((t) => t !== "(" && t !== ")");
+  if (!dropped.length && !bad.length) return undefined;
+  return (
+    (dropped.length ? `dropped: ${dropped.join(" ")}\n` : "") +
+    (bad.length ? `altered/introduced: ${bad.join(" ")}\n` : "") +
+    `--- source ---\n${want.join(" ")}\n--- generated ---\n${got.join(" ")}`
+  );
+}
+
+let terminalsPassed = 0;
+let terminalsChecked = 0;
+
+for (const [name, source, opts] of CASES) {
   // Capture Blockly's serializer warnings; they signal bad block states.
   const warnings = [];
   const originalWarn = console.warn;
@@ -192,7 +255,7 @@ for (const [name, source] of CASES) {
   console.error = (...args) => warnings.push(args.join(" "));
 
   try {
-    const fidelityApplicable = !FIDELITY_EXEMPT.has(name);
+    const fidelityApplicable = !FIDELITY_EXEMPT.has(name) && !(opts && opts.normalizes);
     const sourceOracle = fidelityApplicable ? smlParserDerivationOracle(source) : undefined;
     if (fidelityApplicable) {
       pCases++;
@@ -248,6 +311,15 @@ ${signatureDifference(sourceOracle, generatedOracle)}`);
         `--- first ---\n${first.code}\n--- second ---\n${second.code}`
       );
       continue;
+    }
+    if (!(opts && opts.normalizes)) {
+      terminalsChecked++;
+      const loss = terminalLoss(source, first.code);
+      if (loss) {
+        fail(name, "a source terminal did not survive the round trip", loss);
+        continue;
+      }
+      terminalsPassed++;
     }
     passed++;
     console.log(`ok    ${name}`);
@@ -345,7 +417,9 @@ for (const [name, candidate, expected] of layoutCases) {
 }
 
 console.log(
-  `\n${passed}/${CASES.length} text round-trips passed, ` +
+  `\n${passed}/${CASES.length} text round-trips passed ` +
+  `(fixed-point stable), ` +
+  `${terminalsPassed}/${terminalsChecked} passed the legacy terminal check, ` +
   `T ${tPassed}/${tCases} lexical-fidelity cases passed, ` +
   `P ${pPassed}/${pCases} parser-oracle cases passed, ` +
   `${samplesPassed}/${sampleNames.length} sample round-trips passed, ` +

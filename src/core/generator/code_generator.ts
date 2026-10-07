@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
 import "./sml/sml";
-import { SML } from "./sml/sml";
+import { preservingWorkspaceToCode } from "../preservation/workspace_export";
 
 function generateCode(target_code) {
   const tarsius_workplace = Blockly.getMainWorkspace();
@@ -8,7 +8,7 @@ function generateCode(target_code) {
 
   switch (target_code) {
     case "sml": {
-      newCode = SML.workspaceToCode(tarsius_workplace);
+      newCode = preservingWorkspaceToCode(tarsius_workplace);
       break;
     }
     default: {

@@ -1,3 +1,5 @@
+import "./core/blocks/preservation_empty";
+import "./core/generator/sml/blocks/preservation_empty";
 import * as Blockly from "blockly";
 
 
@@ -121,6 +123,11 @@ import { applyGrammarTooltips } from "./core/blocks/grammar_tooltips";
 import "./renderer/macaca_nigra/macacanigra_renderer";
 import "./renderer/goropa/goropa_renderer";
 
+import { SML } from "./core/generator/sml/sml";
+import { installSourceMetadata } from "./core/preservation/source_layout";
+installSourceMetadata(SML);
+
+import {decodeVismlWorkspace} from "./core/preservation/visml_decoder";
 import { generateCode } from "./core/generator/code_generator";
 import { smlToVismlWorkspaceState } from "./core/parser/sml_to_visml";
 import {
@@ -309,14 +316,21 @@ function updateVisualSmlStatus(message?: string) {
 let lastGeneratedCode = "";
 
 function refreshGeneratedCode() {
-  lastGeneratedCode = generateCode("sml") ?? "";
-  syncSmlEditorFromCode(lastGeneratedCode);
-  updateVisualSmlStatus("Generated SML refreshed.");
+  try {
+    lastGeneratedCode = generateCode("sml") ?? "";
+    syncSmlEditorFromCode(lastGeneratedCode);
+    updateVisualSmlStatus("Generated SML refreshed.");
+  } catch (error) {
+    lastGeneratedCode = "";
+    syncSmlEditorFromCode("");
+    updateVisualSmlStatus("Complete the blocks to generate SML: " + (error instanceof Error ? error.message : String(error)));
+  }
   return lastGeneratedCode;
 }
 
 function convertSmlToVisml(source: string) {
   const state = smlToVismlWorkspaceState(source);
+  decodeVismlWorkspace(state);
   const previousState = Blockly.serialization.workspaces.save(tarsiusWorkspace);
   try {
     tarsiusWorkspace.clear();
@@ -351,10 +365,8 @@ function applySmlEditorNow(): boolean {
 
 function eventListenerFortarsius(event: Blockly.Events.Abstract) {
   Blockly.Events.disableOrphans(event);
-  lastGeneratedCode = generateCode("sml") ?? "";
-  syncSmlEditorFromCode(lastGeneratedCode);
+  refreshGeneratedCode();
   scheduleAutosave();
-  updateVisualSmlStatus("Generated SML updated.");
 }
 
 initSmlCodeEditor({ convertSmlToBlocks: convertSmlToVisml });

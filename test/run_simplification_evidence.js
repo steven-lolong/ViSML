@@ -70,13 +70,13 @@ function withWorkspace(source, check) {
 
 const ES_CASES = [
   {
-    name: "ES con uses interactive numeric field",
+    name: "ES con uses interactive literal text field",
     source: "val x = 1",
     check(workspace) {
       const blocks = blocksOfType(workspace, "con_int");
       if (blocks.length < 1) fail("expected con_int");
-      if (!hasFieldOfClass(blocks[0], "inputValue", Blockly.FieldNumber)) {
-        fail("con_int inputValue is not a FieldNumber");
+      if (!hasFieldOfClass(blocks[0], "inputValue", Blockly.FieldTextInput)) {
+        fail("con_int inputValue is not a FieldTextInput");
       }
     },
   },

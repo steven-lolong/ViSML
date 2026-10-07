@@ -1,3 +1,5 @@
+import "../src/core/blocks/preservation_empty";
+import "../src/core/generator/sml/blocks/preservation_empty";
 /**
  * @fileoverview Headless round-trip harness entry.
  *
@@ -125,6 +127,8 @@ import "../src/core/generator/sml/blocks/expressions/expression_primtv_operators
 import "../src/core/generator/sml/blocks/declarations/strbind";
 
 import { SML } from "../src/core/generator/sml/sml";
+import { installSourceMetadata } from "../src/core/preservation/source_layout";
+installSourceMetadata(SML);
 import { smlToVismlWorkspaceState, SmlParseError } from "../src/core/parser/sml_to_visml";
 import { sampleWorkspaces } from "../src/sample/sample_loader";
 import {
@@ -183,3 +187,12 @@ export function stateToCode(state: any): { code: string; blockTypes: string[] } 
     workspace.dispose();
   }
 }
+
+export * from "../src/core/preservation/formal_codec";
+export * from "../src/core/preservation/visml_decoder";
+
+export {tokenize} from "../src/core/parser/sml_to_visml";
+
+export {preservingWorkspaceToCode} from "../src/core/preservation/workspace_export";
+
+export * from "../src/core/preservation/presentation_factoring";

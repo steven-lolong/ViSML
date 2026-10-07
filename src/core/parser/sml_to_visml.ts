@@ -183,21 +183,26 @@ export function tokenize(source: string): Token[] {
       throw new SmlParseError("Expected a type variable after '", index);
     }
 
-    // Word, real and integer literals (including SML negation ~).
-    const wordMatch = source.slice(index).match(/^0w\d+/);
-    if (wordMatch) {
-      tokens.push({ type: "word", value: wordMatch[0], position: index });
-      index += wordMatch[0].length;
-      continue;
-    }
-    const numberMatch = source.slice(index).match(/^~?\d+(\.\d+)?/);
-    if (numberMatch && (char !== "~" || /\d/.test(source[index + 1] ?? ""))) {
-      tokens.push({
-        type: numberMatch[1] ? "real" : "int",
-        value: numberMatch[0],
-        position: index,
-      });
-      index += numberMatch[0].length;
+    // Preserve the complete lexeme; radix/exponent forms must be recognized
+    // before decimal integers so they cannot turn into accidental applications.
+    const rest = source.slice(index);
+    const literal = [
+      ["word", /^0w(?:x[0-9a-fA-F]+|[0-9]+)/],
+      ["real", /^~?[0-9]+(?:\.[0-9]+)?e~?[0-9]+/],
+      ["real", /^~?[0-9]+\.[0-9]+/],
+      ["int", /^~?0x[0-9a-fA-F]+/],
+      ["int", /^~?[0-9]+/],
+    ].map(([kind, pattern]) => ({kind, match: (pattern as RegExp).exec(rest)}))
+      .find(({match}) => match);
+    if (literal) {
+      const value = literal.match[0];
+      if ((/^~?0x|^0wx/.test(rest) && !/^(?:~?0x|0wx)[0-9a-fA-F]+$/.test(value)) ||
+          (/^0w/.test(rest) && literal.kind !== "word") ||
+          (/^~?[0-9]+(?:\.[0-9]+)?e/.test(rest) && !/^~?[0-9]+(?:\.[0-9]+)?e~?[0-9]+$/.test(value))) {
+        throw new SmlParseError("Malformed numeric literal", index);
+      }
+      tokens.push({type: literal.kind as TokenType, value, position: index});
+      index += value.length;
       continue;
     }
 
@@ -337,8 +342,10 @@ export class Parser {
     return new SmlParseError(message, this.peek().position);
   }
 
-  private skipSeparators() {
-    while (this.matchValue(";")) { /* separators between declarations */ }
+  private skipSeparators(): number {
+    let count = 0;
+    while (this.matchValue(";")) count++;
+    return count;
   }
 
   /** An "infix" occurrence: symbolic operator or user/basis infix word. */
@@ -376,7 +383,7 @@ export class Parser {
     const token = this.peek();
     if (token.type === "int") {
       this.advance();
-      return block("id_lab", this.ids, { fields: { MODE: "NUM", inputNum: Number(token.value) } });
+      return block("id_lab", this.ids, { fields: { MODE: "NUM", inputNum: token.value } });
     }
     if (token.type === "id") {
       this.advance();
@@ -394,6 +401,7 @@ export class Parser {
    */
   private parseTyVarSeqOpt(): BlockState | undefined {
     const names: string[] = [];
+    let argumentStyle = "bare";
     if (this.is("tyvar")) {
       names.push(this.advance().value);
       // The generator prints multiple binders as a bare comma list.
@@ -402,6 +410,7 @@ export class Parser {
         names.push(this.advance().value);
       }
     } else if (this.isValue("(") && this.peek(1).type === "tyvar") {
+      argumentStyle = "parenthesized";
       this.advance();
       names.push(this.advance().value);
       while (this.matchValue(",")) {
@@ -413,7 +422,7 @@ export class Parser {
       return undefined;
     }
     return block("id_long_var", this.ids, {
-      extraState: { itemCount: names.length },
+      extraState: { itemCount: names.length, t2bbSource: {argumentStyle: names.length > 1 ? "parenthesized" : argumentStyle} },
       inputs: indexedInputs(names.map((name) =>
         block("id_var", this.ids, { fields: splitTypeVar(name) })
       )),
@@ -430,7 +439,7 @@ export class Parser {
 
   parseProgram(): BlockState[] {
     const items: BlockState[] = [];
-    this.skipSeparators();
+    const separators = [this.skipSeparators()];
 
     while (!this.is("eof")) {
       if (this.matchKeyword("signature")) {
@@ -444,9 +453,10 @@ export class Parser {
       } else {
         items.push(this.parseDeclaration());
       }
-      this.skipSeparators();
+      separators.push(this.skipSeparators());
     }
 
+    (items as any).sourceSeparators = separators;
     return items;
   }
 
@@ -530,15 +540,19 @@ export class Parser {
   private parseDeclarationSequence(stopValues: string[]): BlockState | undefined {
     const stops = new Set(stopValues);
     const declarations: BlockState[] = [];
-    this.skipSeparators();
+    const separators = [this.skipSeparators()];
     while (!this.is("eof") && !stops.has(this.peek().value)) {
       declarations.push(this.parseDeclaration());
-      this.skipSeparators();
+      separators.push(this.skipSeparators());
     }
-    if (declarations.length === 0) return undefined;
-    if (declarations.length === 1) return declarations[0];
+    if (declarations.length === 0) return separators[0] ? block("dec_empty", this.ids, {extraState: {t2bbSource: {boundary: [separators[0], 0]}}}) : undefined;
+    if (declarations.length === 1) {
+      const item = declarations[0];
+      item.extraState = {...item.extraState, t2bbSource: {boundary: separators}};
+      return item;
+    }
     return block("dec_sequence", this.ids, {
-      extraState: { itemCount: declarations.length },
+      extraState: { itemCount: declarations.length, t2bbSource: {separators} },
       inputs: indexedInputs(declarations),
     });
   }
@@ -662,9 +676,6 @@ export class Parser {
     this.expectValue("=", "Expected '=' in function clause");
     const expression = this.parseExpression();
 
-    if (extraPatterns.length === 0) {
-      return this.buildInfixFunClause(left, opToken.value, right, returnType, expression);
-    }
     const inputs: Record<string, { block: BlockState }> = {
       pat1: input(left),
       id: input(this.idBlock(opToken.value)),
@@ -1053,14 +1064,15 @@ export class Parser {
 
   private parseSpecificationSequence(): BlockState | undefined {
     let specs: BlockState[] = [];
+    let separators = [0];
     for (;;) {
-      this.skipSeparators();
+      separators[specs.length] = (separators[specs.length] || 0) + this.skipSeparators();
       if (this.matchKeyword("sharing")) {
         // `sharing [type] longid = longid ...` constrains the preceding specs.
         const sharingType = this.matchKeyword("type") ? "type" : "";
         const paths = [this.parseLongIdBlock()];
         while (this.matchValue("=")) paths.push(this.parseLongIdBlock());
-        const preceding = this.wrapSpecs(specs);
+        const preceding = this.wrapSpecs(specs, separators);
         specs = [
           block("spec_type_sharing", this.ids, {
             fields: { sharingType },
@@ -1071,20 +1083,25 @@ export class Parser {
             },
           }),
         ];
+        separators = [0, 0];
         continue;
       }
       const spec = this.parseSpecificationOpt();
       if (!spec) break;
       specs.push(spec);
+      separators.push(0);
     }
-    return this.wrapSpecs(specs);
+    return this.wrapSpecs(specs, separators);
   }
 
-  private wrapSpecs(specs: BlockState[]): BlockState | undefined {
-    if (specs.length === 0) return undefined;
-    if (specs.length === 1) return specs[0];
+  private wrapSpecs(specs: BlockState[], separators: number[] = Array(specs.length + 1).fill(0)): BlockState | undefined {
+    if (specs.length === 0) return separators[0] ? block("spec_empty", this.ids, {extraState: {t2bbSource: {boundary: [separators[0], 0]}}}) : undefined;
+    if (specs.length === 1) {
+      specs[0].extraState = {...specs[0].extraState, t2bbSource: {boundary: separators}};
+      return specs[0];
+    }
     return block("spec_sequence", this.ids, {
-      extraState: { itemCount: specs.length },
+      extraState: { itemCount: specs.length, t2bbSource: {separators} },
       inputs: indexedInputs(specs),
     });
   }
@@ -1611,20 +1628,21 @@ export class Parser {
       case "int": {
         this.advance();
         return block("con_int", this.ids, {
-          fields: { inputValue: Number(token.value.replace("~", "-")) },
+          fields: { inputValue: token.value },
         });
       }
       case "real": {
         this.advance();
-        const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
+        // Keep the literal verbatim: splitting it into (whole, fraction)
+        // numbers loses the fraction's leading zeros (3.05 vs 3.5).
         return block("con_float", this.ids, {
-          fields: { NAME: Number(whole), inputValue: fraction },
+          fields: { inputValue: token.value },
         });
       }
       case "word": {
         this.advance();
         return block("con_word", this.ids, {
-          fields: { inputValue: Number(token.value.slice(2)) },
+          fields: { inputValue: token.value },
         });
       }
       case "string": {
@@ -1740,15 +1758,7 @@ export class Parser {
       });
     }
     this.expectValue(")", "Expected ')' after expression");
-    // Operator and sequence blocks emit their own parentheses; wrapping them
-    // again would add a pair of parentheses on every round-trip.
-    if (
-      first.type === "exp_primtv_optr_arith" ||
-      first.type === "exp_primtv_optr_logic" ||
-      first.type === "exp_sequence"
-    ) {
-      return first;
-    }
+    // Source grouping is provenance. Only the renderer may normalize it.
     return block("exp_parentheses", this.ids, { inputs: { exp: input(first) } });
   }
 
@@ -1922,20 +1932,20 @@ export class Parser {
       case "int": {
         this.advance();
         return block("con_int", this.ids, {
-          fields: { inputValue: Number(token.value.replace("~", "-")) },
+          fields: { inputValue: token.value },
         });
       }
       case "real": {
         this.advance();
-        const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
+        // See the pattern-side case above: the literal is kept verbatim.
         return block("con_float", this.ids, {
-          fields: { NAME: Number(whole), inputValue: fraction },
+          fields: { inputValue: token.value },
         });
       }
       case "word": {
         this.advance();
         return block("con_word", this.ids, {
-          fields: { inputValue: Number(token.value.slice(2)) },
+          fields: { inputValue: token.value },
         });
       }
       case "string": {
@@ -2171,7 +2181,7 @@ export function smlToVismlWorkspaceState(source: string) {
     deletable: false,
     movable: true,
     editable: true,
-    extraState: { itemCount: Math.max(1, declarations.length) },
+    extraState: { itemCount: Math.max(1, declarations.length), t2bbSource: {separators: (declarations as any).sourceSeparators} },
     inputs: indexedInputs(declarations),
   };
 

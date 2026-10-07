@@ -1,4 +1,5 @@
 import * as Blockly from "blockly";
+import { intLiteral, realLiteral, wordLiteral } from "../preservation/lexical";
 import getColorByType from "../seeds/color_definition";
 import { yellow_cyan_svg } from "../../ui/svg_picture";
 
@@ -9,7 +10,7 @@ Blockly.Blocks["con_int"] = {
         new Blockly.FieldImage(yellow_cyan_svg, 5, 25, "*")
       )
       .appendField("Integer")
-      .appendField(new Blockly.FieldNumber(0, -Infinity, Infinity, 1), "inputValue");
+      .appendField(new Blockly.FieldTextInput("0", intLiteral), "inputValue");
     this.setOutput(true, ["con", "exp", "pat"]);
     this.setColour(getColorByType('constant'));
     this.setTooltip("");
@@ -47,16 +48,19 @@ Blockly.Blocks["con_char"] = {
   },
 };
 
+/**
+ * The real literal is held as ONE text field carrying the literal exactly as
+ * written, not as a (whole, fraction) pair of numbers. The pair is not
+ * injective: `3.05` and `3.5` both reduce to (3, 5), so the fraction's leading
+ * zeros \u2014 and with them the original terminal \u2014 are unrecoverable. Storing the
+ * literal itself is what makes reconstruction a lookup rather than a guess.
+ */
 Blockly.Blocks["con_float"] = {
   init: function () {
     this.appendDummyInput()
-      .appendField(
-        new Blockly.FieldImage(yellow_cyan_svg, 5, 25, "*")
-      )
+      .appendField(new Blockly.FieldImage(yellow_cyan_svg, 5, 25, "*"))
       .appendField("Real")
-      .appendField(new Blockly.FieldNumber(0, -Infinity, Infinity, 1), "NAME")
-      .appendField("\u2022")
-      .appendField(new Blockly.FieldTextInput("0", (value) => /^\d+$/.test(value) ? value : null), "inputValue");
+      .appendField(new Blockly.FieldTextInput("0.0", realLiteral), "inputValue");
     this.setOutput(true, ["con", "exp", "pat"]);
     this.setColour(getColorByType('constant'));
     this.setTooltip("");
@@ -71,7 +75,7 @@ Blockly.Blocks["con_word"] = {
         new Blockly.FieldImage(yellow_cyan_svg, 5, 25, "*")
       )
       .appendField("Word")
-      .appendField(new Blockly.FieldNumber(0, 0, Infinity, 1), "inputValue");
+      .appendField(new Blockly.FieldTextInput("0w0", wordLiteral), "inputValue");
     this.setOutput(true, ["con", "exp", "pat"]);
     this.setColour(getColorByType('constant'));
     this.setTooltip("");

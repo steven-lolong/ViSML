@@ -25,6 +25,13 @@ SML.forBlock["exp_infix_application"] = function (block) {
 
 SML.forBlock["exp_parentheses"] = function (block) {
   let exp = SML.valueToCode(block, "exp", SML.ORDER_NONE);
+  // Primitive generators add an administrative pair. An explicit source
+  // wrapper owns that pair instead; do not duplicate it on every reparse.
+  const child = block.getInputTargetBlock("exp");
+  if (child && ["exp_primtv_optr_arith", "exp_primtv_optr_logic"].includes(child.type)) {
+    const trimmed = exp.trim();
+    if (trimmed.startsWith("(") && trimmed.endsWith(")")) exp = trimmed.slice(1, -1);
+  }
   let code = "(" + exp + ")";
   return [code, SML.ORDER_NONE];
 };

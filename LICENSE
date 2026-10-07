@@ -1,0 +1,38 @@
+Copyright © 2022-2026 L-Workshop.
+
+All Rights Reserved.
+
+This repository contains proprietary software developed by
+L-Workshop.
+
+Except as expressly permitted in writing by the copyright holder,
+you may not:
+
+- copy or reproduce the software;
+- modify or create derivative works;
+- distribute or sublicense the software;
+- use the software for commercial purposes;
+- reverse engineer the software;
+- use the software or its source code to develop a competing
+  product or service.
+
+Certain components included in this software are licensed under
+separate third-party licenses.
+
+See THIRD_PARTY_NOTICES for applicable third-party licenses and
+copyright notices.
+
+THIRD-PARTY SOFTWARE NOTICES
+
+This software includes Blockly.
+
+Blockly
+Copyright © Raspberry Pi Foundation and Blockly contributors.
+
+Licensed under the Apache License, Version 2.0.
+
+A copy of the Apache License, Version 2.0 is included in:
+
+licenses/Apache-2.0.txt
+
+Blockly is available from the Blockly project.
