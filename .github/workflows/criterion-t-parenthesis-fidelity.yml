@@ -1,0 +1,35 @@
+name: criterion-t-parenthesis-fidelity
+
+on:
+  push:
+    branches:
+      - criterion-t-parenthesis-fidelity
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: criterion-t-parenthesis-fidelity
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build headless round-trip bundle
+        run: npx webpack --config webpack.test.config.js
+
+      - name: Run strengthened round-trip T/P suite and evidence inventory
+        run: node test/run_evidence_inventory.js

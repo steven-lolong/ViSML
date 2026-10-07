@@ -102,7 +102,7 @@ class IdFactory {
 // Tokenizer
 // ---------------------------------------------------------------------------
 
-function tokenize(source: string): Token[] {
+export function tokenize(source: string): Token[] {
   const tokens: Token[] = [];
   let index = 0;
   const length = source.length;
@@ -274,7 +274,7 @@ function splitTypeVar(name: string) {
 // Parser
 // ---------------------------------------------------------------------------
 
-class Parser {
+export class Parser {
   private index = 0;
   private ids = new IdFactory();
   /** Identifiers declared infix by the user (infix / infixr declarations). */
@@ -1618,7 +1618,7 @@ class Parser {
         this.advance();
         const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
         return block("con_float", this.ids, {
-          fields: { NAME: Number(whole), inputValue: Number(fraction) },
+          fields: { NAME: Number(whole), inputValue: fraction },
         });
       }
       case "word": {
@@ -1929,7 +1929,7 @@ class Parser {
         this.advance();
         const [whole, fraction = "0"] = token.value.replace("~", "-").split(".");
         return block("con_float", this.ids, {
-          fields: { NAME: Number(whole), inputValue: Number(fraction) },
+          fields: { NAME: Number(whole), inputValue: fraction },
         });
       }
       case "word": {

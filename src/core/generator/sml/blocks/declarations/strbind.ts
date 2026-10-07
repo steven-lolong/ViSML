@@ -4,9 +4,7 @@ import { SML } from "../../sml";
 SML.forBlock["strbind_single"] = function (block) {
   let typeVar =
       block.getFieldValue("chkSub") == "TRUE"
-        ? ": " +
-          block.getFieldValue("greatherSign") +
-          " " +
+        ? (block.getFieldValue("greatherSign") == ">" ? ":> " : ": ") +
           SML.valueToCode(block, "inputSig", SML.ORDER_NONE)
         : "",
     idVal = SML.valueToCode(block, "id", SML.ORDER_NONE),

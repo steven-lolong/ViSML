@@ -131,6 +131,10 @@ import {
   DEFAULT_IDE_LAYOUT_STATE,
   normalizeIdeLayoutState,
 } from "../src/ui/layout_state";
+import {
+  smlParserDerivationOracle,
+  lexicalFidelity,
+} from "./parser_derivation_oracle";
 
 export {
   Blockly,
@@ -140,6 +144,8 @@ export {
   sampleWorkspaces,
   DEFAULT_IDE_LAYOUT_STATE,
   normalizeIdeLayoutState,
+  smlParserDerivationOracle,
+  lexicalFidelity,
 };
 
 /** Walk a workspace state and collect every referenced block type. */
