@@ -196,3 +196,5 @@ export {tokenize} from "../src/core/parser/sml_to_visml";
 export {preservingWorkspaceToCode} from "../src/core/preservation/workspace_export";
 
 export * from "../src/core/preservation/presentation_factoring";
+export * from "../src/core/preservation/blockly_backend";
+export * from "../src/core/preservation/alias_compaction";

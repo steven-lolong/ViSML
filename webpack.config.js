@@ -16,6 +16,7 @@ module.exports = {
     // it explicit for clarity.
     tarsius: { import: "./src/tarsius.ts" },
     assets: { import: "./src/assets/assets_loader.ts" },
+    formal_editor: { import: "./src/formal_editor.ts" },
   },
   devtool: "source-map",
   output: {

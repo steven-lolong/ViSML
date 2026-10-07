@@ -15241,9 +15241,12 @@ function role(d) {
     requireState(p, `Unknown production ${d?.p}`);
     return p.lhs;
 }
-function terminalClass(name, value) {
+function terminalClass(name, value, grammar) {
     if (typeof value !== "string")
         return false;
+    const declared = grammar?.terminal_classes?.[name];
+    if (declared)
+        return new RegExp(`^(?:${declared.pattern})$`, "u").test(value);
     switch (name) {
         case "digit": return /^[0-9]$/.test(value);
         case "letter": return /^[A-Za-z]$/.test(value);
@@ -15317,7 +15320,7 @@ function validateDerivation(d, expected = smlGrammar.start, grammar = smlGrammar
                 requireState(u === e.value, error);
                 break;
             case "c":
-                requireState(terminalClass(e.name, u), error);
+                requireState(terminalClass(e.name, u, grammar), error);
                 break;
             case "n":
                 node(u, e.role);
@@ -15481,7 +15484,7 @@ function renderDerivation(d, grammar = smlGrammar, preserveAssociation = false) 
                 case "seq": return join(e.items.map((x, i) => walk(x, u[i], `${path}/${i}`)));
                 case "opt": return u === null ? "" : walk(e.item, u, `${path}/present`);
                 case "choice": return walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`);
-                case "rep": return u.map((x, i) => walk(e.item, x, `${path}/item/${i}`)).join(lexical ? e.separator : e.separator ? ` ${e.separator} ` : " ");
+                case "rep": return u.map((x, i) => walk(e.item, x, `${path}/item/${i}`)).join(lexical ? (e.separator || "") : e.separator ? ` ${e.separator} ` : " ");
                 case "args": {
                     const value = u.items.map((x) => preserveAssociation && e.role === "typ" && u.style === "bare" && typPrecedence(x) < 2 ? `( ${node(x)} )` : node(x)).join(", ");
                     return u.style === "parenthesized" ? `(${value})` : value;

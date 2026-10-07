@@ -312,7 +312,9 @@ ${signatureDifference(sourceOracle, generatedOracle)}`);
       );
       continue;
     }
-    if (!(opts && opts.normalizes)) {
+    // The legacy terminal diagnostic has the same source premise as T/P.
+    // Tolerant-import repairs are still checked for a textual fixed point.
+    if (fidelityApplicable) {
       terminalsChecked++;
       const loss = terminalLoss(source, first.code);
       if (loss) {

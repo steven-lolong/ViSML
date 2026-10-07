@@ -8,6 +8,7 @@ export type Grammar = {
     grouping?: string[];
     lexical_roles?: string[];
     productions: any[];
+    terminal_classes?: Record<string, { pattern: string; sample: string }>;
 };
 export const smlGrammar: Grammar = grammarData;
 export const productions = new Map(smlGrammar.productions.map(p => [p.id, p]));
@@ -22,9 +23,11 @@ export function role(d: Derivation): string {
     requireState(p, `Unknown production ${d?.p}`);
     return p.lhs;
 }
-export function terminalClass(name: string, value: any): boolean {
+export function terminalClass(name: string, value: any, grammar?: Grammar): boolean {
     if (typeof value !== "string")
         return false;
+    const declared = grammar?.terminal_classes?.[name];
+    if (declared) return new RegExp(`^(?:${declared.pattern})$`, "u").test(value);
     switch (name) {
         case "digit": return /^[0-9]$/.test(value);
         case "letter": return /^[A-Za-z]$/.test(value);
@@ -98,7 +101,7 @@ export function validateDerivation(d: Derivation, expected = smlGrammar.start, g
                 requireState(u === e.value, error);
                 break;
             case "c":
-                requireState(terminalClass(e.name, u), error);
+                requireState(terminalClass(e.name, u, grammar), error);
                 break;
             case "n":
                 node(u, e.role);
@@ -262,7 +265,7 @@ export function renderDerivation(d: Derivation, grammar: Grammar = smlGrammar, p
                 case "seq": return join(e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`)));
                 case "opt": return u === null ? "" : walk(e.item, u, `${path}/present`);
                 case "choice": return walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`);
-                case "rep": return u.map((x: any, i: number) => walk(e.item, x, `${path}/item/${i}`)).join(lexical ? e.separator : e.separator ? ` ${e.separator} ` : " ");
+                case "rep": return u.map((x: any, i: number) => walk(e.item, x, `${path}/item/${i}`)).join(lexical ? (e.separator || "") : e.separator ? ` ${e.separator} ` : " ");
                 case "args": {
                     const value = u.items.map((x: Derivation) => preserveAssociation && e.role === "typ" && u.style === "bare" && typPrecedence(x) < 2 ? `( ${node(x)} )` : node(x)).join(", ");
                     return u.style === "parenthesized" ? `(${value})` : value;

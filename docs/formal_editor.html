@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Generated SML editor</title>
+<style>body{font:16px system-ui;margin:20px;color:#17212b}h1{font-size:24px}#workspace{height:65vh;width:100%}textarea{box-sizing:border-box;width:100%;min-height:80px;font-family:monospace}button,label{margin:8px 12px 8px 0}#status{min-height:24px}</style></head>
+<body><h1>Generated SML editor</h1><p>Choose blocks from the toolbox. Right-click a block to change optional parts, list length, lexical branches, or an alias witness.</p>
+<label for="source">SML source</label><textarea id="source">val x = 001</textarea>
+<button id="import">Import source</button><label><input id="compact" type="checkbox" checked>Compact aliases</label>
+<div id="workspace"></div><button id="export">Export SML</button><button id="certificate">Show derivation</button>
+<p id="status" role="status"></p><textarea id="result" aria-label="Export result" readonly></textarea><script src="formal_editor.js"></script></body></html>
