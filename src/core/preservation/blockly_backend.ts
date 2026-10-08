@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { Grammar, Derivation, PreservationError, encodeDerivation, decodeCanonicalWorkspace } from "./formal_codec";
+import { Grammar, Derivation, PreservationError, encodeDerivation, decodeCanonicalWorkspace, readOptionalState } from "./formal_codec";
 import { compactAliases } from "./alias_compaction";
 
 const copy = (x: any) => JSON.parse(JSON.stringify(x));
@@ -32,7 +32,7 @@ export function createBlocklyBackend(grammar: Grammar, namespace: string) {
             case "c": return grammar.terminal_classes?.[e.name]?.sample ?? { digit: "1", letter: "a", hexDigit: "A", ascii: "x" }[e.name] ?? "";
             case "n": return { slot: { production: p.id, path, expect: e.role } };
             case "seq": return e.items.map((x: any, i: number) => blank(x, p, `${path}/${i}`));
-            case "opt": return null;
+            case "opt": return { present: false };
             case "rep": return Array.from({ length: e.min }, (_, i) => blank(e.item, p, `${path}/item/${i}`));
             case "choice": return { branch: 0, value: blank(e.items[0], p, `${path}/branch/0`) };
             default: throw new PreservationError(`Elaborate unsupported constructor ${e.kind} before Blockly generation`);
@@ -46,7 +46,11 @@ export function createBlocklyBackend(grammar: Grammar, namespace: string) {
             case "seq":
                 must(Array.isArray(u) && u.length === e.items.length, "Invalid sequence shape");
                 e.items.forEach((x: any, i: number) => walk(x, u[i], `${path}/${i}`, visit)); break;
-            case "opt": if (u !== null) walk(e.item, u, `${path}/present`, visit); break;
+            case "opt": {
+                const state = readOptionalState(e, u);
+                if (state.present) walk(e.item, state.value, `${path}/present`, visit);
+                break;
+            }
             case "rep":
                 must(Array.isArray(u) && u.length >= e.min && !(e.exclude || []).includes(u.length), "Invalid repetition shape");
                 u.forEach((x: any, i: number) => walk(e.item, x, `${path}/item/${i}`, visit)); break;
@@ -67,11 +71,14 @@ export function createBlocklyBackend(grammar: Grammar, namespace: string) {
         // Canonical RHS uses arrays for seq/rep and {branch,value} for choice.
         const keys: (number | string)[] = [];
         for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === "present") continue;
-            if (parts[i] === "item") { keys.push(Number(parts[++i])); continue; }
-            if (parts[i] === "branch") { i++; keys.push("value"); continue; }
-            keys.push(Number(parts[i]));
+            if (parts[i] === "present") {
+                if (target && Object.prototype.hasOwnProperty.call(target, "present")) { keys.push("value"); target = target.value; }
+                continue;
+            }
+            const key = parts[i] === "item" ? Number(parts[++i]) : parts[i] === "branch" ? (i++, "value") : Number(parts[i]);
+            keys.push(key); target = target[key];
         }
+        target = u;
         keys.slice(0, -1).forEach(k => target = target[k]);
         target[keys[keys.length - 1]] = value;
         return u;
@@ -114,7 +121,7 @@ export function createBlocklyBackend(grammar: Grammar, namespace: string) {
                     if (e.kind === "n") this.appendValueInput(path).setCheck(accepted(e.role).map(check)).appendField(e.role);
                     else if (e.kind === "t") this.appendDummyInput(`label:${path}`).appendField(e.value);
                     else if (e.kind === "c") this.appendDummyInput(`lexical:${path}`).appendField(e.name).appendField(new Blockly.FieldTextInput(u), `payload:${path}`);
-                    else if (["opt", "rep", "choice"].includes(e.kind)) this.appendDummyInput(`state:${path}`).appendField(`${e.kind} ${path}: ${e.kind === "opt" ? u !== null : e.kind === "rep" ? u.length : u.branch}`);
+                    else if (["opt", "rep", "choice"].includes(e.kind)) this.appendDummyInput(`state:${path}`).appendField(`${e.kind} ${path}: ${e.kind === "opt" ? readOptionalState(e, u).present : e.kind === "rep" ? u.length : u.branch}`);
                 });
                 this.setInputsInline(false);
             },
@@ -127,11 +134,11 @@ export function createBlocklyBackend(grammar: Grammar, namespace: string) {
                 const state = this.localState_();
                 const change = (path: string, value: any) => this.setLocalState(replaceAt(copy(state), path, value));
                 walk(p.rhs, state, "rhs", (e, u, path) => {
-                    if (e.kind === "opt") options.push({ text: `Toggle ${path}`, enabled: true, callback: () => change(path, u === null ? blank(e.item, p, `${path}/present`) : null) });
+                    if (e.kind === "opt") options.push({ text: `Toggle ${path}`, enabled: true, callback: () => change(path, readOptionalState(e, u).present ? { present: false } : { present: true, value: blank(e.item, p, `${path}/present`) }) });
                     if (e.kind === "rep") for (const delta of [-1, 1]) {
                         let n = u.length + delta;
                         while ((e.exclude || []).includes(n)) n += delta;
-                        options.push({ text: `${delta > 0 ? "Add" : "Remove"} item ${path}`, enabled: n >= e.min, callback: () => change(path, Array.from({ length: n }, (_, i) => u[i] || blank(e.item, p, `${path}/item/${i}`))) });
+                        options.push({ text: `${delta > 0 ? "Add" : "Remove"} item ${path}`, enabled: n >= e.min, callback: () => change(path, Array.from({ length: n }, (_, i) => i < u.length ? u[i] : blank(e.item, p, `${path}/item/${i}`))) });
                     }
                     if (e.kind === "choice") e.items.forEach((branch: any, i: number) => options.push({ text: `Branch ${i} at ${path}`, enabled: i !== u.branch, callback: () => change(path, { branch: i, value: blank(branch, p, `${path}/branch/${i}`) }) }));
                     if (e.kind === "n") {

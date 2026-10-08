@@ -6,6 +6,20 @@ to actual Blockly block definitions. Local extra state holds descriptors,
 constructor state and witnesses; child trees exist only as Blockly connections.
 Lexical predicates can be supplied through `Grammar.terminal_classes`.
 
+New optional states use `{present: false}` or `{present: true, value: ...}`.
+Presence remains distinct when the operand is epsilon, another optional, or an
+empty repetition. Codec traversal, active shapes, context-menu edits, fields,
+connections and save/load retain that tag. Old `null`/bare-value encodings remain
+accepted only when the operand constructor is neither `eps` nor `opt`: their
+state representations cannot themselves be null. Nullable nonterminal children
+are derivation objects and do not have that collision. Ambiguous old forms and
+malformed tags are rejected; accepted old derivations keep their encoding form.
+
+The paper artifact's `make optional-refinement VISML_DIR=/path/to/ViSML` runs
+31 generic fixtures, 21 edited states and malformed-state controls with a
+separate Python saved-connection decoder. These current records are separate
+from the frozen SML and MiniJava corpus evidence.
+
 `alias_compaction.ts` minimizes production-block count among legal non-root,
 strict unary alias deletions with one witness per edge. It uses the standard
 tree independent-set recurrence. It does not optimize arbitrary visual designs.

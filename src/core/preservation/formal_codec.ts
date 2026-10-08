@@ -18,6 +18,26 @@ function requireState(condition: any, message: string): asserts condition {
     if (!condition)
         throw new PreservationError(message);
 }
+/** Explicit presence keeps [epsilon] and nested optional states distinct.
+ * Legacy null/bare values remain exact only when the operand's state cannot
+ * itself be null. Nonterminal states are objects even for nullable productions.
+ */
+export function readOptionalState(e: any, u: any): { present: boolean; value: any; tagged: boolean } {
+    requireState(e?.kind === "opt", "Expected optional RHS constructor");
+    if (u && typeof u === "object" && !Array.isArray(u) && Object.prototype.hasOwnProperty.call(u, "present")) {
+        requireState(typeof u.present === "boolean", "Invalid optional presence tag");
+        const keys = Object.keys(u).sort();
+        requireState(JSON.stringify(keys) === JSON.stringify(u.present ? ["present", "value"] : ["present"]), "Invalid optional tagged state");
+        return { present: u.present, value: u.value, tagged: true };
+    }
+    requireState(!["eps", "opt"].includes(e.item.kind), "Explicit optional presence tag required for epsilon or nested optional operand");
+    return { present: u !== null, value: u, tagged: false };
+}
+export function mapOptionalState(e: any, u: any, map: (value: any) => any): any {
+    const s = readOptionalState(e, u);
+    if (s.tagged) return s.present ? { present: true, value: map(s.value) } : { present: false };
+    return s.present ? map(s.value) : null;
+}
 export function role(d: Derivation): string {
     const p = productions.get(d?.p);
     requireState(p, `Unknown production ${d?.p}`);
@@ -52,6 +72,8 @@ export function make(p: string, ...values: any[]): Derivation {
             case "opt": {
                 requireState(input.length, `Missing optional tag for ${p}`);
                 const v = input.shift();
+                const state = readOptionalState(e, v);
+                if (state.tagged) return v;
                 if (v === null)
                     return null;
                 const args = v === true ? [] : Array.isArray(v) ? [...v] : [v];
@@ -110,10 +132,11 @@ export function validateDerivation(d: Derivation, expected = smlGrammar.start, g
                 requireState(Array.isArray(u) && u.length === e.items.length, error);
                 e.items.forEach((x: any, i: number) => walk(x, u[i], pid, `${path}/${i}`));
                 break;
-            case "opt":
-                if (u !== null)
-                    walk(e.item, u, pid, `${path}/present`);
+            case "opt": {
+                const state = readOptionalState(e, u);
+                if (state.present) walk(e.item, state.value, pid, `${path}/present`);
                 break;
+            }
             case "rep":
                 requireState(Array.isArray(u) && u.length >= e.min && !(e.exclude || []).includes(u.length), error);
                 u.forEach((x: any, i: number) => walk(e.item, x, pid, `${path}/item/${i}`));
@@ -143,7 +166,7 @@ export function encodeDerivation(d: Derivation, grammar: Grammar = smlGrammar): 
             switch (e.kind) {
                 case "n": return { node: encode(u), slot: { production: d.p, path, expect: e.role } };
                 case "seq": return e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`));
-                case "opt": return u === null ? null : walk(e.item, u, `${path}/present`);
+                case "opt": return mapOptionalState(e, u, value => walk(e.item, value, `${path}/present`));
                 case "rep": return u.map((x: any, i: number) => walk(e.item, x, `${path}/item/${i}`));
                 case "choice": return { branch: u.branch, value: walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`) };
                 case "args": return { style: u.style, items: u.items.map((x: any, i: number) => ({ node: encode(x), slot: { production: d.p, path: `${path}/item/${i}`, expect: e.role } })) };
@@ -187,7 +210,7 @@ export function decodeCanonicalWorkspace(w: any, grammar: Grammar = smlGrammar):
                 case "seq":
                     requireState(Array.isArray(u) && u.length === e.items.length, "Invalid sequence state");
                     return e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`));
-                case "opt": return u === null ? null : walk(e.item, u, `${path}/present`);
+                case "opt": return mapOptionalState(e, u, value => walk(e.item, value, `${path}/present`));
                 case "rep":
                     requireState(Array.isArray(u), "Invalid repetition state");
                     return u.map((x: any, i: number) => walk(e.item, x, `${path}/item/${i}`));
@@ -263,7 +286,10 @@ export function renderDerivation(d: Derivation, grammar: Grammar = smlGrammar, p
                 case "c": return u;
                 case "n": return child(e, u, path);
                 case "seq": return join(e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`)));
-                case "opt": return u === null ? "" : walk(e.item, u, `${path}/present`);
+                case "opt": {
+                    const state = readOptionalState(e, u);
+                    return state.present ? walk(e.item, state.value, `${path}/present`) : "";
+                }
                 case "choice": return walk(e.items[u.branch], u.value, `${path}/branch/${u.branch}`);
                 case "rep": return u.map((x: any, i: number) => walk(e.item, x, `${path}/item/${i}`)).join(lexical ? (e.separator || "") : e.separator ? ` ${e.separator} ` : " ");
                 case "args": {

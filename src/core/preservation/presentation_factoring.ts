@@ -1,4 +1,4 @@
-import { Derivation, Grammar, smlGrammar, validateDerivation, PreservationError } from "./formal_codec";
+import { Derivation, Grammar, smlGrammar, validateDerivation, PreservationError, mapOptionalState, readOptionalState } from "./formal_codec";
 import grammarData from "./formal_sml_grammar.json";
 /** Remove the table's list/argument shorthands before the seven-constructor theorem. */
 export const factoredGrammar: Grammar = (grammarData as any).factored_grammar;
@@ -12,7 +12,9 @@ function mapState(e: any, u: any, node: (d: Derivation) => Derivation, forward: 
             const items = u.items.map(node), stem = "__args_" + e.role;
             return u.style === "bare" ? { p: stem + ".0", rhs: items[0] } : { p: stem + ".1", rhs: ["(", pack(items, 1, ","), ")"] };
         }
-        if (u === null)
+        const optional = readOptionalState({ kind: "opt", item: { kind: "n" } }, u);
+        u = optional.value;
+        if (!optional.present)
             return { style: "bare", items: [] };
         if (u.p === "__args_" + e.role + ".0")
             return { style: "bare", items: [node(u.rhs)] };
@@ -27,14 +29,17 @@ function mapState(e: any, u: any, node: (d: Derivation) => Derivation, forward: 
                 return null;
             return pack(u.map((x: any) => mapState(e.item, x, node, true)), minimum, e.separator);
         }
-        if (u === null)
-            return [];
+        if (e.min === 0) {
+            const optional = readOptionalState({ kind: "opt", item: { kind: "seq" } }, u);
+            if (!optional.present) return [];
+            u = optional.value;
+        }
         return unpack(u, minimum).map((x: any) => mapState(e.item, x, node, false));
     }
     switch (e.kind) {
         case "n": return node(u);
         case "seq": return e.items.map((x: any, i: number) => mapState(x, u[i], node, forward));
-        case "opt": return u === null ? null : mapState(e.item, u, node, forward);
+        case "opt": return mapOptionalState(e, u, value => mapState(e.item, value, node, forward));
         case "rep": return u.map((x: any) => mapState(e.item, x, node, forward));
         case "choice": return { branch: u.branch, value: mapState(e.items[u.branch], u.value, node, forward) };
         default: return u;

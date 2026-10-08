@@ -7,6 +7,7 @@ const output = process.argv[3] || path.join(__dirname, 'dist/blockly-refinement-
 const backend = m.createBlocklyBackend(input.grammar, 'formal_refinement');
 const cases = input.fixtures || input.programs;
 const results = [];
+const edits = [];
 let assertions = 0;
 let connectorPairs = 0;
 const representatives = new Map(input.grammar.productions.map(p => [p.lhs, p.id]));
@@ -32,6 +33,7 @@ for (const item of cases) {
             }
             assert.deepEqual(backend.decode(saved, start), item.expected); assertions++;
             if (item.source !== undefined) { assert.equal(m.renderDerivation(backend.decode(saved,start), input.grammar), item.source); assertions++; }
+            if (item.tokens !== undefined) { assert.deepEqual(m.renderDerivation(backend.decode(saved,start), input.grammar).split(/\s+/).filter(Boolean), item.tokens); assertions++; }
             const reloaded = new m.Blockly.Workspace();
             try {
                 const projected = backend.project(saved);
@@ -46,6 +48,32 @@ for (const item of cases) {
     results.push({ ...item, states });
 }
 checkerWorkspace.dispose();
+// Optional-presence regressions use independently supplied expected edit states.
+for (const edit of input.edits || []) {
+    const w = new m.Blockly.Workspace();
+    try {
+        let root;
+        if (edit.initial) {
+            m.Blockly.serialization.workspaces.load(backend.encode(edit.initial), w);
+            root = w.getTopBlocks(false)[0];
+        } else root = w.newBlock(backend.types.get(edit.production));
+        for (const [i, step] of edit.steps.entries()) {
+            if (step.menu) {
+                const options = []; root.customContextMenu(options);
+                const option = options.find(x => x.text === step.menu);
+                assert(option?.enabled, step.menu); option.callback();
+            } else root.setFieldValue(step.value, step.field);
+            const saved = backend.save(w);
+            assert.deepEqual(backend.decode(saved), step.expected); assertions++;
+            edits.push({ name: `${edit.name}/${i}`, expected: step.expected, saved });
+            const reloaded = new m.Blockly.Workspace();
+            try {
+                m.Blockly.serialization.workspaces.load(saved, reloaded);
+                assert.deepEqual(backend.decode(backend.save(reloaded)), step.expected); assertions++;
+            } finally { reloaded.dispose(); }
+        }
+    } finally { w.dispose(); }
+}
 // Grammar-declared lexical predicates extend the generated backend without
 // changing its structural compiler.
 {
@@ -86,7 +114,15 @@ mutate('descriptor/type mismatch', s => s.blocks.blocks[0].type='other_backend_0
 mutate('shared child ID', s => { const b=s.blocks.blocks[0];Object.values(b.inputs)[0].block.id=b.id; });
 mutate('wrong one-step witness', s => { const go=x=>{if(x?.slot){x.witness='invented.production';return true;}return x && typeof x==='object' && Object.values(x).some(go);};go(s.blocks.blocks[0].extraState.rhs);});
 mutate('lexical field/state mismatch', s => { const go=b=>{if(Object.keys(b.fields||{}).length){b.fields[Object.keys(b.fields)[0]]='bad';return true;}return Object.values(b.inputs||{}).some(x=>go(x.block));};if(!go(s.blocks.blocks[0]))s.blocks.blocks[0].fields={invented:'bad'}; });
+for (const probe of input.invalid_optionals || []) {
+    const fixture = results.find(x => x.name === probe.case);
+    const state = clone(fixture.states[0].saved);
+    state.blocks.blocks[0].extraState.rhs = probe.state;
+    assert.throws(() => backend.decode(state), m.PreservationError, probe.name); assertions++;
+    invalid.push({name: probe.name, start: input.grammar.start, state, typescript_rejected: true});
+}
 const report = {schema: 1, status: 'pass', namespace:'formal_refinement', grammar: input.grammar, fixtures: results, invalid,
     summary: { cases: results.length, assertions, connector_pairs: connectorPairs, uncompressed_blocks: results.reduce((s,x)=>s+x.states[0].blocks,0), compact_blocks: results.reduce((s,x)=>s+x.states[1].blocks,0), uncompressed_bytes:results.reduce((s,x)=>s+Buffer.byteLength(JSON.stringify(x.states[0].saved)),0), compact_bytes:results.reduce((s,x)=>s+Buffer.byteLength(JSON.stringify(x.states[1].saved)),0) }};
+if (edits.length) { report.edits = edits; report.summary.edited_states = edits.length; }
 fs.writeFileSync(output, JSON.stringify(report, null, 2)+'\n');
 console.log(JSON.stringify(report.summary));
