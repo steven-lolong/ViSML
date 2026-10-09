@@ -12,6 +12,47 @@ const exempt = new Set(['let multi body', 'generated let braces', 'legacy opaque
 const tokens = s => m.tokenize(s).filter(x => x.type !== 'eof').map(x => [x.type, x.value]);
 let assertions = 0;
 const check = f => { f(); assertions++; };
+// Lexical-boundary regression: a type constructor '>' after a source ':'
+// must not become the distinct SML ascription token ':>'.
+{
+    const grammar = {
+        start: 'exp', lexical_roles: [],
+        productions: [
+            { id: 'exp.11', lhs: 'exp', rhs: { kind: 'seq', items: [
+                { kind: 'n', role: 'exp' }, { kind: 't', value: ':' }, { kind: 'n', role: 'typ' },
+            ] } },
+            { id: 'exp.atom', lhs: 'exp', rhs: { kind: 't', value: '1' } },
+            { id: 'typ.operator', lhs: 'typ', rhs: { kind: 't', value: '>' } },
+        ],
+    };
+    const d = { p: 'exp.11', rhs: [
+        { p: 'exp.atom', rhs: '1' }, ':', { p: 'typ.operator', rhs: '>' },
+    ] };
+    check(() => assert.equal(m.renderDerivation(d, grammar), '1 : >'));
+}
+// Each source-owned module-ascription shorthand must pack only its own optional '>'.
+for (const [pid, index] of [['strbind.0', 1], ['fctbind.0', 6], ['fctbind.1', 4]]) {
+    const items = Array.from({ length: index + 2 }, () => ({ kind: 't', value: 'X' }));
+    items[index] = { kind: 'opt', item: { kind: 'seq', items: [
+        { kind: 't', value: ':' },
+        { kind: 'opt', item: { kind: 't', value: '>' } },
+        { kind: 'n', role: 'sig' },
+    ] } };
+    const grammar = { start: 'strbind', lexical_roles: [],
+        productions: [
+            { id: pid, lhs: 'strbind', rhs: { kind: 'seq', items } },
+            { id: 'sig.atom', lhs: 'sig', rhs: { kind: 't', value: 'SIG' } },
+        ] };
+    for (const [opaque, expected] of [[true, ':>'], [false, ':']]) {
+        const rhs = items.map((_, i) => i === index
+            ? { present: true, value: [':', { present: opaque, ...(opaque ? { value: '>' } : {}) },
+                { p: 'sig.atom', rhs: 'SIG' }] }
+            : 'X');
+        const d = { p: pid, rhs };
+        const parts = Array.from({ length: index + 2 }, (_, i) => i === index ? expected + ' SIG' : 'X');
+        check(() => assert.equal(m.renderDerivation(d, grammar), parts.join(' ')));
+    }
+}
 function cycle(s, exact = true) {
     const state = m.smlToVismlWorkspaceState(s), d = m.decodeVismlWorkspace(state);
     const workspace = new m.Blockly.Workspace();
