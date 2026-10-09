@@ -46,7 +46,7 @@ const cases = data.cases.map((row) => {
 const out = { ...data, grammar: currentGrammar, cases };
 fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
 fs.writeFileSync(output, zlib.gzipSync(Buffer.from(JSON.stringify(out))));
-const git = cp.execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+const git = cp.execFileSync('git', ['-C', path.join(__dirname, '..'), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const codec = fs.readFileSync(path.join(__dirname, '../src/core/preservation/formal_codec.ts'));
 const report = {
     status: 'renderer_executed_oracle_pending',
