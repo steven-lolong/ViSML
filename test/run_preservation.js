@@ -12,6 +12,77 @@ const exempt = new Set(['let multi body', 'generated let braces', 'legacy opaque
 const tokens = s => m.tokenize(s).filter(x => x.type !== 'eof').map(x => [x.type, x.value]);
 let assertions = 0;
 const check = f => { f(); assertions++; };
+let rendererCases = 0;
+function checkRenderedState(d, grammar, expectedText) {
+    check(() => assert.equal(m.renderDerivation(d, grammar), expectedText));
+    check(() => assert.deepEqual(m.decodeCanonicalWorkspace(m.encodeDerivation(d, grammar), grammar), d));
+    const backend = m.createBlocklyBackend(grammar, `renderer_regression_${rendererCases++}`);
+    for (const compact of [false, true]) {
+        const workspace = new m.Blockly.Workspace();
+        const reloaded = new m.Blockly.Workspace();
+        try {
+            m.Blockly.serialization.workspaces.load(backend.encode(d, compact), workspace);
+            const saved = backend.save(workspace);
+            check(() => assert.deepEqual(backend.decode(saved), d));
+            check(() => assert.equal(m.renderDerivation(backend.decode(saved), grammar), expectedText));
+            m.Blockly.serialization.workspaces.load(saved, reloaded);
+            check(() => assert.deepEqual(backend.decode(backend.save(reloaded)), d));
+        } finally {
+            reloaded.dispose();
+            workspace.dispose();
+        }
+    }
+}
+// Lexical-boundary regression: a type constructor '>' after a source ':'
+// must not become the distinct SML ascription token ':>'.
+{
+    const grammar = {
+        start: 'exp', lexical_roles: [],
+        productions: [
+            { id: 'exp.11', lhs: 'exp', rhs: { kind: 'seq', items: [
+                { kind: 'n', role: 'exp' }, { kind: 't', value: ':' }, { kind: 'n', role: 'typ' },
+            ] } },
+            { id: 'exp.atom', lhs: 'exp', rhs: { kind: 't', value: '1' } },
+            { id: 'typ.operator', lhs: 'typ', rhs: { kind: 't', value: '>' } },
+        ],
+    };
+    const d = { p: 'exp.11', rhs: [
+        { p: 'exp.atom', rhs: '1' }, ':', { p: 'typ.operator', rhs: '>' },
+    ] };
+    checkRenderedState(d, grammar, '1 : >');
+}
+// Exact lexical payload includes leading and trailing whitespace. A trim at a
+// sequence boundary would silently lose it even if the constructor state survives.
+{
+    const grammar = { start: 'Lex', lexical_roles: ['Lex'], productions: [
+        { id: 'lexical.payload', lhs: 'Lex', rhs: { kind: 'seq', items:
+            Array.from({ length: 3 }, () => ({ kind: 'c', name: 'ascii' })) } },
+    ] };
+    checkRenderedState({ p: 'lexical.payload', rhs: [' ', 'x', ' '] }, grammar, ' x ');
+}
+// Each source-owned module-ascription shorthand must pack only its own optional '>'.
+for (const [pid, index] of [['strbind.0', 1], ['fctbind.0', 6], ['fctbind.1', 4]]) {
+    const items = Array.from({ length: index + 2 }, () => ({ kind: 't', value: 'X' }));
+    items[index] = { kind: 'opt', item: { kind: 'seq', items: [
+        { kind: 't', value: ':' },
+        { kind: 'opt', item: { kind: 't', value: '>' } },
+        { kind: 'n', role: 'sig' },
+    ] } };
+    const grammar = { start: 'strbind', lexical_roles: [],
+        productions: [
+            { id: pid, lhs: 'strbind', rhs: { kind: 'seq', items } },
+            { id: 'sig.atom', lhs: 'sig', rhs: { kind: 't', value: 'SIG' } },
+        ] };
+    for (const [opaque, expected] of [[true, ':>'], [false, ':']]) {
+        const rhs = items.map((_, i) => i === index
+            ? { present: true, value: [':', { present: opaque, ...(opaque ? { value: '>' } : {}) },
+                { p: 'sig.atom', rhs: 'SIG' }] }
+            : 'X');
+        const d = { p: pid, rhs };
+        const parts = Array.from({ length: index + 2 }, (_, i) => i === index ? expected + ' SIG' : 'X');
+        checkRenderedState(d, grammar, parts.join(' '));
+    }
+}
 function cycle(s, exact = true) {
     const state = m.smlToVismlWorkspaceState(s), d = m.decodeVismlWorkspace(state);
     const workspace = new m.Blockly.Workspace();
@@ -45,6 +116,15 @@ for (const [name, s] of cases) {
 }
 const regression = [
     '', ';', ';;', ';val x = 01;;', 'val x = 9007199254740993',
+    'type > = int; val x = 1 : >', 'val x = "  a  "', 'val x = #" "',
+    'val x = M.>',
+    "type 'a > = 'a; val x = 1 : int >",
+    "type ('a,'b) > = 'a; val x = 1 : (int,string) >",
+    'val x = 1 : M.>', 'val x = 1 : int M.>', 'type t = int * string',
+    'signature S = sig type > eqtype ++ type < = int end',
+    'structure X :> S = struct end', 'structure X : S = struct end',
+    'functor F(X : S) :> S = X', 'functor F(X : S) : S = X',
+    'functor F(val x : int) :> S = struct end', 'functor F(val x : int) : S = struct end',
     'val x = 0w001', 'val x = ~0.5', 'val x = 0x00AF', 'val x = ~0x00Af',
     'val x = 0wx00Af', 'val x = 1.0e3', 'val x = 01e~003', 'val x = ~01.00e03',
     'val x = ((1 + 2));;', 'val x = "a-b"', 'val x = " "', 'val x = #"-"',
@@ -90,6 +170,9 @@ for (const [name, state] of Object.entries(m.sampleWorkspaces)) {
 }
 for (const s of ['0x', '0wx', '0w', '1e', '1.0e', '1e~', '1.0e~']) {
     check(() => assert.throws(() => m.smlToVismlWorkspaceState('val x = ' + s)));
+}
+for (const s of ['type :> = int', 'type = = int', 'val x = 1 : M.=', 'val x = 1 : >.t']) {
+    check(() => assert.throws(() => m.smlToVismlWorkspaceState(s), m.SmlParseError));
 }
 // Every source row is exercised, including slot-free epsilon and lexical rows.
 const byRole = new Map();
@@ -192,7 +275,8 @@ rejectState(s => { s.blocks.blocks.push(clone(s.blocks.blocks[0])); });
 rejectState(s => { s.blocks.blocks[0].extraState.t2bbSource.separators = [-1, 0]; });
 check(() => assert.notDeepEqual(cycle('val x = 1 + 2').d, cycle('val x = ((1 + 2))').d));
 const result = { schema: 1, source_cases: cases.length, exact_token_cases: cases.length - exempt.size,
-    importer_repairs: [...exempt], regression_cases: regression.length, block_authored_samples: Object.keys(m.sampleWorkspaces).length, formal_production_rows: m.smlGrammar.productions.length, factored_production_rows: m.factoredGrammar.productions.length,
+    importer_repairs: [...exempt], regression_cases: regression.length, renderer_cases: rendererCases,
+    block_authored_samples: Object.keys(m.sampleWorkspaces).length, formal_production_rows: m.smlGrammar.productions.length, factored_production_rows: m.factoredGrammar.productions.length,
     assertions, status: 'pass' };
 if (process.argv[2])
     fs.writeFileSync(process.argv[2], JSON.stringify(result, null, 2) + '\n');

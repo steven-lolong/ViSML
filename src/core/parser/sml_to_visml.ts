@@ -362,6 +362,28 @@ export class Parser {
       (!RESERVED_SYMBOLS.has(token.value) || token.value === "=");
   }
 
+  private isTypeConstructor(token: Token): boolean {
+    return token.type === "id" || token.type === "sym" && !RESERVED_SYMBOLS.has(token.value);
+  }
+
+  private expectTypeConstructor(what = "Expected a type constructor"): Token {
+    if (!this.isTypeConstructor(this.peek())) throw this.error(what);
+    return this.advance();
+  }
+
+  /** Structure qualifiers are alphabetic; the final type name may be symbolic. */
+  private parseTypeConstructorBlock(): BlockState {
+    const parts = [this.expectTypeConstructor().value];
+    while (this.isValue(".")) {
+      if (!/^[A-Za-z][A-Za-z0-9_']*$/.test(parts[parts.length - 1])) {
+        throw this.error("Expected an alphabetic structure path component");
+      }
+      this.advance();
+      parts.push(this.expectTypeConstructor("Expected a type constructor after '.'").value);
+    }
+    return this.longIdBlock(parts);
+  }
+
   private isInfixOccurrence(token: Token): boolean {
     // Qualified identifiers are always nonfix, including their final symbol.
     return this.isValueIdentifier(token) && this.fixity.has(token.value) &&
@@ -786,7 +808,7 @@ export class Parser {
 
   private parseTypbind(): BlockState {
     const tyVars = this.parseTyVarSeqOpt();
-    const name = this.expectIdentifier("Expected a type name").value;
+    const name = this.expectTypeConstructor("Expected a type name").value;
     this.expectValue("=", "Expected '=' in type binding");
     const typeBlock = this.parseType();
     const inputs: Record<string, { block: BlockState }> = {
@@ -1170,7 +1192,7 @@ export class Parser {
       // A `type` spec with '=' is a type abbreviation backed by typbind.
       const marked = this.mark();
       this.parseTyVarSeqOpt();
-      this.expectIdentifier("Expected a type name");
+      this.expectTypeConstructor("Expected a type name");
       const isAbbreviation = this.isValue("=");
       this.reset(marked);
 
@@ -1263,7 +1285,7 @@ export class Parser {
 
   private parseTypdesc(): BlockState {
     const tyVars = this.parseTyVarSeqOpt();
-    const name = this.expectIdentifier("Expected a type name").value;
+    const name = this.expectTypeConstructor("Expected a type name").value;
     const inputs: Record<string, { block: BlockState }> = {
       inputId: input(this.idBlock(name)),
     };
@@ -2050,16 +2072,17 @@ export class Parser {
 
   private parseConstructedType(): BlockState {
     let typeBlock = this.parseAtomicType();
-    // Postfix constructors: t list, t option, t Foo.map, ...
-    while (this.is("id")) {
-      if (this.peek().value === "list") {
+    // Postfix constructors: t list, t option, t Foo.map, t Foo.>, ...
+    // An unqualified '*' belongs to the tuple-type layer.
+    while (this.isTypeConstructor(this.peek()) && !this.isValue("*")) {
+      if (this.peek().value === "list" && this.peek(1).value !== ".") {
         this.advance();
         typeBlock = block("typ_list", this.ids, { inputs: { typ: input(typeBlock) } });
         continue;
       }
       typeBlock = block("typ_constructor", this.ids, {
         extraState: { itemCount: 1 },
-        inputs: { ADD0: input(typeBlock), longid: input(this.parseLongIdBlock()) },
+        inputs: { ADD0: input(typeBlock), longid: input(this.parseTypeConstructorBlock()) },
       });
     }
     return typeBlock;
@@ -2076,14 +2099,14 @@ export class Parser {
         },
       });
     }
-    if (token.type === "id") {
+    if (this.isTypeConstructor(token)) {
       if (PRIMITIVE_TYPES.has(token.value) && this.peek(1).value !== ".") {
         this.advance();
         return block("typ_primtv", this.ids, { fields: { type: token.value } });
       }
       return block("typ_constructor", this.ids, {
         extraState: { itemCount: 0 },
-        inputs: { longid: input(this.parseLongIdBlock()) },
+        inputs: { longid: input(this.parseTypeConstructorBlock()) },
       });
     }
     if (token.value === "(") {
@@ -2095,10 +2118,10 @@ export class Parser {
         return block("typ_parentheses", this.ids, { inputs: { typ: input(items[0]) } });
       }
       // ( t1, t2 ) tycon
-      if (!this.is("id")) throw this.error("Expected a type constructor after ')'");
+      if (!this.isTypeConstructor(this.peek())) throw this.error("Expected a type constructor after ')'");
       return block("typ_constructor", this.ids, {
         extraState: { itemCount: items.length },
-        inputs: { ...indexedInputs(items), longid: input(this.parseLongIdBlock()) },
+        inputs: { ...indexedInputs(items), longid: input(this.parseTypeConstructorBlock()) },
       });
     }
     if (token.value === "{") {

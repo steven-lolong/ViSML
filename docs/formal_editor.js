@@ -318,6 +318,26 @@ class Parser {
         return token.type === "id" || token.type === "sym" &&
             (!RESERVED_SYMBOLS.has(token.value) || token.value === "=");
     }
+    isTypeConstructor(token) {
+        return token.type === "id" || token.type === "sym" && !RESERVED_SYMBOLS.has(token.value);
+    }
+    expectTypeConstructor(what = "Expected a type constructor") {
+        if (!this.isTypeConstructor(this.peek()))
+            throw this.error(what);
+        return this.advance();
+    }
+    /** Structure qualifiers are alphabetic; the final type name may be symbolic. */
+    parseTypeConstructorBlock() {
+        const parts = [this.expectTypeConstructor().value];
+        while (this.isValue(".")) {
+            if (!/^[A-Za-z][A-Za-z0-9_']*$/.test(parts[parts.length - 1])) {
+                throw this.error("Expected an alphabetic structure path component");
+            }
+            this.advance();
+            parts.push(this.expectTypeConstructor("Expected a type constructor after '.'").value);
+        }
+        return this.longIdBlock(parts);
+    }
     isInfixOccurrence(token) {
         // Qualified identifiers are always nonfix, including their final symbol.
         return this.isValueIdentifier(token) && this.fixity.has(token.value) &&
@@ -746,7 +766,7 @@ class Parser {
     }
     parseTypbind() {
         const tyVars = this.parseTyVarSeqOpt();
-        const name = this.expectIdentifier("Expected a type name").value;
+        const name = this.expectTypeConstructor("Expected a type name").value;
         this.expectValue("=", "Expected '=' in type binding");
         const typeBlock = this.parseType();
         const inputs = {
@@ -1128,7 +1148,7 @@ class Parser {
             // A `type` spec with '=' is a type abbreviation backed by typbind.
             const marked = this.mark();
             this.parseTyVarSeqOpt();
-            this.expectIdentifier("Expected a type name");
+            this.expectTypeConstructor("Expected a type name");
             const isAbbreviation = this.isValue("=");
             this.reset(marked);
             if (keyword === "type" && isAbbreviation) {
@@ -1219,7 +1239,7 @@ class Parser {
     }
     parseTypdesc() {
         const tyVars = this.parseTyVarSeqOpt();
-        const name = this.expectIdentifier("Expected a type name").value;
+        const name = this.expectTypeConstructor("Expected a type name").value;
         const inputs = {
             inputId: input(this.idBlock(name)),
         };
@@ -2014,16 +2034,17 @@ class Parser {
     }
     parseConstructedType() {
         let typeBlock = this.parseAtomicType();
-        // Postfix constructors: t list, t option, t Foo.map, ...
-        while (this.is("id")) {
-            if (this.peek().value === "list") {
+        // Postfix constructors: t list, t option, t Foo.map, t Foo.>, ...
+        // An unqualified '*' belongs to the tuple-type layer.
+        while (this.isTypeConstructor(this.peek()) && !this.isValue("*")) {
+            if (this.peek().value === "list" && this.peek(1).value !== ".") {
                 this.advance();
                 typeBlock = block("typ_list", this.ids, { inputs: { typ: input(typeBlock) } });
                 continue;
             }
             typeBlock = block("typ_constructor", this.ids, {
                 extraState: { itemCount: 1 },
-                inputs: { ADD0: input(typeBlock), longid: input(this.parseLongIdBlock()) },
+                inputs: { ADD0: input(typeBlock), longid: input(this.parseTypeConstructorBlock()) },
             });
         }
         return typeBlock;
@@ -2038,14 +2059,14 @@ class Parser {
                 },
             });
         }
-        if (token.type === "id") {
+        if (this.isTypeConstructor(token)) {
             if (PRIMITIVE_TYPES.has(token.value) && this.peek(1).value !== ".") {
                 this.advance();
                 return block("typ_primtv", this.ids, { fields: { type: token.value } });
             }
             return block("typ_constructor", this.ids, {
                 extraState: { itemCount: 0 },
-                inputs: { longid: input(this.parseLongIdBlock()) },
+                inputs: { longid: input(this.parseTypeConstructorBlock()) },
             });
         }
         if (token.value === "(") {
@@ -2058,11 +2079,11 @@ class Parser {
                 return block("typ_parentheses", this.ids, { inputs: { typ: input(items[0]) } });
             }
             // ( t1, t2 ) tycon
-            if (!this.is("id"))
+            if (!this.isTypeConstructor(this.peek()))
                 throw this.error("Expected a type constructor after ')'");
             return block("typ_constructor", this.ids, {
                 extraState: { itemCount: items.length },
-                inputs: { ...indexedInputs(items), longid: input(this.parseLongIdBlock()) },
+                inputs: { ...indexedInputs(items), longid: input(this.parseTypeConstructorBlock()) },
             });
         }
         if (token.value === "{") {
@@ -2722,9 +2743,19 @@ function renderDerivation(d, grammar = smlGrammar, preserveAssociation = false) 
     const infixPrecedence = (op) => ["o", ":="].includes(op) ? 7 : ["::", "@"].includes(op) ? 9 : ["+", "-", "^"].includes(op) ? 10 : ["*", "/", "div", "mod"].includes(op) ? 11 : 8;
     const expPrecedence = (d) => d.p === "exp.3" ? infixPrecedence(node(d.rhs[1])) : d.p === "exp.2" ? 12 : d.p === "exp.11" ? 4 : d.p === "exp.13" ? 1 : d.p === "exp.14" ? 3 : d.p === "exp.15" ? 2 : ["exp.12", "exp.16", "exp.17", "exp.18", "exp.19"].includes(d.p) ? 0 : 13;
     const typPrecedence = (d) => d.p === "typ.3" ? 0 : d.p === "typ.4" ? 1 : 2;
+    // Module ascription is a single lexical unit only at these grammar-owned
+    // optional sequence sites. Spelling alone must never merge ':' and '>'.
+    const ascriptionSites = {
+        "strbind.0": "rhs/1/present",
+        "fctbind.0": "rhs/6/present",
+        "fctbind.1": "rhs/4/present",
+    };
     const node = (d) => {
         const p = registry.get(d.p), lexical = (grammar.lexical_roles || []).includes(p.lhs);
-        const join = (parts) => parts.filter(x => x !== "").reduce((a, b) => a + (lexical || a.endsWith(":") && b.startsWith(">") ? "" : " ") + b, "").trim();
+        // Concatenation is confined to a declared lexical production. In
+        // particular, a ':' token followed by a symbolic type beginning with
+        // '>' must retain its boundary; spelling is not a token-ownership cue.
+        const join = (parts) => parts.filter(x => x !== "").join(lexical ? "" : " ");
         const child = (e, u, path) => {
             const text = node(u);
             if (!preserveAssociation)
@@ -2759,7 +2790,21 @@ function renderDerivation(d, grammar = smlGrammar, preserveAssociation = false) 
                 case "t":
                 case "c": return u;
                 case "n": return child(e, u, path);
-                case "seq": return join(e.items.map((x, i) => walk(x, u[i], `${path}/${i}`)));
+                case "seq": {
+                    // The three source-owned ascription shorthands assemble ':'
+                    // and the optional '>' before spacing nonlexical units.
+                    // The str.3 row already stores ':>' as one fixed token.
+                    const owned = ascriptionSites[d.p] === path && e.items.length === 3
+                        && e.items[0].kind === "t" && e.items[0].value === ":"
+                        && e.items[1].kind === "opt" && e.items[1].item?.kind === "t"
+                        && e.items[1].item.value === ">" && e.items[2].kind === "n"
+                        && e.items[2].role === "sig";
+                    if (owned) {
+                        const s = readOptionalState(e.items[1], u[1]);
+                        return join([u[0] + (s.present ? s.value : ""), walk(e.items[2], u[2], `${path}/2`)]);
+                    }
+                    return join(e.items.map((x, i) => walk(x, u[i], `${path}/${i}`)));
+                }
                 case "opt": {
                     const state = readOptionalState(e, u);
                     return state.present ? walk(e.item, state.value, `${path}/present`) : "";

@@ -15,6 +15,52 @@ state representations cannot themselves be null. Nullable nonterminal children
 are derivation objects and do not have that collision. Ambiguous old forms and
 malformed tags are rejected; accepted old derivations keep their encoding form.
 
+## Lexical assembly and renderer regressions
+
+The renderer joins nonlexical components with spaces. Character cells are
+concatenated only in declared lexical roles, without trimming their payload.
+The module-ascription shorthand `:` with optional `>` is assembled as one token
+only at the three source-owned sequence sites below, and only when the local
+RHS has fixed `:`, optional fixed `>`, and a `sig` child:
+
+| Production | Sequence path |
+| --- | --- |
+| `strbind.0` | `rhs/1/present` |
+| `fctbind.0` | `rhs/6/present` |
+| `fctbind.1` | `rhs/4/present` |
+
+The `str.3` production already owns a fixed `:>` token. An expression annotation
+such as `1 : >` retains two separate symbolic tokens. The compact importer
+accepts symbolic type constructors, including qualified final components,
+while keeping reserved symbols and alphabetic structure qualifiers distinct.
+
+Run `npm run test:preservation` for exact complete-state codec inverses,
+generated and compact Blockly save/load, and renderer checks. Its dedicated
+renderer cases compare fixed expected spellings and the entire derivation state;
+source regressions include symbolic type annotations, transparent/opaque module
+ascriptions, tuple types, qualified names, literal spacing and invalid names.
+`npm run test:importer-repair` exercises the existing importer repairs and
+negative probes. These bounded checks do not establish universal conformance.
+
+To re-import and export the paper's 42 original corpus sources with the current
+checkout, build the headless bundle with `npm run test:preservation`, then run
+the following with the paper artifact directory as the first argument's prefix:
+
+```
+node test/run_t2bb_fresh_corpus.js ARTIFACT/results/importer_repair/realistic_sml_states.json.gz /tmp/visml-fresh-corpus.json.gz
+python3 ARTIFACT/scripts/audit_token_serialization.py --states /tmp/visml-fresh-corpus.json.gz --output /tmp/visml-fresh-corpus-audit.json
+```
+
+The first command executes the current importer and renderer and checks full
+canonical/factored derivation inverses. The second uses the independent Python
+source-frontier oracle to check the new exports. The corpus runner does not
+materialize all large workspaces for live save/load; that behavior is checked
+by the bounded preservation and generated-backend suites. The audit script's
+boundary text describes its own offline stage. Its use on fresh outputs should
+be accompanied by the corpus runner's execution report.
+
+## Optional-state and generated-backend evidence
+
 The paper artifact's `make optional-refinement VISML_DIR=/path/to/ViSML` runs
 31 generic fixtures, 21 edited states and malformed-state controls with a
 separate Python saved-connection decoder. These current records are separate
