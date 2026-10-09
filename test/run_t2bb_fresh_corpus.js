@@ -20,12 +20,27 @@ if (!input || !output || path.resolve(input) === path.resolve(output)) {
 const digest = v => crypto.createHash('sha256').update(v).digest('hex');
 const raw = fs.readFileSync(input);
 const data = JSON.parse(zlib.gunzipSync(raw).toString('utf8'));
+const backend = m.createBlocklyBackend(data.grammar, 't2bb_fresh_corpus');
+let checkedSaveLoad = 0;
 const cases = data.cases.map((row) => {
     if (row.status !== 'pass') return row;
     // Compare complete source derivations including branch, optional, repetition
     // and lexical state, not only their projections.
     const canonical = m.encodeDerivation(row.expected);
     assert.deepStrictEqual(m.decodeCanonicalWorkspace(canonical), row.expected, row.name);
+    // Exercise live generated Blockly save/load, not just a stored JSON audit.
+    const workspace = new m.Blockly.Workspace();
+    try {
+        m.Blockly.serialization.workspaces.load(backend.encode(row.expected, false), workspace);
+        const saved = backend.save(workspace);
+        assert.deepStrictEqual(backend.decode(saved), row.expected, row.name + '/saved');
+        const reloaded = new m.Blockly.Workspace();
+        try {
+            m.Blockly.serialization.workspaces.load(saved, reloaded);
+            assert.deepStrictEqual(backend.decode(backend.save(reloaded)), row.expected, row.name + '/reloaded');
+        } finally { reloaded.dispose(); }
+        checkedSaveLoad++;
+    } finally { workspace.dispose(); }
     const generated = m.renderDerivation(row.expected, undefined, true);
     return { ...row, generated };
 });
@@ -42,6 +57,7 @@ const report = {
     output_sha256: digest(fs.readFileSync(output)),
     cases: cases.length,
     successful_reexports: cases.filter(x => x.status === 'pass').length,
+    live_generated_backend_save_load: checkedSaveLoad,
     output,
 };
 console.log(JSON.stringify(report, null, 2));
