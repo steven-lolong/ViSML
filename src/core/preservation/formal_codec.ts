@@ -250,7 +250,10 @@ export function renderDerivation(d: Derivation, grammar: Grammar = smlGrammar, p
     const typPrecedence = (d: Derivation) => d.p === "typ.3" ? 0 : d.p === "typ.4" ? 1 : 2;
     const node = (d: Derivation): string => {
         const p = registry.get(d.p), lexical = (grammar.lexical_roles || []).includes(p.lhs);
-        const join = (parts: string[]) => parts.filter(x => x !== "").reduce((a, b) => a + (lexical || a.endsWith(":") && b.startsWith(">") ? "" : " ") + b, "").trim();
+        // Concatenation is confined to a declared lexical production. In
+        // particular, a ':' token followed by a symbolic type beginning with
+        // '>' must retain its boundary; spelling is not a token-ownership cue.
+        const join = (parts: string[]) => parts.filter(x => x !== "").join(lexical ? "" : " ");
         const child = (e: any, u: Derivation, path: string): string => {
             const text = node(u);
             if (!preserveAssociation)
@@ -285,7 +288,21 @@ export function renderDerivation(d: Derivation, grammar: Grammar = smlGrammar, p
                 case "t":
                 case "c": return u;
                 case "n": return child(e, u, path);
-                case "seq": return join(e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`)));
+                case "seq": {
+                    // These three source rows use ':' [ '>'] as a lexical
+                    // shorthand for the single ascription token ':' or ':>'.
+                    // Pack only those fixed, production-owned occurrences.
+                    // The grammar's str.3 row already stores ':>' atomically.
+                    const ascriptionSite = { "strbind.0": "rhs/1/present", "fctbind.0": "rhs/6/present", "fctbind.1": "rhs/4/present" }[p.id];
+                    if (path === ascriptionSite && e.items.length === 3 &&
+                        e.items[0].kind === "t" && e.items[0].value === ":" &&
+                        e.items[1].kind === "opt" && e.items[1].item.kind === "t" && e.items[1].item.value === ">" &&
+                        e.items[2].kind === "n" && e.items[2].role === "sig") {
+                        const opaque = readOptionalState(e.items[1], u[1]);
+                        return join([u[0] + (opaque.present ? opaque.value : ""), walk(e.items[2], u[2], `${path}/2`)]);
+                    }
+                    return join(e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`)));
+                }
                 case "opt": {
                     const state = readOptionalState(e, u);
                     return state.present ? walk(e.item, state.value, `${path}/present`) : "";
