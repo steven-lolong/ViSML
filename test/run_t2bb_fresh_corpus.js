@@ -25,7 +25,7 @@ const data = JSON.parse(zlib.gunzipSync(raw).toString('utf8'));
 // Re-import ORIGINAL SOURCE with the current ViSML grammar rather than silently
 // migrating archived expected trees or weakening the full-state validator.
 const currentGrammar = require('../src/core/preservation/formal_sml_grammar.json');
-const backend = m.createBlocklyBackend(currentGrammar, 't2bb_fresh_corpus');
+const backend = m.createBlocklyBackend(m.factoredGrammar, 't2bb_fresh_corpus');
 let checkedSaveLoad = 0;
 const cases = data.cases.map((row) => {
     if (row.status !== 'pass') return row;
@@ -35,16 +35,18 @@ const cases = data.cases.map((row) => {
     const expected = m.decodeVismlWorkspace(importedState);
     const canonical = m.encodeDerivation(expected);
     assert.deepStrictEqual(m.decodeCanonicalWorkspace(canonical), expected, row.name);
+    const factored = m.factorDerivation(expected);
+    assert.deepStrictEqual(m.unfactorDerivation(factored), expected, row.name + '/unfactor');
     // Exercise live generated Blockly save/load, not just a stored JSON audit.
     const workspace = new m.Blockly.Workspace();
     try {
-        m.Blockly.serialization.workspaces.load(backend.encode(expected, false), workspace);
+        m.Blockly.serialization.workspaces.load(backend.encode(factored, false), workspace);
         const saved = backend.save(workspace);
-        assert.deepStrictEqual(backend.decode(saved), expected, row.name + '/saved');
+        assert.deepStrictEqual(m.unfactorDerivation(backend.decode(saved)), expected, row.name + '/saved');
         const reloaded = new m.Blockly.Workspace();
         try {
             m.Blockly.serialization.workspaces.load(saved, reloaded);
-            assert.deepStrictEqual(backend.decode(backend.save(reloaded)), expected, row.name + '/reloaded');
+            assert.deepStrictEqual(m.unfactorDerivation(backend.decode(backend.save(reloaded))), expected, row.name + '/reloaded');
         } finally { reloaded.dispose(); }
         checkedSaveLoad++;
     } finally { workspace.dispose(); }
