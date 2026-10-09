@@ -248,9 +248,16 @@ export function renderDerivation(d: Derivation, grammar: Grammar = smlGrammar, p
     const infixPrecedence = (op: string) => ["o", ":="].includes(op) ? 7 : ["::", "@"].includes(op) ? 9 : ["+", "-", "^"].includes(op) ? 10 : ["*", "/", "div", "mod"].includes(op) ? 11 : 8;
     const expPrecedence = (d: Derivation): number => d.p === "exp.3" ? infixPrecedence(node(d.rhs[1])) : d.p === "exp.2" ? 12 : d.p === "exp.11" ? 4 : d.p === "exp.13" ? 1 : d.p === "exp.14" ? 3 : d.p === "exp.15" ? 2 : ["exp.12", "exp.16", "exp.17", "exp.18", "exp.19"].includes(d.p) ? 0 : 13;
     const typPrecedence = (d: Derivation) => d.p === "typ.3" ? 0 : d.p === "typ.4" ? 1 : 2;
+    // Module ascription is a single lexical unit only at these grammar-owned
+    // optional sequence sites. Spelling alone must never merge ':' and '>'.
+    const ascriptionSites: Record<string, string> = {
+        "strbind.0": "rhs/1/present",
+        "fctbind.0": "rhs/6/present",
+        "fctbind.1": "rhs/4/present",
+    };
     const node = (d: Derivation): string => {
         const p = registry.get(d.p), lexical = (grammar.lexical_roles || []).includes(p.lhs);
-        const join = (parts: string[]) => parts.filter(x => x !== "").reduce((a, b) => a + (lexical || a.endsWith(":") && b.startsWith(">") ? "" : " ") + b, "").trim();
+        const join = (parts: string[]) => parts.filter(x => x !== "").reduce((a, b) => a + (lexical ? "" : " ") + b, "").trim();
         const child = (e: any, u: Derivation, path: string): string => {
             const text = node(u);
             if (!preserveAssociation)
@@ -285,7 +292,20 @@ export function renderDerivation(d: Derivation, grammar: Grammar = smlGrammar, p
                 case "t":
                 case "c": return u;
                 case "n": return child(e, u, path);
-                case "seq": return join(e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`)));
+                case "seq": {
+                    // The three source-owned ascription shorthands assemble ':'
+                    // and the optional '>' before spacing nonlexical units.
+                    const owned = ascriptionSites[d.p] === path && e.items.length === 3
+                        && e.items[0].kind === "t" && e.items[0].value === ":"
+                        && e.items[1].kind === "opt" && e.items[1].item?.kind === "t"
+                        && e.items[1].item.value === ">" && e.items[2].kind === "n"
+                        && e.items[2].role === "sig";
+                    if (owned) {
+                        const s = readOptionalState(e.items[1], u[1]);
+                        return (s.present ? ":>" : ":") + " " + walk(e.items[2], u[2], `${path}/2`);
+                    }
+                    return join(e.items.map((x: any, i: number) => walk(x, u[i], `${path}/${i}`)));
+                }
                 case "opt": {
                     const state = readOptionalState(e, u);
                     return state.present ? walk(e.item, state.value, `${path}/present`) : "";
