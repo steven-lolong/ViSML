@@ -20,31 +20,38 @@ if (!input || !output || path.resolve(input) === path.resolve(output)) {
 const digest = v => crypto.createHash('sha256').update(v).digest('hex');
 const raw = fs.readFileSync(input);
 const data = JSON.parse(zlib.gunzipSync(raw).toString('utf8'));
-const backend = m.createBlocklyBackend(data.grammar, 't2bb_fresh_corpus');
+// Archived 2026-10-07 derivations have historical auxiliary __args_* rows and
+// null argument shorthands. They are not canonical for the current codec.
+// Re-import ORIGINAL SOURCE with the current ViSML grammar rather than silently
+// migrating archived expected trees or weakening the full-state validator.
+const currentGrammar = require('../src/core/preservation/formal_sml_grammar.json');
+const backend = m.createBlocklyBackend(currentGrammar, 't2bb_fresh_corpus');
 let checkedSaveLoad = 0;
 const cases = data.cases.map((row) => {
     if (row.status !== 'pass') return row;
     // Compare complete source derivations including branch, optional, repetition
     // and lexical state, not only their projections.
-    const canonical = m.encodeDerivation(row.expected);
-    assert.deepStrictEqual(m.decodeCanonicalWorkspace(canonical), row.expected, row.name);
+    const importedState = m.smlToVismlWorkspaceState(row.source);
+    const expected = m.decodeVismlWorkspace(importedState);
+    const canonical = m.encodeDerivation(expected);
+    assert.deepStrictEqual(m.decodeCanonicalWorkspace(canonical), expected, row.name);
     // Exercise live generated Blockly save/load, not just a stored JSON audit.
     const workspace = new m.Blockly.Workspace();
     try {
-        m.Blockly.serialization.workspaces.load(backend.encode(row.expected, false), workspace);
+        m.Blockly.serialization.workspaces.load(backend.encode(expected, false), workspace);
         const saved = backend.save(workspace);
-        assert.deepStrictEqual(backend.decode(saved), row.expected, row.name + '/saved');
+        assert.deepStrictEqual(backend.decode(saved), expected, row.name + '/saved');
         const reloaded = new m.Blockly.Workspace();
         try {
             m.Blockly.serialization.workspaces.load(saved, reloaded);
-            assert.deepStrictEqual(backend.decode(backend.save(reloaded)), row.expected, row.name + '/reloaded');
+            assert.deepStrictEqual(backend.decode(backend.save(reloaded)), expected, row.name + '/reloaded');
         } finally { reloaded.dispose(); }
         checkedSaveLoad++;
     } finally { workspace.dispose(); }
-    const generated = m.renderDerivation(row.expected, undefined, true);
-    return { ...row, generated };
+    const generated = m.renderDerivation(expected, currentGrammar, true);
+    return { ...row, expected, generated };
 });
-const out = { ...data, cases };
+const out = { ...data, grammar: currentGrammar, cases };
 fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
 fs.writeFileSync(output, zlib.gzipSync(Buffer.from(JSON.stringify(out))));
 const git = cp.execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
@@ -57,6 +64,7 @@ const report = {
     output_sha256: digest(fs.readFileSync(output)),
     cases: cases.length,
     successful_reexports: cases.filter(x => x.status === 'pass').length,
+    derivation_source: 're-imported current ViSML from original program text; archived derivations left unchanged',
     live_generated_backend_save_load: checkedSaveLoad,
     output,
 };
